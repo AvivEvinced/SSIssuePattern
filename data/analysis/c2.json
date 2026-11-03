@@ -1,0 +1,519 @@
+[
+ {
+  "ticket": "#243",
+  "gt_class": "2",
+  "client": "Charter (SpectrumEnterprise.net)",
+  "summary": "Login property crawled 0 pages and produced no results since Dec 11.",
+  "sub_issue": "login_selector_stale",
+  "mechanism": "Customer's login page changed ownership/markup; configured username/password/submit selectors no longer matched, so login failed and nothing was discovered.",
+  "resolution": "Customer updated login form selectors in property settings; next crawl succeeded.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [
+   "login form failed",
+   "No element found for selector"
+  ],
+  "ui_signals": [
+   "0 pages crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#301",
+  "gt_class": "2",
+  "client": "Sky",
+  "summary": "Regex-filtered crawl to capture Shorthand article pages returned no pages (expected at least 4).",
+  "sub_issue": "regex_excludes_all",
+  "mechanism": "Include/exclude regex on property did not match the target /shorthand URLs (never documented in thread; resolved via Slack).",
+  "resolution": "Resolved via Slack (details not in ticket); presumably regex corrected.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [
+   "final URL not included in whitelist"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Thin ticket; partly a regex how-to question (could be class 5)."
+ },
+ {
+  "ticket": "#391",
+  "gt_class": "2",
+  "client": "Sky Italia",
+  "summary": "Two login properties (login.apparound.com, scegli.sky.it) and later toolservice.sky.it crawl but scan says 'no URL to scan'.",
+  "sub_issue": "login_2fa_unsupported",
+  "mechanism": "Dev logs showed login failed on both sites; apparound uses Microsoft 2FA, scegli.sky.it login invalid from scanner (2FA / possible geo-restriction since scanner runs from US); third site suspected geo or bot protection.",
+  "resolution": "No fix: Site Scanner cannot handle 2FA; recommended WFA / Web SDK; asked customer to check geo-restriction or allowlist scanner IPs.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "login failed",
+   "login invalid"
+  ],
+  "ui_signals": [
+   "No URLs to scan. Run a crawl in order to create the property URLs.",
+   "no URL to scan"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#447",
+  "gt_class": "2",
+  "client": "Sky (careers.sky.com/de)",
+  "summary": "Regex-filtered property (/de pages only) returned 0 pages since Dec 1; manual re-run gave 44 pages, far fewer than before.",
+  "sub_issue": "unknown",
+  "mechanism": "Never established; support suspected regex/filter-based crawls; closed due to age.",
+  "resolution": "Closed due to age, no fix documented.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Manual rerun returned 44 pages, so partly class 4 (low page count)."
+ },
+ {
+  "ticket": "#649",
+  "gt_class": "2",
+  "client": "Sky (skyx.sky.at)",
+  "summary": "Property had not had a successful crawl/scan since Dec 2024; crawl returned no pages though site live.",
+  "sub_issue": "unknown",
+  "mechanism": "Not documented; engineering 'fixed the issue' on backend (jira_escalated tag, no key in thread).",
+  "resolution": "Engineering fix on Evinced side; crawls resumed.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#926",
+  "gt_class": "2",
+  "client": "Optum (OBCP Salt Lake County)",
+  "summary": "Scheduled scan produced no report; manual scan said no pages to scan; crawl returned 0 pages.",
+  "sub_issue": "domain_whitelist_mismatch",
+  "mechanism": "Allowed-domains whitelist configuration on the property was excluding all domains, so every discovered URL was dropped.",
+  "resolution": "Solutions engineer fixed allowed-domains whitelist config; crawl returned 7 URLs (others now 404/redirect after site redesign).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "final URL not included in whitelist"
+  ],
+  "ui_signals": [
+   "no pages to scan",
+   "0 pages crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#944",
+  "gt_class": "2",
+  "client": "Fitch Learning (via Hearst)",
+  "summary": "New property www.cqfinstitute.org crawled 0 pages; scan errored. IP allowlisting attempted with no effect.",
+  "sub_issue": "domain_whitelist_mismatch",
+  "mechanism": "www vs non-www: seed redirected (301) to a host not listed in property domains, so final URLs were rejected by the domain whitelist.",
+  "resolution": "Evinced SE added the www/non-www domain variant to property domains, tested 10-page crawl, then raised max pages; scan succeeded.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "301",
+   "final URL not included in whitelist"
+  ],
+  "ui_signals": [
+   "0 pages crawled",
+   "No URLs to scan"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#997",
+  "gt_class": "2",
+  "client": "Evernorth (myCigna demo)",
+  "summary": "Login property stopped crawling post-login pages for several weeks although credentials work manually.",
+  "sub_issue": "login_flow_failed",
+  "mechanism": "Not established in ticket (handled in separate email thread).",
+  "resolution": "Closed in favour of email thread led by SE; no details.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1033",
+  "gt_class": "2",
+  "client": "Ulta Beauty",
+  "summary": "Homepage property that worked for months suddenly reports 0 pages crawled.",
+  "sub_issue": "unknown",
+  "mechanism": "Not established; crawler failed for homepage.",
+  "resolution": "Workaround: SE created a List-mode property with just the homepage (bypasses crawler); scan succeeded.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [
+   "0 pages crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1119",
+  "gt_class": "2",
+  "client": "Capital One (Dealer Navigator)",
+  "summary": "Login property crawl finishes but 0 URLs, scan won't start.",
+  "sub_issue": "login_2fa_unsupported",
+  "mechanism": "Only the login page was configured as seed (no post-login landing seed) and, after login, site requires 2FA access token which Site Scanner cannot handle.",
+  "resolution": "Advised to add post-login landing URL as seed and use a user without 2FA; customer never completed; closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "login form failed"
+  ],
+  "ui_signals": [
+   "no URLs",
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1324",
+  "gt_class": "2",
+  "client": "Zalando",
+  "summary": "Property with custom (Evinced-configured) authentication always returned 0 pages; after crawler fix, scans then failed.",
+  "sub_issue": "login_selector_not_found",
+  "mechanism": "Custom login interaction failed: password field selector not found on the Zalando SSO page (multi-step login), so crawler never authenticated; crawler-side fix deployed (CS-2257), scan side hit same selector error until fixed.",
+  "resolution": "Crawler fix deployed under CS-2257; scanner login config fixed afterwards; scans succeeded.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "encountered error while running a function with timeout. retry count: 1",
+   "No element found for selector: #password",
+   "\"type\":\"TYPE_TEXT\",\"elementSelector\"",
+   "CORS errors (noise)",
+   "csv worker error (unrelated)"
+  ],
+  "ui_signals": [
+   "0 pages",
+   "Failed"
+  ],
+  "jira": [
+   "CS-2257"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1607",
+  "gt_class": "2",
+  "client": "Charter (SPECNET)",
+  "summary": "Several login properties that previously worked now crawl 0 pages despite valid creds/selectors.",
+  "sub_issue": "login_dynamic_session_url",
+  "mechanism": "Sign-in starts on a unique URL with session data (id.spectrum.net<SESSION_DATA>); the stored login URL aged out, so the simple form login failed (first crawl only worked while session data was fresh).",
+  "resolution": "Support configured advanced multi-interaction login on backend in a new property; Jira CS-2347/CS-2370; second property self-fixed by customer.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "login form failed",
+   "multiple interactions"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [
+   "CS-2347",
+   "CS-2370"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2132",
+  "gt_class": "2",
+  "client": "Charter (SPECNET)",
+  "summary": "After editing and reverting the regex, crawl still found 0 pages.",
+  "sub_issue": "login_selector_stale",
+  "mechanism": "Site login username/password selectors changed (plus an additional login-flow blocker), so backend login flow failed; not a regex issue.",
+  "resolution": "Support updated backend login flow with stable selectors; crawl and scan succeeded.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "No element found for selector"
+  ],
+  "ui_signals": [
+   "0 pages found"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2153",
+  "gt_class": "2",
+  "client": "Bell Canada (totalconnect.bell.ca)",
+  "summary": "Login property crawler can't get past authentication; 0 pages indexed.",
+  "sub_issue": "login_flow_failed",
+  "mechanism": "Multi-step login (username and password on separate pages) needed custom interactions; interactions hit 300s function timeout. After login, an extra regex rule (.*/belltotalconnect.*) intersected with domain rule narrowing scope, and SPA nav links are javascript:void(0) so crawler only found few pages.",
+  "resolution": "Support configured login interactions, dropped the extra path regex, and added URLs explicitly (List mode / seed list); customer confirmed.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "encountered error while running a function with timeout. retry count: 0",
+   "Function: bound handleRequest execution took more than 300000 miliseconds",
+   "href=\"javascript:void(0);\""
+  ],
+  "ui_signals": [
+   "0 pages",
+   "creds are incorrect"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2154",
+  "gt_class": "2",
+  "client": "Bell Canada (webmail.en.bellnet.ca)",
+  "summary": "Login property crawled 0 pages; customer suspected multi-step login.",
+  "sub_issue": "spa_fragment_urls_grouped",
+  "mechanism": "Login configured by support; the SPA's post-login routes are URL fragments which the scanner ignores/groups as the same page by default, so only the landing page was discovered.",
+  "resolution": "Configured login on backend; changed Grouping rules to 'as different pages' and unchecked 'Ignoring URL fragments'; crawl succeeded.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2167",
+  "gt_class": "2",
+  "client": "Bell Canada (myaccount.luckymobile.ca)",
+  "summary": "Login property crawl 0 pages; credentials correct.",
+  "sub_issue": "login_2fa_unsupported",
+  "mechanism": "Login form failed; 2FA inconsistently triggered after login (and cookie-acceptance banner issue), preventing access to post-login pages.",
+  "resolution": "Asked customer to whitelist scanner static IPs to avoid 2FA trigger; cookie acceptance to be fixed; pending ~2 months, no confirmation.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "login form failed"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2172",
+  "gt_class": "2",
+  "client": "Verizon (PROD_TP_Contact Us)",
+  "summary": "New property with two Contact Us seeds returned 0 pages.",
+  "sub_issue": "regex_excludes_all",
+  "mechanism": "Include regex ^https?://www\\.verizon\\.com/contactus.* matched neither seed URL, so all discovered URLs were filtered out. Secondary: server-side A/B redirect means only one variant per session; separate property had crawler trap from relative href='banner' in Transcend cookie consent modal (CS-2628).",
+  "resolution": "Support corrected regex to ^https?://www\\.verizon\\.com/.*contact-?us; recommended List mode; A/B explained as unfixable; for trap: exclude regex for /banner/ + Consent-O-Matic rule (CS-2628).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "final URL not included in whitelist",
+   "browserExtensions.config",
+   "urlSetConfiguration.discoveryConfiguration",
+   "maxPages"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [
+   "CS-2628"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Thread also covers a class-4 crawler-trap issue on another property."
+ },
+ {
+  "ticket": "#2239",
+  "gt_class": "2",
+  "client": "Bell Canada (my-rewards.ca, via Quantrics)",
+  "summary": "Login property crawled 0 pages despite correct login details.",
+  "sub_issue": "login_flow_failed",
+  "mechanism": "Login configuration not working (not detailed); support reconfigured login with the password.",
+  "resolution": "Support fixed login config; crawl/scan succeeded (1 failed page).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "login form failed"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2371",
+  "gt_class": "2",
+  "client": "Bell Canada (bell.jasperwireless.com)",
+  "summary": "Login property can't pass authentication; 0 pages; no unique selector for login button.",
+  "sub_issue": "login_selector_wrong",
+  "mechanism": "Login button selector configured incorrectly (no id/class on button).",
+  "resolution": "Support set a full CSS path selector for the submit input and taught customer DevTools 'copy selector'; crawl succeeded.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "No element found for selector"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2783",
+  "gt_class": "2",
+  "client": "Bell Canada (multiple onboarding properties)",
+  "summary": "Many new no-login properties (glentel, sphere-media, sdktek, protexxa, mtsmail, Bell Cyber, radio sites) crawled 0 pages.",
+  "sub_issue": "domain_whitelist_mismatch",
+  "mechanism": "Seeds return 200 but every discovered page dropped with 'final URL not included in whitelist': www/non-www or locale redirect not covered by include regex, dynamic query-string login redirect, or whitelist pointing elsewhere. Other sub-cases: Bell Cyber seeds got HTTP 500 (suspected bot protection) / List mode with one URL; sphere-media FR pages redirected to /en/ by browser-language detection (Accept-Language override in extraHeaders did not stick; CS-2742 won't fix).",
+  "resolution": "Customer broadened Include Domain/Regex to match final URLs, added seeds, switched to Crawl mode; mtsmail used List mode; French locale unresolved (site-side change needed).",
+  "resolution_type": "customer_config_change",
+  "log_signals": [
+   "final URL not included in whitelist",
+   "final url was already visited",
+   "HTTP 500 on seed URL",
+   "extraHeaders: null",
+   "Accept-Language"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [
+   "CS-2742"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2851",
+  "gt_class": "2",
+  "client": "Optum (VitalPoint QA)",
+  "summary": "Authenticated Angular app crawl completes with 0 pages.",
+  "sub_issue": "ip_not_whitelisted_internal_site",
+  "mechanism": "Internal/restricted site not reachable from scanner egress IPs (not whitelisted); also SPA javascript:void(0) navigation limits discovery.",
+  "resolution": "Asked customer to whitelist 5 scanner NAT IPs; customer pivoted to WFA licensing; no confirmation of crawl fix.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "href=\"javascript:void(0)\""
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2881",
+  "gt_class": "2",
+  "client": "Lufthansa (LHG B2B DE-de staging)",
+  "summary": "Crawl of staging site returns no results.",
+  "sub_issue": "redirect_loop_too_many_redirects",
+  "mechanism": "Staging URL (and QA URL) returns endless 302 redirects to scanner IPs ('Too many redirects'); earlier crawl hit Cloudflare bot protection page. Customer claims IPs whitelisted.",
+  "resolution": "Asked customer to confirm correct URL/whitelisting; awaiting customer; closed without fix.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "302",
+   "Too many redirects",
+   "ERR_TOO_MANY_REDIRECTS",
+   "Cloudflare"
+  ],
+  "ui_signals": [
+   "no results",
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3198",
+  "gt_class": "2",
+  "client": "Chick-fil-A",
+  "summary": "Two properties with multi-interactions crawled 0 pages (worked previously).",
+  "sub_issue": "interaction_selector_stale",
+  "mechanism": "CLICK_ELEMENT interaction selector built on styled-components hash classes (sc-...) that changed on site redeploy, so location form never submitted and discovery ended DONE with 0 URLs; interaction timeoutSeconds (30/40) below the summed waits. (Initial Cloudflare 403 hypothesis was retracted.)",
+  "resolution": "Support changed selector to 'main form button[type=\"submit\"]' and raised timeoutSeconds to 120; crawl found 5,000 pages; scheduled monthly scan.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "discovery finished DONE with 0 URLs",
+   "CLICK_ELEMENT",
+   "timeoutSeconds",
+   "maxPagesCount",
+   "useExternalScraper",
+   "403 Sorry, you have been blocked"
+  ],
+  "ui_signals": [
+   "0 pages crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3340",
+  "gt_class": "2",
+  "client": "Capital One (investor.capitalone.com)",
+  "summary": "Property recently started returning 0 pages on crawl.",
+  "sub_issue": "bot_protection_akamai_old_user_agent",
+  "mechanism": "Akamai blocked/tarpitted crawler on seed page due to rule blocking user-agent < Chrome 130; scanner UA was Chrome 65.",
+  "resolution": "Updated property user agent to modern Chrome in Retool; crawl found 50+ pages; CS-2856 to update UA for all properties; also asked for IP allowlist.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "Akamai",
+   "blocked on seed page",
+   "Chrome/65",
+   "user-agent",
+   "--user-agent"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [
+   "CS-2856"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3420",
+  "gt_class": "2",
+  "client": "Bell Canada (community.environicsanalytics.com Zendesk)",
+  "summary": "Crawl of Zendesk help center found only home page; scanner stuck on Cloudflare challenge.",
+  "sub_issue": "bot_protection_cloudflare_challenge",
+  "mechanism": "Cloudflare Bot Management (Zendesk-hosted) challenged scanner traffic; crawler only saw the challenge page.",
+  "resolution": "Set --user-agent=zendesk-bot in puppeteer-args for both url-set-configuration.browser.puppeteer-args and scan-configuration.browser.puppeteer-args via Retool; crawl/scan succeeded.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "url-set-configuration.browser.puppeteer-args",
+   "scan-configuration.browser.puppeteer-args",
+   "--user-agent",
+   "Cloudflare challenge",
+   "cf-ray",
+   "robots.txt"
+  ],
+  "ui_signals": [
+   "1 page crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Crawl found 1 page (challenge page), not strictly 0; borderline class 4."
+ }
+]

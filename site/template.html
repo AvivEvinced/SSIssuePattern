@@ -1,0 +1,251 @@
+<title>Site Scanner Issue Taxonomy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: a single working column — header, view switch, tree with connector rails, glossary. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b2230; --muted:#5d6779; --line:#d5dae3; --accent:#1f5fbf; --accent-soft:#e6eefb;
+  --yes:#1d7a4d; --yes-bg:#e3f4ea; --maybe:#9a6a00; --maybe-bg:#fbf0d6; --no:#6b7280; --no-bg:#eceef2;
+  --c1:#c2410c; --c2:#b91c1c; --c3:#7c3aed; --c4:#0e7490; --c5:#64748b;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11151c; --surface:#181d26; --fg:#e4e8ef; --muted:#97a1b3; --line:#2c3442; --accent:#7aa7ef; --accent-soft:#1d2b44;
+  --yes:#5fcf95; --yes-bg:#163126; --maybe:#e7b54a; --maybe-bg:#33290f; --no:#a3aab8; --no-bg:#262c37;
+  --c1:#fb8a4f; --c2:#f87171; --c3:#b49af7; --c4:#4cc3dc; --c5:#a0aec0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151c; --surface:#181d26; --fg:#e4e8ef; --muted:#97a1b3; --line:#2c3442; --accent:#7aa7ef; --accent-soft:#1d2b44;
+  --yes:#5fcf95; --yes-bg:#163126; --maybe:#e7b54a; --maybe-bg:#33290f; --no:#a3aab8; --no-bg:#262c37;
+  --c1:#fb8a4f; --c2:#f87171; --c3:#b49af7; --c4:#4cc3dc; --c5:#a0aec0; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1040px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--f-display);font-size:30px;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:21px;margin:0 0 4px;text-wrap:balance}
+.lede{color:var(--muted);max-width:68ch;margin:6px 0 0}
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:13px;color:var(--muted);margin-top:12px}
+.stats b{color:var(--fg);font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;font-weight:500;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:8px 12px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tabs button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:999px;white-space:nowrap;letter-spacing:.02em}
+.det-yes{background:var(--yes-bg);color:var(--yes)} .det-maybe{background:var(--maybe-bg);color:var(--maybe)} .det-no{background:var(--no-bg);color:var(--no)}
+.gt{font-family:var(--f-mono);font-size:11px;padding:0 5px;border-radius:4px;border:1px solid currentColor;font-variant-numeric:tabular-nums}
+.gt1{color:var(--c1)} .gt2{color:var(--c2)} .gt3{color:var(--c3)} .gt4{color:var(--c4)} .gt5{color:var(--c5)}
+/* tree */
+.tree{display:flex;flex-direction:column;gap:10px}
+.root{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+details.fam{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+details.fam>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:baseline}
+details.fam>summary::-webkit-details-marker,details.sub>summary::-webkit-details-marker{display:none}
+.fid{font-family:var(--f-mono);font-weight:500;color:var(--accent);font-size:14px}
+.fname{font-weight:600;font-size:16px}
+.fcount{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.fdef{grid-column:2/4;color:var(--muted);font-size:13.5px}
+.bar{grid-column:2/4;display:flex;height:6px;border-radius:3px;overflow:hidden;background:var(--no-bg);max-width:360px}
+.bar span{display:block;height:100%}
+.bar .b1{background:var(--c1)} .bar .b2{background:var(--c2)} .bar .b3{background:var(--c3)} .bar .b4{background:var(--c4)} .bar .b5{background:var(--c5)}
+.subs{margin:0 14px 14px 24px;border-left:2px solid var(--line);display:flex;flex-direction:column}
+details.sub{position:relative;padding-left:18px}
+details.sub::before{content:"";position:absolute;left:0;top:19px;width:12px;border-top:2px solid var(--line)}
+details.sub>summary{list-style:none;cursor:pointer;padding:9px 0;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.sid{font-family:var(--f-mono);font-size:12.5px;color:var(--accent);min-width:22px}
+.sname{font-weight:500}
+.scount{font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.gts{display:inline-flex;gap:3px}
+.body{padding:2px 0 14px 32px;display:grid;grid-template-columns:120px 1fr;gap:6px 14px;font-size:13.5px}
+.body dt{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+.body dd{margin:0;min-width:0}
+.sig{font-family:var(--f-mono);font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 8px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.tix{font-family:var(--f-mono);font-size:12px;color:var(--muted);word-break:break-word}
+.raw{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);word-break:break-word}
+/* class view */
+.cls-head{display:flex;gap:10px;align-items:baseline}
+.cls-sub{display:grid;grid-template-columns:44px 1fr 56px;gap:8px;align-items:center;padding:5px 0;font-size:13.5px}
+.cls-sub .meter{height:8px;background:var(--accent);border-radius:2px;opacity:.75}
+.cls-sub .n{font-family:var(--f-mono);font-size:12px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+.cls-sub .lbl{min-width:0}
+.cls-sub .fam-tag{font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+/* flow */
+.flow{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto}
+.flow pre.mermaid{margin:0;background:transparent}
+.note{font-size:13px;color:var(--muted);max-width:75ch}
+/* glossary */
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:4px 28px}
+.gloss div{padding:8px 0;border-bottom:1px solid var(--line);min-width:0}
+.gloss dt{font-weight:600;font-size:14px}
+.gloss dt code{font-family:var(--f-mono);font-weight:500;font-size:12.5px;color:var(--accent)}
+.gloss dd{margin:2px 0 0;color:var(--muted);font-size:13.5px}
+.gl-sec{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin:18px 0 2px;grid-column:1/-1}
+@media (max-width:560px){.body{grid-template-columns:1fr;padding-left:8px}.body dt{padding-top:6px}.subs{margin-left:10px}h1{font-size:25px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Site Scanner Issue Taxonomy</h1>
+    <p class="lede">Every ticket in the “Site Scanner Ticket Classification” ground-truth sheet, re-read from its Zendesk thread and split into issue families (by root cause) and sub-issues (by mechanism and fix path). Detectability shows whether a Coralogix log pattern could plausibly flag the sub-issue.</p>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-tree" aria-selected="true" data-view="tree">Root-cause tree</button>
+    <button role="tab" id="tab-class" aria-selected="false" data-view="class">By GT symptom class</button>
+    <button role="tab" id="tab-flow" aria-selected="false" data-view="flow">Investigator flow</button>
+    <button role="tab" id="tab-gloss" aria-selected="false" data-view="gloss">Glossary</button>
+  </nav>
+
+  <section id="view-tree">
+    <div class="legend">
+      <span>Log detectability:</span><span class="chip det-yes">yes</span><span class="chip det-maybe">maybe</span><span class="chip det-no">no</span>
+      <span style="margin-left:8px">GT class:</span>
+      <span class="gt gt1">1</span>scan failure <span class="gt gt2">2</span>0 pages <span class="gt gt3">3</span>failed pages <span class="gt gt4">4</span>crawl irregularity <span class="gt gt5">5</span>other
+    </div>
+    <div class="tree" id="tree" style="margin-top:14px"></div>
+  </section>
+
+  <section id="view-class" hidden>
+    <p class="note">The GT classes describe the symptom the customer saw. The same root cause shows up under several symptoms (for example, a WAF block appears as 0 pages, failed pages or a low page count), so the investigator should map symptom → candidate sub-issues → log check.</p>
+    <div id="classes" style="display:flex;flex-direction:column;gap:22px;margin-top:12px"></div>
+  </section>
+
+  <section id="view-flow" hidden>
+    <p class="note">The decision path the investigator can follow for a crawl or scan complaint. Each leaf is a sub-issue ID from the tree. Run the cheapest discriminating check first.</p>
+    <div class="flow"><pre class="mermaid">
+flowchart TD
+  S([Ticket / alert on a property]) --> Q0{Many tenants failing<br/>at the same time?}
+  Q0 -- yes --> E1[E1 Platform outage]
+  Q0 -- no --> Q1{Did the crawl or scan<br/>start on schedule?}
+  Q1 -- no run --> Q1a{Job log?}
+  Q1a -- "no JobScheduler entry" --> E2[E2 Scheduler bug]
+  Q1a -- "Failed running create crawl request" --> E3[E3 Pipeline dispatch]
+  Q1a -- LimitExceededException --> E4[E4 Tenant limits]
+  Q1 -- started --> Q2{Seed URL HTTP result}
+  Q2 -- "403 / 405" --> Q2a{Egress IP in NAT pool?}
+  Q2a -- no --> A4[A4 Static IP not enabled]
+  Q2a -- yes --> A1[A1 WAF hard block]
+  Q2 -- 429 --> A5[A5 Rate limiting]
+  Q2 -- "302 loop" --> A8[A8 Redirect loop]
+  Q2 -- "cert error" --> A9[A9 TLS error]
+  Q2 -- "200" --> Q3{Login configured?}
+  Q3 -- yes --> Q3a{Login step result}
+  Q3a -- "No element found for selector" --> B2[B2 Selector mismatch]
+  Q3a -- "final URL = MFA page" --> B1[B1 MFA / 2FA]
+  Q3a -- "wrong password" --> B3[B3 Stale credentials]
+  Q3a -- "handleRequest > 300000 ms" --> B4[B4 Multi-step login config]
+  Q3a -- "ok, later 401 / back on login page" --> B5[B5 Session lost]
+  Q3 -- no / ok --> Q4{Discovered URL count}
+  Q4 -- "0, 'final url not included in whitelist'" --> C2[C2 Redirect outside whitelist]
+  Q4 -- "0, regex filters all" --> C1[C1 Regex matches nothing]
+  Q4 -- "~1, challenge page title" --> A2[A2 Bot challenge]
+  Q4 -- "~1, no errors" --> C6[C6 JS-only navigation]
+  Q4 -- "swings run to run" --> A5
+  Q4 -- "normal" --> Q5{Per-page failures?}
+  Q5 -- "gotoURL > 40000 ms / page-ready timeout" --> D1[D1 Heavy page timeout]
+  Q5 -- FAILED_TO_RUN_ENGINES --> D2[D2 Engine crash]
+  Q5 -- "200 but block content / empty HTML" --> A3[A3 Soft block]
+  Q5 -- "Redirected to /500 or /404" --> C4[C4 Error-page redirect]
+</pre></div>
+  </section>
+
+  <section id="view-gloss" hidden>
+    <dl class="gloss" id="gloss"></dl>
+  </section>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const total = D.families.reduce((a,f)=>a+f.count,0);
+const subs = D.families.flatMap(f=>f.subs.map(s=>({...s,fam:f})));
+const det = {yes:0,maybe:0,no:0}; subs.forEach(s=>det[s.detectability]+=s.count);
+const incident = D.families.filter(f=>'ABCDE'.includes(f.id)).reduce((a,f)=>a+f.count,0);
+document.getElementById('stats').innerHTML =
+  `<span><b>${total}</b> tickets</span><span><b>${D.families.length}</b> families</span><span><b>${subs.length}</b> sub-issues</span>`+
+  `<span><b>${incident}</b> crawl/scan/platform incidents (A–E)</span><span><b>${subs.filter(s=>s.detectability==='yes').length}</b> sub-issues with a clear log signature</span>`;
+
+const gtChips = gt => '<span class="gts">'+['1','2','3','4','5'].filter(k=>gt[k]).map(k=>`<span class="gt gt${k}" title="GT class ${k}: ${esc(D.gt_classes[k])}">${k}×${gt[k]}</span>`).join('')+'</span>';
+const fmtRes = r => Object.entries(r).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k.replace(/_/g,' ')} ${v}`).join(' · ');
+
+document.getElementById('tree').innerHTML = '<div class="root">Site Scanner ticket</div>' + D.families.map(f=>{
+  const g={}; f.subs.forEach(s=>Object.entries(s.gt).forEach(([k,v])=>g[k]=(g[k]||0)+v));
+  const bar = ['1','2','3','4','5'].map(k=>g[k]?`<span class="b${k}" style="width:${g[k]/f.count*100}%" title="GT ${k}: ${g[k]}"></span>`:'').join('');
+  return `<details class="fam" ${'ABCDE'.includes(f.id)?'open':''}><summary>
+    <span class="fid">${f.id}</span><span class="fname">${esc(f.name)}</span><span class="fcount">${f.count} tickets</span>
+    <span class="fdef">${esc(f.definition)}</span><span class="bar">${bar}</span></summary>
+    <div class="subs">${f.subs.map(s=>`<details class="sub"><summary>
+      <span class="sid">${s.id}</span><span class="sname">${esc(s.name)}</span>
+      <span class="chip det-${s.detectability}">${s.detectability}</span><span class="scount">${s.count}</span>${gtChips(s.gt)}</summary>
+      <dl class="body">
+        <dt>Mechanism</dt><dd>${esc(s.definition)}</dd>
+        <dt>Typical fix</dt><dd>${esc(s.fix)}</dd>
+        <dt>Signature</dt><dd><div class="sig">${esc(s.signature)}</div></dd>
+        <dt>Resolution</dt><dd>${esc(fmtRes(s.resolution))}</dd>
+        <dt>Tickets</dt><dd class="tix">${s.tickets.join(' ')}</dd>
+        <dt>Raw labels</dt><dd class="raw">${s.raw_labels.join(', ')}</dd>
+      </dl></details>`).join('')}</div></details>`;
+}).join('');
+
+document.getElementById('classes').innerHTML = ['1','2','3','4','5'].map(k=>{
+  const rows = subs.filter(s=>s.gt[k]).sort((a,b)=>b.gt[k]-a.gt[k]);
+  const n = rows.reduce((a,s)=>a+s.gt[k],0), max = Math.max(...rows.map(s=>s.gt[k]));
+  return `<div><div class="cls-head"><span class="gt gt${k}">${k}</span><h2>${esc(D.gt_classes[k])}</h2><span class="fcount">${n} tickets · ${rows.length} sub-issues</span></div>
+    ${rows.map(s=>`<div class="cls-sub"><span class="sid">${s.id}</span><span class="lbl">${esc(s.name)} <span class="fam-tag">· ${esc(s.fam.name)}</span> <span class="chip det-${s.detectability}">${s.detectability}</span></span><span class="n">${s.gt[k]}</span>
+      <span></span><span class="meter" style="width:${s.gt[k]/max*100}%"></span><span></span></div>`).join('')}</div>`;
+}).join('');
+
+const G = [
+ ["Site Scanner objects",[
+  ["Property","A configured scan target in Site Scanner: seed URLs, crawl scope (domains, include/exclude regex), login settings, schedule and engine options. Identified by propertyId."],
+  ["Seed URL","The starting URL(s) of a crawl. If a seed redirects, the final URL must still be inside the allowed scope."],
+  ["Crawl (URL set / discovery)","Phase 1: the crawler follows links from the seeds and builds the URL set of pages to scan. Logged as url-set / crawlId; runs on scrape-server workers."],
+  ["Scan","Phase 2: each URL in the set is opened in a browser and analysed by the accessibility engines. Logged by scanId; state NEW → RUNNING → DONE/FAILED."],
+  ["Crawl mode vs List mode","Crawl mode discovers pages by following links; List mode scans exactly the URLs provided. List mode is the workaround for JS-only navigation and odd seeds."],
+  ["Failed page","A URL from the set that couldn't be opened or analysed (timeout, block, engine error). The scan still succeeds overall (GT class 3)."],
+  ["Include regex / domain whitelist","Scope filters on discovered URLs. Log line: “not including url in result url set. reason: final url not included in whitelist”."],
+  ["Grouping rules","Rules that merge URLs into one logical page (ignore fragments/params). Too aggressive → page count collapses; too loose → duplicates."],
+  ["View","A saved filter over scan results. Heavy Views (large regexes) can make the UI time out with “Error loading scan”."],
+  ["maxPagesCount","Per-property cap on pages crawled or scanned."],
+ ]],
+ ["Network & access",[
+  ["Static egress IPs (scan-pool-nat1..5)","The 5 fixed NAT IPs that scanner traffic leaves from when use-static-ip is on. Customers allowlist these IPs."],
+  ["use-static-ip","Tenant or property flag (scan.use-static-ip, url-set.use-static-ip), set in Retool, that routes traffic through the NAT pool. A property override can silently turn it off."],
+  ["Speed tier (fast / regular / slow)","Crawl concurrency profile. The fast tier runs on Cloud Functions with non-static IPs; slow is used for rate-limited sites."],
+  ["Custom header","A fixed request header added to scanner traffic so the customer's WAF lets it through (e.g. a bypass token)."],
+  ["WAF / bot protection","Cloudflare, Akamai, DataDome, PerimeterX and similar. Blocks with 403/405, a challenge page, or a soft block (200 with a block page)."],
+  ["Soft block","A block or error page served with HTTP 200. No error is logged, so it needs content heuristics to detect."],
+  ["puppeteer-args","Browser launch arguments on the property (url-set-configuration / scan-configuration.browser.puppeteer-args), e.g. --user-agent override."],
+ ]],
+ ["Login",[
+  ["Login form config","Simple login: URL + username/password selectors + credentials."],
+  ["Multiple Interactions","Backend login script (scraper.user-interaction.configuration) for multi-step, modal or SSO logins: TYPE_TEXT, CLICK_ELEMENT and so on, each with timeoutSeconds."],
+  ["Selector mismatch","The configured CSS selector doesn't match the live page. Log: “No element found for selector: …”."],
+  ["Session loss","The login succeeded, but the session ended during the crawl (parallel workers, logout URLs crawled, concurrent logins)."],
+ ]],
+ ["Services & logs",[
+  ["admin-server","Backend orchestrating properties, jobs and scans (ScanService.kt, JobService, JobScheduler, UrlSetService). Main source of state-change logs."],
+  ["scrape-server","Crawl/scrape workers. Its DB pool (HikariPool) exhaustion caused refused crawl dispatches."],
+  ["front-server","API layer for the UI; times out stuck scans (“passed its timeout, marking it as FAILED”)."],
+  ["Analysis engines","Accessibility engines run per page (EvincedEnginesPlugin / axe). Errors surface as FAILED_TO_RUN_ENGINES."],
+  ["Retool","Internal admin tool support uses for tenant/property flags, users and limits."],
+  ["waitForPageReadySeconds / gotoURL timeout","Per-page waits (default 20s ready, 40s navigation) before a page is marked failed."],
+ ]],
+ ["This taxonomy",[
+  ["GT class","The symptom class from the ground-truth sheet (1 scan failure, 2 zero pages, 3 failed pages, 4 crawl irregularity, 5 other)."],
+  ["Issue family","Level 1 of the taxonomy: the root-cause domain (A–H). A–E are crawl, scan and platform incidents; F–H are product, findings and account topics."],
+  ["Sub-issue","Level 2: one mechanism with one typical fix path. This is the unit a Coralogix pattern should detect and the investigator should recommend a fix for."],
+  ["Detectability","yes: a distinctive log line exists in the thread. maybe: detectable through a combination or heuristic. no: not visible in logs."],
+  ["Resolution type","How the ticket was closed: customer config change, Evinced config change, customer-side allowlist, product bug fix, infra fix, workaround, explanation only, feature request, unresolved."],
+ ]],
+];
+document.getElementById('gloss').innerHTML = G.map(([sec,items])=>`<div class="gl-sec">${esc(sec)}</div>`+items.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('')).join('');
+
+const views=['tree','class','flow','gloss'];
+function show(v){ if(!views.includes(v)) v='tree';
+  views.forEach(x=>{document.getElementById('view-'+x).hidden = x!==v; document.getElementById('tab-'+x).setAttribute('aria-selected', x===v);});}
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{location.hash=b.dataset.view;}));
+window.addEventListener('hashchange',()=>show(location.hash.slice(1)));
+show(location.hash.slice(1));
+</script>

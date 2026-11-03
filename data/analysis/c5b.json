@@ -1,0 +1,819 @@
+[
+ {
+  "ticket": "#1054",
+  "gt_class": "5",
+  "client": "Hearst (HCHB)",
+  "summary": "Customer requested a new Site Scanner tenant/instance for the HCHB business with IDP domains and admin users.",
+  "sub_issue": "tenant_provisioning_request",
+  "mechanism": "Onboarding request; new tenant with licenses (WEB_FLOW_ANALYZER, WEB_SDK, SCANNER), IDP domains in Auth0 and admin users needed.",
+  "resolution": "Support created the tenant, support account, licenses and admin users.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1056",
+  "gt_class": "5",
+  "client": "Hearst / CAMP Systems",
+  "summary": "User exported a report but never received the export email(s).",
+  "sub_issue": "export_email_quarantined_customer_spam_filter",
+  "mechanism": "Export email was sent and accepted by the customer's mail server but quarantined by the customer's Barracuda email gateway.",
+  "resolution": "Support confirmed delivery in email system; customer released files from Barracuda quarantine.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "export email sent / accepted by recipient MX (email provider delivery log)"
+  ],
+  "ui_signals": [
+   "export email not received"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1071",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "Asked support to copy a Sandbox property (cookie consent modal setup) to Prod; then cancelled and did it themselves.",
+  "sub_issue": "property_copy_request",
+  "mechanism": "Request to duplicate property config between tenants/environments; no product problem.",
+  "resolution": "Customer cancelled and created the property themselves.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1094",
+  "gt_class": "5",
+  "client": "unknown (internal Slack request)",
+  "summary": "Question on how Site Scanner crawls - sitemap vs following links from configured pages.",
+  "sub_issue": "crawl_behavior_question",
+  "mechanism": "How-to / product behavior question to maximize coverage.",
+  "resolution": "Answered in Slack.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1116",
+  "gt_class": "5",
+  "client": "Hearst Magazines",
+  "summary": "Support proactively asked to prune unneeded properties (139) and adjust weekly scheduling; one property always 0 pages due to login.",
+  "sub_issue": "schedule_frequency_adjustment",
+  "mechanism": "Tenant load management: many properties on weekly schedule, some stale/login-gated (0 pages).",
+  "resolution": "Agreed to keep properties, exclude store.delish.com from scheduling, and move stable 5k-page properties to less frequent schedules.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Mentions a login-gated property consistently returning 0 pages (class 2 symptom) but ticket is account housekeeping."
+ },
+ {
+  "ticket": "#1129",
+  "gt_class": "5",
+  "client": "Spectrum Business (Charter)",
+  "summary": "Customer reported Image-alt false positives on 0px analytics web-beacon images (demdex.net).",
+  "sub_issue": "false_positive_image_alt",
+  "mechanism": "Not a false positive: 0px images can still be announced by screen readers; need alt=\"\" or role=presentation.",
+  "resolution": "Explained the violation is legitimate; Jira closed.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Image-alt issue type"
+  ],
+  "jira": [
+   "CS-2030"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1138",
+  "gt_class": "5",
+  "client": "Verizon",
+  "summary": "Customer security team (Fortify DAST exclusion) asked which Evinced URLs to list for prod/non-prod.",
+  "sub_issue": "evinced_domains_allowlist_question",
+  "mechanism": "Customer-side security allowlisting paperwork needed Evinced service domains.",
+  "resolution": "Confirmed hub.evinced.com and auth.evinced.com for both environments.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1175",
+  "gt_class": "5",
+  "client": "Progressive",
+  "summary": "Asked for enforced naming convention for WFA session names and whether report links are guessable.",
+  "sub_issue": "report_naming_feature_request",
+  "mechanism": "Session name is free-form; no templating. Report links use unguessable scan/session IDs.",
+  "resolution": "Added to existing feature request; explained links are GUID-based.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "WFA/platform question, not Site Scanner."
+ },
+ {
+  "ticket": "#1214",
+  "gt_class": "5",
+  "client": "Zalando",
+  "summary": "Customer asked to apply the same custom two-screen login configuration from an existing property to a new property.",
+  "sub_issue": "login_config_help",
+  "mechanism": "Custom multi-step authentication requires support-side configuration per property; not self-serve.",
+  "resolution": "Support copied the custom auth configuration to the new property (CS-2148).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-2148"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1267",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Locked text spacing issue stopped being reported though CSS (!important letter/word-spacing) was unchanged; customer asked if it had been an FP.",
+  "sub_issue": "false_positive_locked_text_spacing",
+  "mechanism": "Validation algorithm updated; prior detections were confirmed false positives (rule placement in CSS hierarchy does not functionally lock spacing) and fixed in engine update.",
+  "resolution": "Explained engine FP fix; customer asked for proactive FP communication.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Locked text spacing issue disappeared between scans"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1336",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "CSV export contains more rows/issue count than shown in Site Scanner issues page.",
+  "sub_issue": "export_row_semantics_elements_vs_issues",
+  "mechanism": "CSV rows are HTML elements (issue x component/selector) while UI counts issues; one issue may span multiple elements.",
+  "resolution": "Explained; customer requested better documentation.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "CSV issue count higher than UI issue count"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1340",
+  "gt_class": "5",
+  "client": "Evernorth (Cigna)",
+  "summary": "'Error Loading Scan' frequently when clicking the 'Needs Review' wedge of the Breakdown by Severity pie chart on any scan.",
+  "sub_issue": "ui_error_loading_scan_client_side",
+  "mechanism": "Not reproducible by support; occurred only in customer's Chrome, worked in Edge - likely browser/client-side (extension/cache) issue.",
+  "resolution": "Customer switched to Edge; closed without root cause.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [
+   "Error Loading Scan",
+   "Needs Review wedge click on overview pie chart"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1342",
+  "gt_class": "5",
+  "client": "Verizon (likely)",
+  "summary": "After SSO migration, users were prompted to log in when opening ephemeral screenshot links from CSV export.",
+  "sub_issue": "export_screenshot_links_require_login",
+  "mechanism": "Unknown; suspected Auth0 mapping/SSO config; engineering could not reproduce and asked for HAR. Customer later reported no issue.",
+  "resolution": "Investigated via CS-2193/EW-11346; customer could not reproduce; closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "login prompt when opening screenshot link from CSV export"
+  ],
+  "jira": [
+   "CS-2193",
+   "EW-11346"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1348",
+  "gt_class": "5",
+  "client": "Deloitte Canada",
+  "summary": "Issues sorted incorrectly by custom severities in Site Scanner.",
+  "sub_issue": "custom_severity_ui_bug",
+  "mechanism": "UI/backend sorting did not respect custom severity name mapping.",
+  "resolution": "Developers released a fix (CS-1421).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "incorrect sort order with custom severities"
+  ],
+  "jira": [
+   "CS-1421"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1352",
+  "gt_class": "5",
+  "client": "Myers and Stauffer",
+  "summary": "Excel export of a 100-page scan (~4,300 issues) repeatedly failed with 'There was a problem creating your export'; filtered export (critical, ~1,400) worked.",
+  "sub_issue": "export_row_limit",
+  "mechanism": "Backend global limit of 10,000 rows in Excel export; rows are unique issue x component/selector combinations so 4,291 issues exceeded 10k rows. No UI warning of the limit.",
+  "resolution": "Explained limit; workaround = filter in UI or use CSV export; fix targeted (CS-2413) but customer closed after 4 months.",
+  "resolution_type": "workaround",
+  "log_signals": [
+   "export failure for tenant (searched Coralogix by tenant id / user email - nothing found initially)",
+   "Excel export row limit 10000"
+  ],
+  "ui_signals": [
+   "There was a problem creating your export (email)"
+  ],
+  "jira": [
+   "CS-2413"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1364",
+  "gt_class": "5",
+  "client": "unknown",
+  "summary": "WFA user could not open previous sessions for comparison; clicking older sessions did nothing; delete didn't work.",
+  "sub_issue": "wfa_sessions_not_loading",
+  "mechanism": "Bug in Web Flow Analyzer session list/loading with many sessions (146 sessions, 2.75MB of 10MB storage).",
+  "resolution": "Fix released in WFA version 1.2.97 (CS-2319).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "clicking previous session does nothing"
+  ],
+  "jira": [
+   "CS-2319"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "WFA (Web Flow Analyzer) issue, not Site Scanner."
+ },
+ {
+  "ticket": "#1370",
+  "gt_class": "5",
+  "client": "Progressive",
+  "summary": "Users could log in to platform.evinced.com but lacked the 'upload to platform' option in WFA.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Platform/upload access was enabled per-individual user, not tenant-wide; one user had no account yet (installed WFA in wrong browser); users needed full logout/login to refresh permissions.",
+  "resolution": "Support enabled platform access per user; users re-logged in.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [
+   "Platform upload option missing in WFA"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "WFA/platform access, not Site Scanner."
+ },
+ {
+  "ticket": "#1378",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Weekly Sunday schedule showed next scan on 12/27-28 instead of 12/21.",
+  "sub_issue": "scheduler_next_run_date_bug",
+  "mechanism": "Backend bug: properties API returned wrong nextScheduleJobTime (28th instead of 21st); UI localizes time causing the 27th display.",
+  "resolution": "Backend bug fixed (CS-2318).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "nextScheduleJobTime",
+   "GET /api/properties/{property_id}"
+  ],
+  "ui_signals": [
+   "Next scan date wrong in property scheduling"
+  ],
+  "jira": [
+   "CS-2318"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1381",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Duplicate of #1378: scheduled weekly scan did not run Sunday; next scheduled date shown as Dec 28.",
+  "sub_issue": "scheduler_next_run_date_bug",
+  "mechanism": "Same as #1378 - wrong nextScheduleJobTime from backend.",
+  "resolution": "Solved during office hours (bug fix via CS-2318).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "nextScheduleJobTime"
+  ],
+  "ui_signals": [
+   "next scheduled scan December 28"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Possibly a missed scheduled run (scheduler) - could be class 1-ish scheduler_missed_run."
+ },
+ {
+  "ticket": "#1390",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Customer's security saw repeated failed logins (wrong password) for the scanning account from Evinced IPs, causing account/IP blocking.",
+  "sub_issue": "login_creds_not_propagated_to_crawler",
+  "mechanism": "Wrong password configured in one property's login form; plus product bug: editing login-form credentials updates only the scanner config, NOT the crawler, so crawler kept using old password (also caused low crawl page count). One static NAT IP got blocked by customer.",
+  "resolution": "Fixed password, removed properties from blocked static IP, manually updated crawler creds in DB; Jira to be opened for scanner/crawler credential sync.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "wrong password login failures in crawler logs (Coralogix query by tenant)",
+   "source IP 35.185.77.254 (scan-pool-nat3)",
+   "login form / Multiple interaction login"
+  ],
+  "ui_signals": [
+   "customer-side: failed logins from Evinced IP"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Effects include low crawl page count / login failure - arguably class 1/4."
+ },
+ {
+  "ticket": "#1392",
+  "gt_class": "5",
+  "client": "unknown (Stacey)",
+  "summary": "Customer wanted to schedule a single one-off scan.",
+  "sub_issue": "feature_question_existing",
+  "mechanism": "Believed unsupported; actually 'Scan now' exists on property page (and monthly-schedule-then-disable workaround).",
+  "resolution": "Pointed to 'Scan now' button; FR CS-2327 closed.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-2327"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1413",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Score spikes on Habitat/Tu Clothing; customer called issues on 404/500 pages 'false positives' and crawler issues.",
+  "sub_issue": "redirect_to_error_page_scanned",
+  "mechanism": "Listed URLs redirected (site server errors / removed products) to 500/404 pages; scanner follows redirects and scans the error page, producing issues on unlisted pages and skewing scores.",
+  "resolution": "Explained not FPs; suggested removing stale URLs / excluding error page paths; feature request to skip pages when not landing on expected URL.",
+  "resolution_type": "feature_request",
+  "log_signals": [
+   "redirected to https://<site>/500",
+   "url status: Success Redirected to"
+  ],
+  "ui_signals": [
+   "Internal Error / Page not found pages in scanned pages list",
+   "score spike"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Arguably class 4 (wrong URLs scanned) or 3."
+ },
+ {
+  "ticket": "#1420",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "Property settings page rendered blank for an admin user.",
+  "sub_issue": "ui_property_settings_blank_page",
+  "mechanism": "Backend/UI bug, found and fixed by engineering (EW-13119).",
+  "resolution": "Fixed on backend; customer confirmed.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "blank settings page, no error"
+  ],
+  "jira": [
+   "EW-13119"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1476",
+  "gt_class": "5",
+  "client": "Evernorth (Cigna)",
+  "summary": "CSV download from All Issues has duplicate issues inflating count nearly 2x vs report.",
+  "sub_issue": "export_row_semantics_elements_vs_issues",
+  "mechanism": "Export rows are per issue x component/selector; same Issue ID repeats; expected behavior.",
+  "resolution": "Explained, showed Excel dedupe on Issue ID to match platform count.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "duplicate Issue IDs in CSV export"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1498",
+  "gt_class": "5",
+  "client": "Myers and Stauffer",
+  "summary": "Needed help scoping a property to only /client-portal pages.",
+  "sub_issue": "property_scope_regex_config",
+  "mechanism": "'Include domain' made crawler cover the whole domain; needed seed URL + include regex only.",
+  "resolution": "Removed include domain, used seed and include regex ^https?://myersandstauffer.com/client-portal.*",
+  "resolution_type": "customer_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Crawl scope (wrong URLs) - could be class 4."
+ },
+ {
+  "ticket": "#1554",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Azure DevOps 'Create' in Site Scanner did nothing; other users got 401/CORS errors connecting to ADO.",
+  "sub_issue": "ado_integration_permissions",
+  "mechanism": "ADO rejected work item create: TF401322 bypass rules permission (WorkItemUnauthorizedRuleBypassException) because Evinced used bypassRules; other users blocked by org OAuth policy/CORS 401; later admin consent required due to broad OAuth scopes.",
+  "resolution": "Engineering added toggle to respect ADO rules (WFA first, then Site Scanner) and reduced OAuth scopes to vso.profile, vso.project, vso.work, vso.graph (CS-2426); admin consent still needed on customer side.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "TF401322: You don't have bypass rules permission",
+   "WorkItemUnauthorizedRuleBypassException",
+   "Access to fetch at 'https://dev.azure.com/.../_apis/projects?api-version=6.0' blocked by CORS policy",
+   "401"
+  ],
+  "ui_signals": [
+   "Create button does nothing, modal stays open",
+   "request admin approval screen"
+  ],
+  "jira": [
+   "CS-2426"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1566",
+  "gt_class": "5",
+  "client": "Sky Germany",
+  "summary": "Scans behind login (list mode) always failed for sky.de.",
+  "sub_issue": "login_flow_geo_redirect",
+  "mechanism": "Login page redirects non-DE/AT IPs to out-of-country page, so login selectors are absent.",
+  "resolution": "Suggested adding redirect URL/crawl mode with exclude regex, or customer whitelisting Evinced static NAT IPs and configuring static IPs for property.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "encountered error while running a function with timeout. retry count: 0",
+   "No element found for selector: #name",
+   "url: https://www.sky.de/out-of-country.html?orig=/login",
+   "TYPE_TEXT elementSelector"
+  ],
+  "ui_signals": [
+   "scan failed"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Scan failure due to login - really class 1 or 2."
+ },
+ {
+  "ticket": "#1574",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Nested Interactive issue flagged on jQuery UI Tabs; recommended fix did not clear it.",
+  "sub_issue": "false_positive_nested_interactive",
+  "mechanism": "True positive caused by jQuery UI Tabs markup (known jQuery UI issue); requires role=none presentation plus removing href via JS.",
+  "resolution": "Guidance given, pointed to jQuery UI PR; no product change.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Nested interactive element"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Found via WFA; not Site Scanner specific."
+ },
+ {
+  "ticket": "#1600",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Big jump in issues on logged-out property; suspected crawl problem.",
+  "sub_issue": "redirect_to_error_page_scanned",
+  "mechanism": "A listed URL redirected to the site's /500 page from Jun 2025 to Feb 2026; once fixed, real page was scanned and its issues appeared as 'new'.",
+  "resolution": "Explained via URL status page; recommended reviewing pages list/redirects each scan; FR submitted.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "Success Redirected to https://stores.sainsburys.co.uk/500",
+   "urls-status"
+  ],
+  "ui_signals": [
+   "issue count jump in scan comparison"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Could be class 4 (crawl irregularity)."
+ },
+ {
+  "ticket": "#1602",
+  "gt_class": "5",
+  "client": "Hyatt",
+  "summary": "CSV export zip download broken when property name contains '&'.",
+  "sub_issue": "export_filename_special_chars",
+  "mechanism": "Special characters in property name break export file name/extension.",
+  "resolution": "Customer renamed download to .zip; flagged to engineering.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [
+   "Accessibility issue list is ready email; downloaded file without .zip extension"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1604",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "30 pages reported page-has-heading-one though they have <h1>.",
+  "sub_issue": "false_positive_heading_one",
+  "mechanism": "One scan run flagged an existing h1 (likely timing/page state at scan time); later scans correct. Best practice rule, no score impact.",
+  "resolution": "Explained transient FP and no score impact; asked about deployments.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Page-has-heading-one"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1612",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Huge increase in Language attribute mismatch issues from /es-US/ URLs on sites without Spanish content.",
+  "sub_issue": "unexpected_locale_urls_crawled",
+  "mechanism": "Customer Sitecore/Next.js rewrite rules exposed es-US locale paths across domains; crawler discovered them. Stopped after customer deployments.",
+  "resolution": "Suggested excluding es-US; engineering added page hierarchy trace (CS-2415).",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Language attribute mismatch spike"
+  ],
+  "jira": [
+   "CS-2415"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Crawl discovering unexpected URLs - class 4 candidate."
+ },
+ {
+  "ticket": "#1626",
+  "gt_class": "5",
+  "client": "Eversana",
+  "summary": "Needed property to scan only /patient path, not whole site.",
+  "sub_issue": "property_scope_regex_config",
+  "mechanism": "New property auto-adds domain to seed list; needed include regex limiting to /patient.",
+  "resolution": "Provided regex ^https?://.*cortisolmatters.com(/patient.*)?$",
+  "resolution_type": "customer_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1632",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Very large 'Needs review' color contrast counts (gradients) suspected FPs.",
+  "sub_issue": "false_positive_color_contrast",
+  "mechanism": "axe 'Needs review' contrast results where gradient prevents automatic determination; manual check passes WCAG 1.4.3.",
+  "resolution": "Disabled Needs Review and Best Practice for natwest.com property (CS-2457); tenant-level adjustment planned.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [
+   "Needs review color contrast"
+  ],
+  "jira": [
+   "CS-2457"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1639",
+  "gt_class": "5",
+  "client": "Verizon",
+  "summary": "After custom severity names (High/Medium/Low), Breakdown by Components and later Quick Win Suggestions stopped showing.",
+  "sub_issue": "custom_severity_ui_bug",
+  "mechanism": "Features hardcoded to default Critical bucket; not custom-severity-aware (QuickWin.tsx criticalIssuesPercentage threshold).",
+  "resolution": "Fixed component breakdown (CS-2417) and quick wins (CS-2649).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "We don't have enough data for this section.",
+   "Breakdown by components empty",
+   "Quick Win Suggestions missing"
+  ],
+  "jira": [
+   "CS-2417",
+   "CS-2649"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1662",
+  "gt_class": "5",
+  "client": "Progressive",
+  "summary": "Need to filter out WCAG 2.2 AA results in Site Scanner like WFA regulation filter.",
+  "sub_issue": "wcag_version_filter_feature_request",
+  "mechanism": "Site Scanner only has Level filter; regulation filter not yet implemented.",
+  "resolution": "On roadmap.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1663",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Asked if Target Size violations qualify for WCAG inline exception.",
+  "sub_issue": "false_positive_target_size",
+  "mechanism": "Standalone link items not inline in sentences; true positive.",
+  "resolution": "Explained.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Target size minimum"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1682",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Questioned color contrast flag on 20px text.",
+  "sub_issue": "false_positive_color_contrast",
+  "mechanism": "Customer used wrong color (#000 vs actual #232323); 20px non-bold is regular text; 4.31:1 < 4.5:1, true positive.",
+  "resolution": "Explained.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Color contrast 4.31:1"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1698",
+  "gt_class": "5",
+  "client": "Verizon",
+  "summary": "Could not set public/private when creating property.",
+  "sub_issue": "ui_how_to_question",
+  "mechanism": "Public/private is at collection level via Manage Collections.",
+  "resolution": "Explained.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1722",
+  "gt_class": "5",
+  "client": "StorageVault Canada",
+  "summary": "Scanner 'stops at 45 and never finished' on CTL property.",
+  "sub_issue": "list_mode_single_url_misconfig",
+  "mechanism": "Property set to List Mode with only 1 URL, so crawl did nothing beyond it.",
+  "resolution": "Suggested switching to Crawl mode with seed URL and domain.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [],
+  "ui_signals": [
+   "scan stops at 45"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Really a crawl/scan failure or low page count (class 1/4)."
+ },
+ {
+  "ticket": "#1727",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Pages data table export missing Issue columns.",
+  "sub_issue": "export_missing_columns_bug",
+  "mechanism": "Export bug omitting issue columns.",
+  "resolution": "Fixed by engineering (CS-2446).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "exported page table missing issue columns"
+  ],
+  "jira": [
+   "CS-2446"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1732",
+  "gt_class": "5",
+  "client": "Fanatics",
+  "summary": "Customer wanted to reset Site Scanner score.",
+  "sub_issue": "score_reset_request",
+  "mechanism": "Score computed from scan history; can't be reset.",
+  "resolution": "Explained baseline approach; data retention 1 year.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1802",
+  "gt_class": "5",
+  "client": "Assured",
+  "summary": "Wants date-range export and scan load chart.",
+  "sub_issue": "export_date_range_feature_request",
+  "mechanism": "Not supported.",
+  "resolution": "Feature request filed.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1806",
+  "gt_class": "5",
+  "client": "Verizon",
+  "summary": "Add to Jira didn't accept on-prem Jira host.",
+  "sub_issue": "jira_onprem_integration_config",
+  "mechanism": "Jira Server/DC requires application link config + client credentials provided to Evinced.",
+  "resolution": "Customer declined IT work.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "validation error on Jira host"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1812",
+  "gt_class": "5",
+  "client": "BECU",
+  "summary": "Suggested new validation for role=alert/status on form errors.",
+  "sub_issue": "new_validation_feature_request",
+  "mechanism": "Not supported.",
+  "resolution": "Feature request filed.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "WFA feedback."
+ },
+ {
+  "ticket": "#1869",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "Error loading scan sporadically when opening issue types.",
+  "sub_issue": "ui_error_loading_scan_backend_outage",
+  "mechanism": "Backend outage.",
+  "resolution": "Fix released.",
+  "resolution_type": "infra_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Error loading scan"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ }
+]

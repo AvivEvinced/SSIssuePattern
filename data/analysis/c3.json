@@ -1,0 +1,303 @@
+[
+ {
+  "ticket": "#685",
+  "gt_class": "3",
+  "client": "Total Wine (totalwine.com)",
+  "summary": "Sunday scheduled scan had 5 failed pages with no reason shown; pages were accessible.",
+  "sub_issue": "infra_transient_page_failure",
+  "mechanism": "Evinced-side infrastructure error during the scan caused the 5 page failures (no further detail given).",
+  "resolution": "Infra issue patched by Evinced; support followed up on an auto-rerun feature for failed pages.",
+  "resolution_type": "infra_fix",
+  "log_signals": [
+   "infrastructure error"
+  ],
+  "ui_signals": [
+   "5 failures in urls-status view with no failure reason"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#869",
+  "gt_class": "3",
+  "client": "Zalando",
+  "summary": "Weekly scans: everything behind the login wall failed, plus some public pages failed (502s / not loading).",
+  "sub_issue": "login_flow_failed",
+  "mechanism": "Several overlapping causes: OTP/2FA added to the scan user's login; bot/DDoS protection blocking scanner IPs (blocking began after a custom identification header was removed); login API returning 400/401/403 'Elevated risk score'; a CORS issue in the scanner browser; and the login script not waiting long enough after final submit so post-login page timed out.",
+  "resolution": "Customer whitelisted scanner IPs, custom header restored; Evinced added --disable-web-security Chrome flag to scanners, added extra wait at final login submission, created a new non-2FA customer account; property temporarily split public/login then recombined (CS-1847).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "502",
+   "400/401/403 on login",
+   "\"detail\": \"Elevated risk score\"",
+   "CORS error",
+   "timeout waiting for post-login page"
+  ],
+  "ui_signals": [
+   "post-login pages failed",
+   "16 pages failed to scan"
+  ],
+  "jira": [
+   "CS-1847"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1192",
+  "gt_class": "3",
+  "client": "Sainsbury's / Argos",
+  "summary": "Argos 'core logged out' property crawls/scans returned 'Access Denied' page content; teams thought issues were fixed but it was the crawler being blocked.",
+  "sub_issue": "bot_protection_soft_block_200",
+  "mechanism": "Customer bot protection served Access Denied pages to the scanner; pages were treated as scanned (not flagged failed). IP allowlisting alone did not fix it.",
+  "resolution": "Customer allowlisted scanner static IPs; Evinced then made 'additional configurations' on the property (unspecified, likely static IP / header settings) and scans worked (CS-2140).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "Access Denied"
+  ],
+  "ui_signals": [
+   "Access Denied page content on scanned URLs",
+   "drop in issue counts"
+  ],
+  "jira": [
+   "CS-2140"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Blocked pages were reported as successful scans, not failed pages (hidden failures)."
+ },
+ {
+  "ticket": "#1283",
+  "gt_class": "3",
+  "client": "Sainsbury's / Argos",
+  "summary": "Issue counts appeared to decrease over time because many pages failed without SS highlighting the failures, undermining trust in trends.",
+  "sub_issue": "ssl_certificate_expired",
+  "mechanism": "Failed pages traced to a domain (webcasts.sainsburys.co.uk) with an expired TLS certificate, plus PDF URLs which the engine does not support; earlier Access Denied cause handled in #1192. Deemed not a bug.",
+  "resolution": "Explained to customer: fix the certificate; PDFs unsupported (CS-2198 closed as not a bug).",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "net::ERR_CERT_DATE_INVALID (expected)",
+   "PDF / non-HTML content-type"
+  ],
+  "ui_signals": [
+   "failed pages in urls-status",
+   "issue count decreasing across scans"
+  ],
+  "jira": [
+   "CS-2198"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2168",
+  "gt_class": "3",
+  "client": "Bell Canada (iheartradio.ca)",
+  "summary": "Onboarding property crawled 306 pages but most pages were scanned as failed.",
+  "sub_issue": "unknown_not_investigated",
+  "mechanism": "unknown (never investigated by support; customer-created property config suspected)",
+  "resolution": "Handled by account team via a Site Scanner training session; no technical root cause recorded.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "most crawled pages showing as failed scans"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2244",
+  "gt_class": "3",
+  "client": "Diners Club (cheers.dinersclub.com)",
+  "summary": "Scans consistently failed on /recipes/* pages (95% of crawled pages).",
+  "sub_issue": "engine_error_circular_visibility_amp",
+  "mechanism": "AMP amp-lightbox makes children visible inside a hidden parent; Evinced engine visibility-inheritance calculation hits a circular dependency and the engine run fails.",
+  "resolution": "Escalated to engineering (Jira, high prio, key not in thread); workaround mentioned; fix pending, ticket on hold.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "encountered error while running a function with timeout. retry count: 0",
+   "FAILED_TO_RUN_ENGINES",
+   "CircularEvValueError: Circular dependency detected while calculating: VisibilityLimitAppliedToChildren",
+   "EvincedEnginesPlugin.ts runAnalysis"
+  ],
+  "ui_signals": [
+   "failed pages under /recipes/"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2374",
+  "gt_class": "3",
+  "client": "Ulta Beauty",
+  "summary": "Scan showed numerous hits to Ulta 'page not found' pages although site had no timeouts.",
+  "sub_issue": "bot_protection_soft_block_200",
+  "mechanism": "Akamai WAF/bot manager flagged scanner by request fingerprint and returned a branded soft-block page ('we can't load this page right now') with HTTP 200, so scanner scanned the block page.",
+  "resolution": "Asked customer to add scanner static IPs to an Akamai network list exempt from bot scoring.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "HTTP 200 with block page content",
+   "Akamai"
+  ],
+  "ui_signals": [
+   "page not found / we can't load this page right now"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Pages were not marked failed; block pages scanned as successes (inflated issues)."
+ },
+ {
+  "ticket": "#2400",
+  "gt_class": "3",
+  "client": "POC customer (staging site, name not given)",
+  "summary": "Despite whitelisting Evinced IPs, scans hit the Cloudflare verification page (403); Cloudflare showed requests from an unlisted IP.",
+  "sub_issue": "static_ip_not_enabled_for_property",
+  "mechanism": "Property was not configured to use Evinced static egress IPs, so traffic came from a non-whitelisted GCP IP (34.24.217.44) and Cloudflare returned 403 challenge; crawl had only found 1 page as a result.",
+  "resolution": "Support enabled whitelisted static IPs on the property, rescanned and re-crawled (first re-crawl failed while scan was running, retried).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "403 Forbidden",
+   "Cloudflare Ray ID",
+   "source IP not in scan-pool-nat list",
+   "use-static-ip=false"
+  ],
+  "ui_signals": [
+   "Cloudflare security verification page in scan results"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Also caused a 1-page crawl (class 4 aspect)."
+ },
+ {
+  "ticket": "#3083",
+  "gt_class": "3",
+  "client": "Ulta Beauty (Marketing property)",
+  "summary": "Scan errors spiked (~3,000+ issues vs ~140) because ~630 pages returned Ulta's 'We can't load this page right now' page.",
+  "sub_issue": "static_ip_not_enabled_for_property",
+  "mechanism": "Tenant had scan.use-static-ip/url-set.use-static-ip/use-external-scraper=true but the Marketing property overrode them to false, so scans ran from non-whitelisted egress IPs; Akamai Bot Manager (and possibly Cequence, 408) served a soft-error page with HTTP 200.",
+  "resolution": "Removed property-level overrides so property inherits static-IP settings; customer confirmed IPs allowlisted; re-ran scan successfully.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "scan.use-static-ip = false (property override)",
+   "url-set.use-static-ip = false",
+   "url-set-configuration.use-external-scraper = false",
+   "408",
+   "StaticError__errorImage",
+   "HTTP 200 soft error page"
+  ],
+  "ui_signals": [
+   "We can't load this page right now",
+   "issue spike: Region, Page-has-heading-one, Landmark-one-main ~1 per page"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Soft-blocked pages were scanned as successes, not failed pages."
+ },
+ {
+  "ticket": "#3169",
+  "gt_class": "3",
+  "client": "Optum / WellMed (wellmedhealthcare.com)",
+  "summary": "Latest scan received 403 Forbidden error pages.",
+  "sub_issue": "bot_protection_waf_block",
+  "mechanism": "Site bot detection blocking the scanner (403).",
+  "resolution": "Asked customer to allowlist scanner static IPs and rerun; no confirmation in thread (auto-closed).",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "403 Forbidden"
+  ],
+  "ui_signals": [
+   "403 Forbidden error page"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3248",
+  "gt_class": "3",
+  "client": "Ulta Beauty (www.ulta.com)",
+  "summary": "Main property had 100+ failed pages per scan (103/555), even though pages load in 1-5s in a browser.",
+  "sub_issue": "page_ready_timeout_heavy_pages",
+  "mechanism": "Scanner waits 20s for page 'ready' state; heavy pages (infinite-scroll grids, 3rd-party content, store-locator maps, booking widgets) never stabilize in time; also a deny regex (/investor/.*) not matching bare /investor, a malformed href causing a permanent failure, and a ~20h scan duration risking session drift/rate limiting.",
+  "resolution": "Reduced sampling 50->25 on /p/ and /stores/ grouping rules, fixed deny regex to investor(/.*)?, recommended raising waitForPageReadySeconds to 45-60, engineering adjustments (CS-2833); later scan had only 2 errors.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "waitForPageReadySeconds",
+   "page ready timeout (20s)",
+   "scanConfiguration",
+   "failed pages /shop/ /p/ /stores/"
+  ],
+  "ui_signals": [
+   "103 of 555 pages failed",
+   "120 errors"
+  ],
+  "jira": [
+   "CS-2833"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3293",
+  "gt_class": "3",
+  "client": "Chick-fil-A (shop.chick-fil-a.com)",
+  "summary": "New property crawled 361 pages; scan failed on 1 page with no reason shown.",
+  "sub_issue": "engine_limit_huge_dom",
+  "mechanism": "restaurant-locator page renders 1,000 restaurant cards (~21,000 elements), exceeding the accessibility engine time/memory limits.",
+  "resolution": "Explained as scanner limitation; suggested excluding the page (CS-2845).",
+  "resolution_type": "workaround",
+  "log_signals": [
+   "engine timeout / memory limit on large DOM",
+   "FAILED_TO_RUN_ENGINES (expected)"
+  ],
+  "ui_signals": [
+   "1 failed page with no details in Scanned URLs Information"
+  ],
+  "jira": [
+   "CS-2845"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3315",
+  "gt_class": "3",
+  "client": "Deloitte Canada (DU North SharePoint)",
+  "summary": "Scan on a SharePoint site (dunorth.deloitte.ca) failed, also on a freshly created property; previously worked in March.",
+  "sub_issue": "unknown_engineering_fix",
+  "mechanism": "unknown (support suspected SharePoint-specific issue; fixed by engineering under CS-2843 without details in thread)",
+  "resolution": "Engineering fix (CS-2843); 9/30 scan completed successfully, customer confirmed.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "scan failed"
+  ],
+  "jira": [
+   "CS-2843"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Wording ('failed the scan') suggests the whole scan failed - may be class 1."
+ },
+ {
+  "ticket": "#3369",
+  "gt_class": "3",
+  "client": "Sky Germany (sky.de)",
+  "summary": "Since last scan many URLs return 'access denied'.",
+  "sub_issue": "bot_protection_waf_block",
+  "mechanism": "Property was switched to Evinced static IPs that are not whitelisted by Sky's security tool; Sky refuses IP-only allowlisting (shared IPs) and requires a unique header.",
+  "resolution": "Customer IT setting up a Custom Bot rule with custom header X-Sky-Scannertool + IP ranges; Evinced to add header to property config and test crawl (pending).",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "access denied",
+   "403"
+  ],
+  "ui_signals": [
+   "access denied on several URLs"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ }
+]

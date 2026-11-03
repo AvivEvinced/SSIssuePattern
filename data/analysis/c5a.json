@@ -1,0 +1,801 @@
+[
+ {
+  "ticket": "#159",
+  "gt_class": "5",
+  "client": "Evernorth",
+  "summary": "Customer reported a color-contrast issue on an icon that passes manual check.",
+  "sub_issue": "false_positive_color_contrast",
+  "mechanism": "Engine color-contrast validation misjudged an icon (false positive).",
+  "resolution": "Engineering added suppression logic for this false positive in Site Scanner and WFA.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "color contrast issue"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#184",
+  "gt_class": "5",
+  "client": "Charter Communications",
+  "summary": "Security team refused IP allowlisting for lower (non-prod) environments; customer asked how to use a custom header instead.",
+  "sub_issue": "custom_headers_config",
+  "mechanism": "Protected non-public lower environments block scanner traffic; IP allowlist rejected by customer security.",
+  "resolution": "Support explained customer must supply header name/value which Eng attaches to the tenant's scanner traffic; customer never supplied it, closed.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-1057"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#186",
+  "gt_class": "5",
+  "client": "Church & Dwight",
+  "summary": "Site Scanner 'Dashboard' tab showed no data while 'All Properties' showed data.",
+  "sub_issue": "ui_dashboard_not_loading",
+  "mechanism": "Front-end dashboard/summary page loading bug (cache clear did not help); resolved by a later UI release.",
+  "resolution": "Fixed by subsequent large UI change; customer confirmed summary page loads.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Loading data..."
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#203",
+  "gt_class": "5",
+  "client": "Maximus",
+  "summary": "Unable to select self (or anyone) as reporter when creating JIRA tickets from Site Scanner (and WFA).",
+  "sub_issue": "jira_integration_reporter_field",
+  "mechanism": "Bug in the Jira integration reporter user lookup/selection in Site Scanner/WFA.",
+  "resolution": "Escalated to Eng, fixed under CS-1256.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "cannot select reporter"
+  ],
+  "jira": [
+   "CS-1256"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#233",
+  "gt_class": "5",
+  "client": "Maximus",
+  "summary": "New properties for UAT sites crawled 0 pages and could not be scanned; after fix crawl succeeded but scans showed failed pages.",
+  "sub_issue": "ip_whitelist_egress_misconfig",
+  "mechanism": "Non-public UAT sites only reachable from allowlisted/US IPs; Evinced side egress IP pool configuration was not applied correctly so traffic didn't come from the allowlisted IPs.",
+  "resolution": "Evinced fixed config on its side (CS-1257) so crawler uses the static IP pool; customer allowlisted the IPs; scans then worked.",
+  "resolution_type": "infra_fix",
+  "log_signals": [
+   "0 pages crawled",
+   "egress IP pool"
+  ],
+  "ui_signals": [
+   "crawled zero pages",
+   "Scan Now cannot scan",
+   "page errors"
+  ],
+  "jira": [
+   "CS-1257"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Symptom is really class 2 (0 pages) then class 3 (failed pages)."
+ },
+ {
+  "ticket": "#247",
+  "gt_class": "5",
+  "client": "Evernorth",
+  "summary": "Follow-up to #159; customer confirmed the color-contrast false positive is resolved.",
+  "sub_issue": "false_positive_color_contrast",
+  "mechanism": "Same as #159 (engine false positive).",
+  "resolution": "Customer confirmed fix.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#260",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "Saving property settings failed with Content-Type error; also asked why scheduled scans got auto-enabled.",
+  "sub_issue": "unsupported_browser_edge",
+  "mechanism": "Property save request in Edge sent form-urlencoded body, rejected by backend; Site Scanner only supported in Chrome. Scheduled scans were enabled by Evinced backend for a quarterly cadence.",
+  "resolution": "Use Chrome; schedule explained as intentional quarterly cadence.",
+  "resolution_type": "workaround",
+  "log_signals": [
+   "Content-Type 'application/x-www-form-urlencoded;charset=UTF-8' is not supported"
+  ],
+  "ui_signals": [
+   "Cannot save property: - Content-Type 'application/x-www-form-urlencoded;charset=UTF-8' is not supported"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#274",
+  "gt_class": "5",
+  "client": "Charter Communications",
+  "summary": "Follow-up to #184: customer's architect unclear what header is needed.",
+  "sub_issue": "custom_headers_config",
+  "mechanism": "Same as #184.",
+  "resolution": "Support clarified it is a request header configured on the customer's side (WAF rule) with a value the scanner sends; closed due to inactivity.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#346",
+  "gt_class": "5",
+  "client": "Maximus",
+  "summary": "Customer tried to limit crawl to English pages via language setting/regex; crawl seemed to hang and regex let non-English URLs through.",
+  "sub_issue": "crawl_scope_config_help",
+  "mechanism": "Language/locale filter and include regex misunderstood; '/en' regex also matched 'enrollment'.",
+  "resolution": "SE added regex rule; suggested List Mode (CSV of URLs); no further change at customer request.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Arguably class 4 (wrong URLs crawled)."
+ },
+ {
+  "ticket": "#371",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "Customer asked why many color-contrast 'Needs Review' issues appear when screenshots show no issue.",
+  "sub_issue": "needs_review_semantics",
+  "mechanism": "Needs Review = engine cannot determine background (e.g. image background); requires manual review.",
+  "resolution": "Explained Needs Review semantics, negligible score impact, can be filtered.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "Element's background color could not be determined because element contains an image"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#454",
+  "gt_class": "5",
+  "client": "Total Wine",
+  "summary": "Needed scanner access to protected QA/UAT sites (bot protection).",
+  "sub_issue": "custom_headers_config",
+  "mechanism": "Non-prod sites protected by PerimeterX bot protection / IP restrictions.",
+  "resolution": "Evinced configured customer-supplied x-px-access-token header on scanner traffic (CS-1464); customer also allowlisted IP pool; crawls succeeded after.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "x-px-access-token header"
+  ],
+  "ui_signals": [],
+  "jira": [
+   "CS-1464"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#473",
+  "gt_class": "5",
+  "client": "Hearst (Qgenda)",
+  "summary": "Color contrast flagged with background detected as white instead of blue gradient.",
+  "sub_issue": "false_positive_color_contrast",
+  "mechanism": "Underlying axe color-contrast check fails to compute gradient background.",
+  "resolution": "Explained it is an axe validation issue; offered masking; no fix.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "color contrast"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#501",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Request to show property/view name as top-level heading in UI.",
+  "sub_issue": "feature_request_ui",
+  "mechanism": "N/A - UX feature request.",
+  "resolution": "Feature request logged; ticket closed.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#515",
+  "gt_class": "5",
+  "client": "Zalando",
+  "summary": "Customer asked how to set up headers so scanner does not trip bot alarms.",
+  "sub_issue": "custom_headers_config",
+  "mechanism": "Bot protection would block scanner traffic.",
+  "resolution": "Customer allowlisted IP pool and supplied a custom header; Evinced configured header on its side.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#545",
+  "gt_class": "5",
+  "client": "Sky",
+  "summary": "Customer thought a color-contrast finding persisted due to caching after a fix.",
+  "sub_issue": "issue_validity_explanation",
+  "mechanism": "No caching; the reported contrast issue was a genuine one elsewhere on the page (faint 'PU' rows).",
+  "resolution": "Explained true positive location.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#558",
+  "gt_class": "5",
+  "client": "Church & Dwight",
+  "summary": "'Download CSV' export email never arrived.",
+  "sub_issue": "export_email_blocked_spam_filter",
+  "mechanism": "Export is delivered by email; customer's IronPort spam filter quarantined it.",
+  "resolution": "Advised safelisting Evinced sender in spam filter.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [],
+  "ui_signals": [
+   "Download CSV"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#561",
+  "gt_class": "5",
+  "client": "Total Wine",
+  "summary": "Customer asked how crawler discovered a deprecated /wine-guide/ path.",
+  "sub_issue": "crawler_link_discovery_question",
+  "mechanism": "Links present in an invisible <ol> list on many pages; crawler follows hidden links.",
+  "resolution": "Eng identified source pages (CS-1589).",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-1589"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Could be class 4 (unexpected URLs)."
+ },
+ {
+  "ticket": "#571",
+  "gt_class": "5",
+  "client": "Zalando",
+  "summary": "Two-step (email then password) login could not be configured; scanner hit 'Not Found' after first step.",
+  "sub_issue": "login_multi_step_custom_script",
+  "mechanism": "Multi-step login unsupported by UI form; under Puppeteer the site produced unencoded redirect_uri leading to Not Found (automation detection suspected).",
+  "resolution": "Evinced built a custom multiple-interactions login script and applied per property after debug call (CS-1737).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "multiple interactions",
+   "page isn't loading",
+   "selector not found"
+  ],
+  "ui_signals": [
+   "Not Found page after login step"
+  ],
+  "jira": [
+   "CS-1737"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Could be class 1 (login failure)."
+ },
+ {
+  "ticket": "#599",
+  "gt_class": "5",
+  "client": "Deloitte",
+  "summary": "User could not add URLs/scan; saw graphs they didn't create.",
+  "sub_issue": "access_readonly_role",
+  "mechanism": "User account had Read-Only role in tenant.",
+  "resolution": "Directed to tenant admin to change role.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#646",
+  "gt_class": "5",
+  "client": "Sky",
+  "summary": "Request to name components via data attribute (data-skyui-core) instead of class names.",
+  "sub_issue": "feature_request_component_naming",
+  "mechanism": "Component grouping relies on class names; CSS-in-JS produces generated classes.",
+  "resolution": "Feature request submitted.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#676",
+  "gt_class": "5",
+  "client": "Capital One (inferred)",
+  "summary": "Customer confused by duplicate IDs in Site Scanner exports.",
+  "sub_issue": "export_duplicate_ids_nested_interactive",
+  "mechanism": "Nested Interactive findings produce multiple rows per element ID (working as designed).",
+  "resolution": "Explained; planned to flatten nested-interactive columns; closed stale.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#694",
+  "gt_class": "5",
+  "client": "unknown (shop.app)",
+  "summary": "Component flagged with wrong CSS selector/bounding box not on the page.",
+  "sub_issue": "wrong_css_selector_component",
+  "mechanism": "Unknown; selector no longer reproduced (page CSS may have changed).",
+  "resolution": "Investigated under CS-1723; could not reproduce.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "red bounding box"
+  ],
+  "jira": [
+   "CS-1723"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#709",
+  "gt_class": "5",
+  "client": "Fitch Learning (Hearst)",
+  "summary": "User could not access Evinced account/scan link; sign-up loop.",
+  "sub_issue": "access_user_not_in_tenant",
+  "mechanism": "User was not a member of the tenant.",
+  "resolution": "Ran add_user_to_tenant in Retool.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "add_user_to_tenant"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#710",
+  "gt_class": "5",
+  "client": "Total Wine",
+  "summary": "Site Scanner flagged Non-interactive Focus Sequence on a map that WFA didn't.",
+  "sub_issue": "wfa_vs_scanner_discrepancy",
+  "mechanism": "WFA requires 'Best Practices' option enabled; issue is flagged by both when enabled.",
+  "resolution": "Explained setting difference.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#726",
+  "gt_class": "5",
+  "client": "Hearst",
+  "summary": "CSV exports looked garbled in Italian Excel; later ~15 properties missing after instance change.",
+  "sub_issue": "export_csv_delimiter_locale",
+  "mechanism": "EU-locale Excel uses ';' list separator, so comma CSV misparses; missing properties were not transferred during tenant migration.",
+  "resolution": "Use Google Sheets / change list separator; customer re-added properties.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [
+   "my properties: no results"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#730",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Properties had scores of 0 and 2 which seemed wrong.",
+  "sub_issue": "score_calculation_explanation",
+  "mechanism": "Score = 0.99^(sum issue damage / pages)*100; very many critical issues per page drive score to ~0.",
+  "resolution": "Explained formula.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "score 0"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#731",
+  "gt_class": "5",
+  "client": "Total Wine",
+  "summary": "Re-scanning same pages gave very different results; first scan captured an interstitial pop-up.",
+  "sub_issue": "popup_interstitial_scan_variance",
+  "mechanism": "Marketing pop-up/interstitial (Adobe Target mbox) rendered on some runs, scanner scanned pop-up instead of page.",
+  "resolution": "Advised setting cookie (mboxDisable) via login-with-cookies settings or Evinced multiple-interactions config.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#732",
+  "gt_class": "5",
+  "client": "Total Wine",
+  "summary": "Possible false negative: radio buttons without fieldset/legend not flagged.",
+  "sub_issue": "issue_validity_explanation",
+  "mechanism": "By design: grouping radios not required (implicitly grouped by name); rule intentionally not reported.",
+  "resolution": "Explained (CS-1766).",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-1766"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#734",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Highlighted properties filter on dashboard reportedly not working.",
+  "sub_issue": "ui_filter_bug_unconfirmed",
+  "mechanism": "Unknown; support could not reproduce.",
+  "resolution": "Asked for clarification; no follow-up.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#750",
+  "gt_class": "5",
+  "client": "Deloitte",
+  "summary": "Questioned 301 critical img-alt issues on selector img[align=right] not visible on site.",
+  "sub_issue": "issue_validity_explanation",
+  "mechanism": "Invisible img tag in footer without alt or aria-hidden is a genuine detection.",
+  "resolution": "Recommended alt=\"\" or aria-hidden.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#818",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "Color-contrast false positives in footer of shop.advisory.com; many potential FPs at elevated severity.",
+  "sub_issue": "false_positive_color_contrast",
+  "mechanism": "(1) Optum custom severity mapping overrode Needs Review severities (bug, reverted); (2) footer starts at opacity 0.01 so is considered visible and tested before scroll-in animation.",
+  "resolution": "Reverted severity mapping; advised customer to use initial opacity 0 (CS-1885).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "color contrast"
+  ],
+  "jira": [
+   "CS-1885"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#827",
+  "gt_class": "5",
+  "client": "Superbet",
+  "summary": "Component screenshots looked like mobile view in desktop dimensions; later two sites stopped scanning.",
+  "sub_issue": "screenshot_render_artifact",
+  "mechanism": "Screenshot mechanism limitation with sticky menu/full-page stitching; separate scan failures fixed by Eng.",
+  "resolution": "Explained screenshot limitation; Eng fixed scanning (CS-1843).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-1843"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Second part (sites not scanning) is class 1."
+ },
+ {
+  "ticket": "#863",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Compare scans feature returned error.",
+  "sub_issue": "compare_scans_deprecated",
+  "mechanism": "Compare scans is a deprecated beta feature no longer maintained.",
+  "resolution": "Account owner communicated deprecation.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "compare scans error"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#867",
+  "gt_class": "5",
+  "client": "Hearst",
+  "summary": "Error when adding property to 'My Collection'.",
+  "sub_issue": "ui_collection_id_undefined",
+  "mechanism": "Front-end sent POST with undefined collection id.",
+  "resolution": "Eng fixed; customer confirmed.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "\"method\":\"post\",\"url\":\"/collections/undefined/properties\""
+  ],
+  "ui_signals": [
+   "error adding to My Collection"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#891",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "Compare scans failing across all properties.",
+  "sub_issue": "compare_scans_deprecated",
+  "mechanism": "Old beta compare tool not maintained/broken.",
+  "resolution": "Team to restore; long-term replacement; closed without tracking.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "compare scans error"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#910",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "Creating property failed with 'not a valid domain'; scan found zero pages.",
+  "sub_issue": "property_domain_validation_seed_path",
+  "mechanism": "Seed URL with deep path plus include regexes (with malformed '\\.com/' segments) did not match crawled URLs; domain validation rejected path URL.",
+  "resolution": "Switched property to List mode.",
+  "resolution_type": "customer_config_change",
+  "log_signals": [
+   "is not a valid domain"
+  ],
+  "ui_signals": [
+   "Cannot create property. <url> is not a valid domain"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Arguably class 2 (0 pages)."
+ },
+ {
+  "ticket": "#915",
+  "gt_class": "5",
+  "client": "Hearst",
+  "summary": "UI header count of running crawls didn't match properties list; crawls running for hours.",
+  "sub_issue": "ui_crawl_count_mismatch",
+  "mechanism": "Header counted only some statuses; fix counts new/running/pending. Long-running crawls tracked separately (#802, CS-1808).",
+  "resolution": "UI fix deployed (CS-1872).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "crawl status new/running/pending"
+  ],
+  "ui_signals": [
+   "4 crawls are running",
+   "no crawls running"
+  ],
+  "jira": [
+   "CS-1872",
+   "CS-1808"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Long-running crawl part relates to class 1."
+ },
+ {
+  "ticket": "#917",
+  "gt_class": "5",
+  "client": "Hearst",
+  "summary": "User's instance stuck on loading screen; dashboard wouldn't load.",
+  "sub_issue": "dashboard_not_loading_tenant_migration",
+  "mechanism": "Problems during user migration from one tenant to another.",
+  "resolution": "Eng fixed user migration (CS-1861).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "stuck on loading screen"
+  ],
+  "jira": [
+   "CS-1861"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#953",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "Property dashboards errored 'Scan ... could not be found'; scheduled scans from 7/5 missing.",
+  "sub_issue": "scan_deleted_not_found",
+  "mechanism": "Evinced deleted scans from Jun 20-Jul 17 containing a Needs Review processing bug and re-ran scans.",
+  "resolution": "Explained; re-scans completed.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "Scan <id> could not be found"
+  ],
+  "ui_signals": [
+   "Something went wrong",
+   "Error loading this property, redirecting to properties page",
+   "Scan <id> could not be found"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#975",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "Property failed to load in UI.",
+  "sub_issue": "view_config_load_failure",
+  "mechanism": "Bug preventing properties with certain View configurations from loading.",
+  "resolution": "Eng restored property and fixed globally (CS-1915).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Error loading this property"
+  ],
+  "jira": [
+   "CS-1915"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#989",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Crawl/score data appeared out of sync between All-props table and property page.",
+  "sub_issue": "ui_view_filter_confusion",
+  "mechanism": "Property page was filtered to a View; header doesn't reflect active filter.",
+  "resolution": "Explained; feature request filed.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1011",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Storybook UI issues reported; wanted only iframe component URLs scanned.",
+  "sub_issue": "crawl_scope_view_filter",
+  "mechanism": "Filtering the crawl with regex dropped component links (discovered via Storybook UI pages); iframes not scanned in nested form.",
+  "resolution": "Created an 'iframes only (components)' View filter post-scan (CS-2022).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-2022"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Could be class 4 (wrong URLs)."
+ },
+ {
+  "ticket": "#1014",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Span skeleton loader flagged as interactive element.",
+  "sub_issue": "issue_validity_explanation",
+  "mechanism": "Detection considered valid (loader lacks semantics/live region).",
+  "resolution": "Explained.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1019",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Viewing homepage scan returned 502 Server Error JSON.",
+  "sub_issue": "ui_error_loading_scan_backend_timeout",
+  "mechanism": "Backend GET /url-sets/<id> returned 502 (transient GCP LB error).",
+  "resolution": "Advised clear cache/incognito; worked for support.",
+  "resolution_type": "workaround",
+  "log_signals": [
+   "502 Server Error",
+   "\"status\":502",
+   "/url-sets/"
+  ],
+  "ui_signals": [
+   "The server encountered a temporary error and could not complete your request. Please try again in 30 seconds."
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1027",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Events view didn't seem to show the main events page.",
+  "sub_issue": "view_config_question",
+  "mechanism": "View filter working as expected.",
+  "resolution": "Explained.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1051",
+  "gt_class": "5",
+  "client": "HCA Healthcare (inferred)",
+  "summary": "'Error loading scan' on issue-type page; persisted on a specific View.",
+  "sub_issue": "view_config_load_failure",
+  "mechanism": "(1) Issue-type URL with backtick-quoted name broke loading (fixed CS-1980); (2) complex View (PSG) filter on large scan timed out.",
+  "resolution": "Fix released; support adjusted view; Eng ticket for complex views.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "issue-types/Anchor%20without%20%60href%60%20attribute"
+  ],
+  "ui_signals": [
+   "Error loading scan"
+  ],
+  "jira": [
+   "CS-1980"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ }
+]

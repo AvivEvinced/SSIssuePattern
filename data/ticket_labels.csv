@@ -1,0 +1,280 @@
+ticket,client,gt_class,family,sub_id,sub_issue_name,raw_label,resolution_type,detectable_in_logs,jira,gt_class_doubt
+#87,Sky UK (Sky Italy tg24.sky.it),1,E,E3,Pipeline dispatch / state-machine failure,scan_failed_platform_bug,product_bug_fix,yes,CS-1155 EW-4617,
+#149,Sky UK,1,E,E4,Tenant limits reached,tenant_scan_limit_reached,evinced_config_change,maybe,,Thin thread; may be a license/limit (class 5) rather than scan failure.
+#159,Evernorth,5,G,G1,Confirmed engine false positive,false_positive_color_contrast,product_bug_fix,no,,
+#184,Charter Communications,5,H,H2,Access setup questions (IPs / headers),custom_headers_config,explanation_only,no,CS-1057,
+#186,Church & Dwight,5,F,F3,UI bug / UI confusion,ui_dashboard_not_loading,product_bug_fix,maybe,,
+#199,Evernorth (Accredo patient.accredo.com),1,B,B4,Multi-step / custom login flow needs configuration,login_flow_failed_product_bug,product_bug_fix,maybe,EW-5476,
+#203,Maximus,5,F,F4,Integration issue (Jira / ADO / MCP),jira_integration_reporter_field,product_bug_fix,maybe,CS-1256,
+#233,Maximus,5,A,A4,Static egress IP not enabled,ip_whitelist_egress_misconfig,infra_fix,maybe,CS-1257,Symptom is really class 2 (0 pages) then class 3 (failed pages).
+#243,Charter (SpectrumEnterprise.net),2,B,B2,Login / interaction selector mismatch,login_selector_stale,customer_config_change,yes,,
+#247,Evernorth,5,G,G1,Confirmed engine false positive,false_positive_color_contrast,product_bug_fix,no,,
+#260,Optum,5,F,F3,UI bug / UI confusion,unsupported_browser_edge,workaround,yes,,
+#274,Charter Communications,5,H,H2,Access setup questions (IPs / headers),custom_headers_config,explanation_only,no,,
+#301,Sky,2,C,C1,Include regex matches nothing / invalid regex,regex_excludes_all,customer_config_change,maybe,,Thin ticket; partly a regex how-to question (could be class 5).
+#346,Maximus,5,C,C3,Scope too broad / unexpected URLs,crawl_scope_config_help,customer_config_change,no,,Arguably class 4 (wrong URLs crawled).
+#371,Optum,5,G,G3,Score / severity / WCAG configuration,needs_review_semantics,explanation_only,no,,
+#391,Sky Italia,2,B,B1,MFA / 2FA blocks login,login_2fa_unsupported,unresolved,yes,,
+#447,Sky (careers.sky.com/de),2,H,H5,Out of scope / noise,unknown,unresolved,maybe,,"Manual rerun returned 44 pages, so partly class 4 (low page count)."
+#454,Total Wine,5,H,H2,Access setup questions (IPs / headers),custom_headers_config,evinced_config_change,no,CS-1464,
+#473,Hearst (Qgenda),5,G,G1,Confirmed engine false positive,false_positive_color_contrast,unresolved,no,,
+#501,Ulta Beauty,5,H,H4,Feature request / how-to,feature_request_ui,feature_request,no,,
+#515,Zalando,5,H,H2,Access setup questions (IPs / headers),custom_headers_config,evinced_config_change,no,,
+#545,Sky,5,G,G2,Disputed finding: true positive,issue_validity_explanation,explanation_only,no,,
+#558,Church & Dwight,5,F,F1,Export failure,export_email_blocked_spam_filter,customer_side_whitelist,maybe,,
+#561,Total Wine,5,H,H4,Feature request / how-to,crawler_link_discovery_question,explanation_only,no,CS-1589,Could be class 4 (unexpected URLs).
+#571,Zalando,5,B,B4,Multi-step / custom login flow needs configuration,login_multi_step_custom_script,evinced_config_change,maybe,CS-1737,Could be class 1 (login failure).
+#583,unknown,1,H,H5,Out of scope / noise,unknown_unresolved_in_thread,unresolved,no,,No details; cannot confirm class.
+#594,Optum,4,C,C5,Grouping / URL-normalization rules,url_normalization_duplicate_slashes,product_bug_fix,maybe,CS-1622,
+#599,Deloitte,5,H,H1,Access & licence,access_readonly_role,explanation_only,no,,
+#639,unknown (Steve),1,E,E1,Platform outage / infra incident,scan_failed_infra_error,infra_fix,yes,,
+#646,Sky,5,H,H4,Feature request / how-to,feature_request_component_naming,feature_request,no,,
+#649,Sky (skyx.sky.at),2,H,H5,Out of scope / noise,unknown,evinced_config_change,maybe,,
+#676,Capital One (inferred),5,F,F2,Export count semantics,export_duplicate_ids_nested_interactive,explanation_only,no,,
+#685,Total Wine (totalwine.com),3,E,E1,Platform outage / infra incident,infra_transient_page_failure,infra_fix,maybe,,
+#694,unknown (shop.app),5,G,G1,Confirmed engine false positive,wrong_css_selector_component,unresolved,no,CS-1723,
+#709,Fitch Learning (Hearst),5,H,H1,Access & licence,access_user_not_in_tenant,evinced_config_change,maybe,,
+#710,Total Wine,5,H,H4,Feature request / how-to,wfa_vs_scanner_discrepancy,explanation_only,no,,
+#726,Hearst,5,F,F1,Export failure,export_csv_delimiter_locale,workaround,no,,
+#730,Sainsbury's,5,G,G3,Score / severity / WCAG configuration,score_calculation_explanation,explanation_only,no,,
+#731,Total Wine,5,D,D3,Incomplete render → findings variance,popup_interstitial_scan_variance,customer_config_change,no,,
+#732,Total Wine,5,G,G2,Disputed finding: true positive,issue_validity_explanation,explanation_only,no,CS-1766,
+#734,Sainsbury's,5,F,F3,UI bug / UI confusion,ui_filter_bug_unconfirmed,unresolved,no,,
+#750,Deloitte,5,G,G2,Disputed finding: true positive,issue_validity_explanation,explanation_only,no,,
+#792,Sainsbury's / Argos (UAT),4,A,A1,WAF / firewall hard block,login_page_access_blocked,evinced_config_change,yes,T4-94,
+#818,Optum,5,G,G1,Confirmed engine false positive,false_positive_color_contrast,product_bug_fix,no,CS-1885,
+#827,Superbet,5,D,D3,Incomplete render → findings variance,screenshot_render_artifact,product_bug_fix,no,CS-1843,Second part (sites not scanning) is class 1.
+#833,Hearst (iCrossing),4,C,C1,Include regex matches nothing / invalid regex,regex_mismatch_locale_format,evinced_config_change,maybe,,Post-change symptom was 0 pages (class 2); original symptom wrong-locale URLs fits class 4.
+#863,Ulta Beauty,5,F,F3,UI bug / UI confusion,compare_scans_deprecated,explanation_only,maybe,,
+#867,Hearst,5,F,F3,UI bug / UI confusion,ui_collection_id_undefined,product_bug_fix,yes,,
+#869,Zalando,3,B,B4,Multi-step / custom login flow needs configuration,login_flow_failed,evinced_config_change,maybe,CS-1847,
+#891,Salesforce,5,F,F3,UI bug / UI confusion,compare_scans_deprecated,unresolved,maybe,,
+#910,Capital One,5,C,C2,Redirect target outside the domain whitelist,property_domain_validation_seed_path,customer_config_change,maybe,,Arguably class 2 (0 pages).
+#915,Hearst,5,F,F3,UI bug / UI confusion,ui_crawl_count_mismatch,product_bug_fix,maybe,CS-1872 CS-1808,Long-running crawl part relates to class 1.
+#917,Hearst,5,E,E1,Platform outage / infra incident,dashboard_not_loading_tenant_migration,product_bug_fix,maybe,CS-1861,
+#926,Optum (OBCP Salt Lake County),2,C,C2,Redirect target outside the domain whitelist,domain_whitelist_mismatch,evinced_config_change,yes,,
+#944,Fitch Learning (via Hearst),2,C,C2,Redirect target outside the domain whitelist,domain_whitelist_mismatch,evinced_config_change,yes,,
+#952,Hearst Magazines (US),4,A,A1,WAF / firewall hard block,bot_protection_partial_block,workaround,maybe,CS-1820,
+#953,Optum,5,E,E5,Backend query error / timeout ('Error loading scan'),scan_deleted_not_found,explanation_only,yes,,
+#959,Hearst,1,H,H5,Out of scope / noise,unknown_unresolved_in_thread,unresolved,no,,
+#975,Capital One,5,E,E5,Backend query error / timeout ('Error loading scan'),view_config_load_failure,product_bug_fix,maybe,CS-1915,
+#989,Sainsbury's,5,F,F3,UI bug / UI confusion,ui_view_filter_confusion,feature_request,no,,
+#997,Evernorth (myCigna demo),2,B,B4,Multi-step / custom login flow needs configuration,login_flow_failed,unresolved,maybe,,
+#1011,Sainsbury's,5,C,C3,Scope too broad / unexpected URLs,crawl_scope_view_filter,evinced_config_change,no,CS-2022,Could be class 4 (wrong URLs).
+#1014,Sainsbury's,5,G,G2,Disputed finding: true positive,issue_validity_explanation,explanation_only,no,,
+#1019,Ulta Beauty,5,E,E5,Backend query error / timeout ('Error loading scan'),ui_error_loading_scan_backend_timeout,workaround,yes,,
+#1027,Ulta Beauty,5,H,H4,Feature request / how-to,view_config_question,explanation_only,no,,
+#1033,Ulta Beauty,2,H,H5,Out of scope / noise,unknown,workaround,maybe,,
+#1051,HCA Healthcare (inferred),5,E,E5,Backend query error / timeout ('Error loading scan'),view_config_load_failure,product_bug_fix,maybe,CS-1980,
+#1054,Hearst (HCHB),5,H,H3,Config / admin task,tenant_provisioning_request,evinced_config_change,no,,
+#1056,Hearst / CAMP Systems,5,F,F1,Export failure,export_email_quarantined_customer_spam_filter,customer_side_whitelist,maybe,,
+#1068,Ulta Beauty,1,F,F3,UI bug / UI confusion,ui_scan_list_sort_confusion,explanation_only,no,,Not a scan failure; UI misunderstanding — class 5.
+#1071,Capital One,5,H,H3,Config / admin task,property_copy_request,customer_config_change,no,,
+#1094,unknown (internal Slack request),5,H,H4,Feature request / how-to,crawl_behavior_question,explanation_only,no,,
+#1116,Hearst Magazines,5,H,H3,Config / admin task,schedule_frequency_adjustment,evinced_config_change,no,,Mentions a login-gated property consistently returning 0 pages (class 2 symptom) but ticket is account housekeeping.
+#1119,Capital One (Dealer Navigator),2,B,B1,MFA / 2FA blocks login,login_2fa_unsupported,unresolved,yes,,
+#1129,Spectrum Business (Charter),5,G,G2,Disputed finding: true positive,false_positive_image_alt,explanation_only,no,CS-2030,
+#1138,Verizon,5,H,H2,Access setup questions (IPs / headers),evinced_domains_allowlist_question,explanation_only,no,,
+#1175,Progressive,5,H,H4,Feature request / how-to,report_naming_feature_request,feature_request,no,,"WFA/platform question, not Site Scanner."
+#1192,Sainsbury's / Argos,3,A,A3,Soft block (block page with HTTP 200),bot_protection_soft_block_200,evinced_config_change,maybe,CS-2140,"Blocked pages were reported as successful scans, not failed pages (hidden failures)."
+#1214,Zalando,5,B,B4,Multi-step / custom login flow needs configuration,login_config_help,evinced_config_change,no,CS-2148,
+#1267,NatWest,5,G,G1,Confirmed engine false positive,false_positive_locked_text_spacing,product_bug_fix,no,,
+#1283,Sainsbury's / Argos,3,A,A9,TLS / SSL certificate error,ssl_certificate_expired,explanation_only,yes,CS-2198,
+#1296,RJ Reynolds (Cognizant),1,A,A1,WAF / firewall hard block,login_required_and_firewall_ip_allowlist,customer_side_whitelist,maybe,CS-2243,Arguably class 4 (only login page crawled) or 2.
+#1324,Zalando,2,B,B2,Login / interaction selector mismatch,login_selector_not_found,product_bug_fix,yes,CS-2257,
+#1336,Optum,5,F,F2,Export count semantics,export_row_semantics_elements_vs_issues,explanation_only,no,,
+#1340,Evernorth (Cigna),5,F,F3,UI bug / UI confusion,ui_error_loading_scan_client_side,workaround,maybe,,
+#1342,Verizon (likely),5,F,F1,Export failure,export_screenshot_links_require_login,unresolved,maybe,CS-2193 EW-11346,
+#1348,Deloitte Canada,5,F,F3,UI bug / UI confusion,custom_severity_ui_bug,product_bug_fix,no,CS-1421,
+#1352,Myers and Stauffer,5,F,F1,Export failure,export_row_limit,workaround,yes,CS-2413,
+#1364,unknown,5,H,H5,Out of scope / noise,wfa_sessions_not_loading,product_bug_fix,no,CS-2319,"WFA (Web Flow Analyzer) issue, not Site Scanner."
+#1370,Progressive,5,H,H1,Access & licence,access_permissions,evinced_config_change,no,,"WFA/platform access, not Site Scanner."
+#1378,HCA Healthcare,5,E,E2,Scheduler bug (missed / wrong next run),scheduler_next_run_date_bug,product_bug_fix,maybe,CS-2318,
+#1381,HCA Healthcare,5,E,E2,Scheduler bug (missed / wrong next run),scheduler_next_run_date_bug,product_bug_fix,maybe,,Possibly a missed scheduled run (scheduler) - could be class 1-ish scheduler_missed_run.
+#1387,Hyatt,4,A,A4,Static egress IP not enabled,static_ip_not_configured,evinced_config_change,yes,CS-2323,
+#1390,Ulta Beauty,5,B,B3,Stale / invalid credentials,login_creds_not_propagated_to_crawler,evinced_config_change,yes,,Effects include low crawl page count / login failure - arguably class 1/4.
+#1392,unknown (Stacey),5,H,H4,Feature request / how-to,feature_question_existing,explanation_only,no,CS-2327,
+#1396,unknown (Kenn Johnson),1,E,E2,Scheduler bug (missed / wrong next run),scheduler_next_run_timezone_bug,product_bug_fix,yes,CS-2332,
+#1399,Salesforce,1,E,E2,Scheduler bug (missed / wrong next run),scheduler_next_run_timezone_bug,product_bug_fix,yes,CS-2330 CS-2332,
+#1404,Sky Deutschland,1,E,E2,Scheduler bug (missed / wrong next run),scheduler_next_run_timezone_bug,product_bug_fix,yes,CS-2332,
+#1413,Sainsbury's,5,C,C4,Seed unreachable / soft-404 / error-page redirect,redirect_to_error_page_scanned,feature_request,maybe,,Arguably class 4 (wrong URLs scanned) or 3.
+#1420,Optum,5,F,F3,UI bug / UI confusion,ui_property_settings_blank_page,product_bug_fix,maybe,EW-13119,
+#1421,Progressive,1,E,E2,Scheduler bug (missed / wrong next run),scheduler_next_run_timezone_bug,product_bug_fix,yes,,
+#1475,Ulta Beauty,4,B,B3,Stale / invalid credentials,crawler_login_stale_credentials_and_oom,evinced_config_change,yes,CS-2395 CS-2398,
+#1476,Evernorth (Cigna),5,F,F2,Export count semantics,export_row_semantics_elements_vs_issues,explanation_only,no,,
+#1493,Hyatt,4,A,A1,WAF / firewall hard block,bot_protection_customer_waf,customer_side_whitelist,maybe,,Mostly an IP/whitelist question; could be class 5 (access/config question).
+#1498,Myers and Stauffer,5,C,C3,Scope too broad / unexpected URLs,property_scope_regex_config,customer_config_change,no,,Crawl scope (wrong URLs) - could be class 4.
+#1554,HCA Healthcare,5,F,F4,Integration issue (Jira / ADO / MCP),ado_integration_permissions,product_bug_fix,maybe,CS-2426,
+#1557,Hyatt,1,E,E3,Pipeline dispatch / state-machine failure,scan_failed_platform_bug,product_bug_fix,maybe,CS-2401,
+#1566,Sky Germany,5,A,A7,Geo-blocking,login_flow_geo_redirect,customer_side_whitelist,yes,,Scan failure due to login - really class 1 or 2.
+#1574,NatWest,5,G,G2,Disputed finding: true positive,false_positive_nested_interactive,explanation_only,no,,Found via WFA; not Site Scanner specific.
+#1597,Sainsbury's (Nectar),4,A,A5,Rate limiting (HTTP 429),bot_protection_akamai_rate_limit,workaround,yes,CS-2400,
+#1600,Sainsbury's,5,C,C4,Seed unreachable / soft-404 / error-page redirect,redirect_to_error_page_scanned,explanation_only,maybe,,Could be class 4 (crawl irregularity).
+#1602,Hyatt,5,F,F1,Export failure,export_filename_special_chars,workaround,no,,
+#1604,Ulta Beauty,5,D,D3,Incomplete render → findings variance,false_positive_heading_one,explanation_only,no,,
+#1607,Charter (SPECNET),2,B,B4,Multi-step / custom login flow needs configuration,login_dynamic_session_url,evinced_config_change,yes,CS-2347 CS-2370,
+#1612,HCA Healthcare,5,C,C3,Scope too broad / unexpected URLs,unexpected_locale_urls_crawled,explanation_only,no,CS-2415,Crawl discovering unexpected URLs - class 4 candidate.
+#1618,Shopify,1,E,E3,Pipeline dispatch / state-machine failure,crawl_and_scan_scan_phase_not_triggered_regression,product_bug_fix,yes,CS-2404,
+#1626,Eversana,5,C,C3,Scope too broad / unexpected URLs,property_scope_regex_config,customer_config_change,no,,
+#1632,NatWest,5,G,G1,Confirmed engine false positive,false_positive_color_contrast,evinced_config_change,no,CS-2457,
+#1638,Verizon,4,C,C2,Redirect target outside the domain whitelist,regex_excludes_redirect_target,evinced_config_change,maybe,CS-2432,
+#1639,Verizon,5,F,F3,UI bug / UI confusion,custom_severity_ui_bug,product_bug_fix,no,CS-2417 CS-2649,
+#1648,HCA (dotCMS property),1,C,C1,Include regex matches nothing / invalid regex,invalid_regex_in_property_config,customer_config_change,maybe,,
+#1662,Progressive,5,H,H4,Feature request / how-to,wcag_version_filter_feature_request,feature_request,no,,
+#1663,Ulta Beauty,5,G,G2,Disputed finding: true positive,false_positive_target_size,explanation_only,no,,
+#1665,Lufthansa,4,A,A1,WAF / firewall hard block,site_blocking_not_whitelisted,customer_side_whitelist,yes,CS-2422,
+#1682,Ulta Beauty,5,G,G1,Confirmed engine false positive,false_positive_color_contrast,explanation_only,no,,
+#1698,Verizon,5,H,H4,Feature request / how-to,ui_how_to_question,explanation_only,no,,
+#1711,unknown (Kenn Johnson),1,E,E1,Platform outage / infra incident,scan_stuck_infra,infra_fix,maybe,,
+#1722,StorageVault Canada,5,C,C7,List-mode misconfiguration,list_mode_single_url_misconfig,customer_config_change,maybe,,Really a crawl/scan failure or low page count (class 1/4).
+#1727,Sainsbury's,5,F,F1,Export failure,export_missing_columns_bug,product_bug_fix,no,CS-2446,
+#1732,Fanatics,5,G,G3,Score / severity / WCAG configuration,score_reset_request,explanation_only,no,,
+#1737,Salesforce,4,C,C4,Seed unreachable / soft-404 / error-page redirect,seed_path_unreachable_404,evinced_config_change,maybe,CS-2456,
+#1755,Stepstone (jobs.lu),1,D,D1,Heavy page load timeout,scan_fails_large_page_count_complex_pages,product_bug_fix,maybe,CS-2469,
+#1793,Hyatt (FLACCOv2),1,D,D1,Heavy page load timeout,page_load_timeout_specific_urls,product_bug_fix,yes,CS-2472,
+#1802,Assured,5,H,H4,Feature request / how-to,export_date_range_feature_request,feature_request,no,,
+#1806,Verizon,5,F,F4,Integration issue (Jira / ADO / MCP),jira_onprem_integration_config,unresolved,no,,
+#1812,BECU,5,H,H4,Feature request / how-to,new_validation_feature_request,feature_request,no,,WFA feedback.
+#1813,"Charter / Spectrum (Bizmail, odinapi portal)",4,C,C6,Non-link (JS) navigation,non_standard_navigation_links,evinced_config_change,maybe,CS-2488 CS-2498,portal.charter.odinapi part is 0 pages (class 2) due to login selector.
+#1818,Collective Health,4,B,B5,Session lost mid-crawl,session_logout_parallelism,evinced_config_change,maybe,CS-2486 CS-2493 CS-2495 CS-2499 CS-2372 CS-2525,
+#1869,Salesforce,5,E,E1,Platform outage / infra incident,ui_error_loading_scan_backend_outage,infra_fix,yes,,
+#1895,Bell,5,B,B3,Stale / invalid credentials,login_credentials_invalid,explanation_only,maybe,CS-2454,Really class 3 (successful scan with failed pages due to login creds)
+#1902,Optum,5,H,H3,Config / admin task,property_creator_audit_request,explanation_only,no,,
+#1918,HCA Healthcare,5,E,E5,Backend query error / timeout ('Error loading scan'),ui_view_query_500_large_regex,workaround,yes,CS-2514,
+#1952,Sainsbury's (Argos),5,F,F3,UI bug / UI confusion,ui_stale_view_filter,explanation_only,no,,
+#1967,Evernorth (Cigna),5,B,B5,Session lost mid-crawl,login_flow_changed_session_logout,evinced_config_change,maybe,CS-2555 CS-2576,Has class 3 traits (failed pages from session logout) and class 2 (crawl found 0 URLs)
+#1976,HCA Healthcare,5,F,F4,Integration issue (Jira / ADO / MCP),ado_integration_formatting_bug,product_bug_fix,no,CS-2526,
+#1988,Super (Happening),5,E,E1,Platform outage / infra incident,platform_outage,infra_fix,yes,,
+#1992,Medienkonzepte (Swiss site),5,D,D3,Incomplete render → findings variance,score_change_page_not_stabilized,explanation_only,maybe,CS-2540 EW-17199,
+#1993,Verizon,5,F,F3,UI bug / UI confusion,ui_property_save_missing_timezone,product_bug_fix,maybe,CS-2543,
+#1994,Salesforce,5,F,F3,UI bug / UI confusion,scan_compare_beta_unsupported,explanation_only,no,,
+#1995,Bell,5,H,H5,Out of scope / noise,sales_tam_question,explanation_only,no,,Not a site-scanner issue
+#2001,Bell,5,H,H5,Out of scope / noise,duplicate_ticket,explanation_only,no,,Not a real issue
+#2052,HCA Healthcare,5,F,F4,Integration issue (Jira / ADO / MCP),ado_integration_formatting_bug,product_bug_fix,no,CS-2557 CS-2674,
+#2058,RJ Reynolds (vusevapor.com etc.),1,B,B4,Multi-step / custom login flow needs configuration,login_flow_misconfigured_redirect,evinced_config_change,maybe,,
+#2059,Bell,5,H,H4,Feature request / how-to,reporting_feature_request,feature_request,no,,
+#2062,ServiceNow,5,H,H5,Out of scope / noise,vague_request_no_details,unresolved,no,,
+#2064,NatWest,5,H,H3,Config / admin task,viewport_config_request,feature_request,no,CS-2560,
+#2065,unknown,5,H,H5,Out of scope / noise,wfa_extension_bug,unresolved,no,,"WFA ticket, not Site Scanner"
+#2072,NatWest,5,H,H3,Config / admin task,viewport_config_request,evinced_config_change,no,CS-2590,
+#2077,Bell,5,A,A3,Soft block (block page with HTTP 200),onboarding_bulk_property_setup,customer_side_whitelist,maybe,,Mix of onboarding/bot-protection; could be class 1/3 for individual sites
+#2089,Bell,5,H,H3,Config / admin task,onboarding_config_docs_request,explanation_only,no,,
+#2095,Bell,5,F,F4,Integration issue (Jira / ADO / MCP),integration_access_help,unresolved,no,,
+#2107,Voya,5,H,H1,Access & licence,access_permissions,explanation_only,no,,
+#2111,Chick-fil-A,5,A,A1,WAF / firewall hard block,ip_whitelist_request,customer_side_whitelist,no,,
+#2128,Verizon,5,F,F3,UI bug / UI confusion,ui_property_save_missing_timezone,product_bug_fix,maybe,CS-2543,
+#2129,Bell,5,F,F4,Integration issue (Jira / ADO / MCP),integration_access_help,explanation_only,no,,
+#2131,Capital One,5,D,D3,Incomplete render → findings variance,false_positive_dynamic_content_timing,explanation_only,no,,
+#2132,Charter (SPECNET),2,B,B2,Login / interaction selector mismatch,login_selector_stale,evinced_config_change,yes,,
+#2139,Sainsbury's,5,F,F3,UI bug / UI confusion,ui_severity_totals_mismatch,product_bug_fix,no,CS-2584,
+#2143,Astral Out of Home (ops.astraloutofhome.com),4,B,B2,Login / interaction selector mismatch,dynamic_login_selectors,evinced_config_change,maybe,,
+#2144,Shopico (shopico.ca),4,C,C5,Grouping / URL-normalization rules,grouping_rules_query_params_collapsed,evinced_config_change,no,,
+#2152,AbbVie,5,H,H1,Access & licence,license_expired_no_access,evinced_config_change,maybe,,
+#2153,Bell Canada (totalconnect.bell.ca),2,B,B4,Multi-step / custom login flow needs configuration,login_flow_failed,evinced_config_change,yes,,
+#2154,Bell Canada (webmail.en.bellnet.ca),2,C,C5,Grouping / URL-normalization rules,spa_fragment_urls_grouped,evinced_config_change,maybe,,
+#2166,Super (Happening),5,B,B4,Multi-step / custom login flow needs configuration,login_config_help,unresolved,no,,Greece site 0 results = class 2 aspect
+#2167,Bell Canada (myaccount.luckymobile.ca),2,B,B1,MFA / 2FA blocks login,login_2fa_unsupported,unresolved,yes,,
+#2168,Bell Canada (iheartradio.ca),3,H,H5,Out of scope / noise,unknown_not_investigated,unresolved,no,,
+#2172,Verizon (PROD_TP_Contact Us),2,C,C1,Include regex matches nothing / invalid regex,regex_excludes_all,evinced_config_change,yes,CS-2628,Thread also covers a class-4 crawler-trap issue on another property.
+#2174,Salesforce,5,E,E2,Scheduler bug (missed / wrong next run),ui_stale_scan_timestamp,unresolved,maybe,,Could be scheduler_missed_run (class 1/2)
+#2178,Medienkonzepte,5,G,G3,Score / severity / WCAG configuration,score_delta_explanation,explanation_only,no,,
+#2185,NatWest Group (NatWest / RBS / Ulster Bank),4,A,A5,Rate limiting (HTTP 429),rate_limit_429_link_discovery_loss,customer_side_whitelist,yes,CS-275 CS-561 PDW-914,
+#2192,NatWest,1,E,E4,Tenant limits reached,concurrent_scan_limit_exceeded,evinced_config_change,yes,,
+#2222,Capital One,4,C,C3,Scope too broad / unexpected URLs,stale_crawl_comparison_site_changed,explanation_only,maybe,,
+#2234,Bell Canada (businessmail.mts.ca),4,C,C6,Non-link (JS) navigation,js_navigation_no_href_links,evinced_config_change,maybe,,
+#2235,State of Connecticut,5,H,H5,Out of scope / noise,wfa_extension_bug,product_bug_fix,yes,CS-2596 CS-2610 CS-2611 CS-2613 CS-2614 CS-2615 EW-16855,"WFA ticket, not Site Scanner"
+#2239,"Bell Canada (my-rewards.ca, via Quantrics)",2,B,B4,Multi-step / custom login flow needs configuration,login_flow_failed,evinced_config_change,maybe,,
+#2241,Bell,5,H,H5,Out of scope / noise,sales_tam_question,explanation_only,no,,Not a site-scanner issue
+#2244,Diners Club (cheers.dinersclub.com),3,D,D2,Analysis engine crash / limit,engine_error_circular_visibility_amp,unresolved,yes,,
+#2245,Salesforce,5,F,F3,UI bug / UI confusion,ui_toggle_bug,product_bug_fix,no,CS-2602,
+#2270,Super (Happening),5,B,B4,Multi-step / custom login flow needs configuration,login_config_help,unresolved,maybe,,"Greece part is class 2 (0 pages, geo-block)"
+#2274,Myers and Stauffer,5,F,F1,Export failure,export_row_limit,product_bug_fix,yes,CS-2413,
+#2288,Bell Canada (community.environicsanalytics.com),4,A,A2,Bot challenge page (Cloudflare / reCAPTCHA),bot_protection_cloudflare_challenge,unresolved,yes,,
+#2289,Capital One,5,H,H5,Out of scope / noise,vague_request_no_details,unresolved,no,,
+#2290,Charter (Spectrum),5,B,B4,Multi-step / custom login flow needs configuration,login_config_help,evinced_config_change,maybe,,Really class 2/4 (0 or few pages due to missing login config)
+#2343,Bell,5,A,A2,Bot challenge page (Cloudflare / reCAPTCHA),login_recaptcha_bot_block,customer_side_whitelist,maybe,,
+#2362,Edgewater Healthcare,5,B,B4,Multi-step / custom login flow needs configuration,login_config_help,evinced_config_change,no,,
+#2371,Bell Canada (bell.jasperwireless.com),2,B,B2,Login / interaction selector mismatch,login_selector_wrong,evinced_config_change,yes,,
+#2374,Ulta Beauty,3,A,A3,Soft block (block page with HTTP 200),bot_protection_soft_block_200,customer_side_whitelist,maybe,,Pages were not marked failed; block pages scanned as successes (inflated issues).
+#2392,Salesforce,5,G,G3,Score / severity / WCAG configuration,score_delta_explanation,explanation_only,no,,
+#2397,NatWest,5,H,H3,Config / admin task,property_archive_howto,explanation_only,no,,
+#2400,"POC customer (staging site, name not given)",3,A,A4,Static egress IP not enabled,static_ip_not_enabled_for_property,evinced_config_change,yes,,Also caused a 1-page crawl (class 4 aspect).
+#2450,"Bell Canada (community.environicsanalytics.com, Zendesk-hosted)",4,A,A2,Bot challenge page (Cloudflare / reCAPTCHA),bot_protection_cloudflare_challenge,unresolved,yes,,
+#2576,NatWest,5,G,G3,Score / severity / WCAG configuration,severity_filter_config,evinced_config_change,no,,
+#2584,Evernorth,5,H,H5,Out of scope / noise,wfa_session_page_count_bug,product_bug_fix,maybe,CS-2658 EW-18705,"WFA ticket, not Site Scanner"
+#2751,Bell Canada,1,E,E1,Platform outage / infra incident,platform_outage_june2026,infra_fix,yes,,
+#2752,Verizon,1,E,E1,Platform outage / infra incident,platform_outage_june2026,infra_fix,yes,,
+#2755,Progressive,1,E,E1,Platform outage / infra incident,platform_outage_june2026,infra_fix,yes,,
+#2756,NatWest,5,F,F3,UI bug / UI confusion,ui_stale_view_filter,workaround,no,,
+#2757,Bell Canada (auth.mtsmail.ca),1,C,C6,Non-link (JS) navigation,seed_domain_config_spa_or_login,customer_config_change,maybe,,Partly class 2/4 (0 or few pages crawled).
+#2760,StorageVault Canada (depotium.com),1,E,E1,Platform outage / infra incident,platform_outage_june2026,infra_fix,yes,,
+#2764,unknown (Stacey),1,E,E1,Platform outage / infra incident,platform_outage_june2026,infra_fix,yes,,
+#2780,HCA Healthcare,5,F,F1,Export failure,export_csv_not_delivered,product_bug_fix,yes,,
+#2783,Bell Canada (multiple onboarding properties),2,C,C2,Redirect target outside the domain whitelist,domain_whitelist_mismatch,customer_config_change,yes,CS-2742,
+#2794,Bell Canada,5,B,B5,Session lost mid-crawl,login_multistep_session_loss,evinced_config_change,yes,EW-20088 CS-2802,Mostly crawl/login/failed-pages issues (class 3/4) rather than 'Other'
+#2797,Bell Canada,5,G,G3,Score / severity / WCAG configuration,wcag_version_scoping_config,evinced_config_change,maybe,CS-2738 CS-2680,
+#2800,Bell Canada (IBM),5,F,F4,Integration issue (Jira / ADO / MCP),jira_onprem_integration_unsupported,feature_request,no,CS-2702,
+#2801,HCA Healthcare,5,F,F3,UI bug / UI confusion,remove_url_from_completed_scan,workaround,no,,
+#2812,Superbet,5,A,A7,Geo-blocking,ip_whitelist_geo_block,customer_side_whitelist,yes,,
+#2813,Bell Canada,4,H,H5,Out of scope / noise,meeting_request_umbrella,explanation_only,no,,"Meeting/coordination request, not a single crawl irregularity; arguably class 5."
+#2824,Bell Canada,5,H,H2,Access setup questions (IPs / headers),ip_whitelist_info_request,explanation_only,no,,
+#2851,Optum (VitalPoint QA),2,A,A1,WAF / firewall hard block,ip_not_whitelisted_internal_site,customer_side_whitelist,maybe,,
+#2875,McGraw Hill ALEKS,5,G,G4,Suppression / masking request,false_positive_suppression_request,unresolved,no,,"Mostly about WFA, not Site Scanner"
+#2881,Lufthansa (LHG B2B DE-de staging),2,A,A8,Redirect loop,redirect_loop_too_many_redirects,unresolved,yes,,
+#2884,Capital One,5,H,H1,Access & licence,access_permissions,unresolved,no,,
+#2889,Verizon,4,C,C3,Scope too broad / unexpected URLs,include_regex_scope_misconfigured,evinced_config_change,maybe,CS-2728,
+#2895,Verizon,4,C,C3,Scope too broad / unexpected URLs,seed_scope_change_soft404_and_relative_link,feature_request,maybe,EW-14664 CS-2754 CS-1751 CS-2360 CS-2543,Mostly false-positive/feature-request discussion (class 5); page-count swing is a secondary thread.
+#2901,Hilton,5,E,E5,Backend query error / timeout ('Error loading scan'),ui_error_loading_property_backend,product_bug_fix,maybe,,
+#2903,Bell Canada,5,A,A1,WAF / firewall hard block,bot_protection_403_whitelist,customer_config_change,yes,,Really class 1/2 (blocked / 0-1 pages)
+#2914,"NatWest Group (natwest.com, rbs.co.uk)",4,A,A5,Rate limiting (HTTP 429),rate_limit_429_link_discovery_loss,evinced_config_change,yes,CS-2829 CS-2847 EW-21529,
+#2915,Bell Media (Astral out-of-home),4,C,C5,Grouping / URL-normalization rules,query_param_pages_not_discovered,evinced_config_change,no,,
+#2946,Bell Canada,5,B,B1,MFA / 2FA blocks login,mfa_2fa_blocks_login,unresolved,yes,,Effectively class 2 (0 pages due to MFA)
+#2956,Capital One,5,H,H1,Access & licence,access_permissions,unresolved,no,,
+#2959,Bell Canada,5,B,B4,Multi-step / custom login flow needs configuration,login_multistep_config,evinced_config_change,maybe,,
+#2960,Booking.com,5,F,F2,Export count semantics,duplicate_issues_multilang,feature_request,no,,
+#2962,Bell Media (ctv.ca / crave.ca),4,H,H5,Out of scope / noise,site_migrated_login_reconfig_abandoned,unresolved,no,,Configuration/onboarding request rather than crawl irregularity; likely class 5.
+#2979,Eversana,5,E,E1,Platform outage / infra incident,ui_data_not_loading_outage,infra_fix,maybe,,
+#2998,Bell Canada,5,G,G2,Disputed finding: true positive,false_positive_unreproducible,unresolved,no,CS-2768,"Found with WFA, not Site Scanner"
+#3000,Ulta Beauty,5,D,D3,Incomplete render → findings variance,false_positive_incomplete_render,unresolved,maybe,,
+#3009,Maverik,5,H,H2,Access setup questions (IPs / headers),custom_headers_config,evinced_config_change,no,,
+#3051,Capital One,5,H,H1,Access & licence,access_permissions,explanation_only,no,,
+#3052,HCA Healthcare,5,A,A1,WAF / firewall hard block,ip_whitelist_request,customer_side_whitelist,yes,,
+#3053,prospect (individual),5,H,H5,Out of scope / noise,sales_lead,explanation_only,no,,Not a site-scanner support issue
+#3059,Bell Canada,5,G,G1,Confirmed engine false positive,false_positive_bulk_dispute,product_bug_fix,no,CS-2800,
+#3068,Bell Canada,5,G,G3,Score / severity / WCAG configuration,wcag_version_scoping_config,evinced_config_change,no,,
+#3072,Amazon,5,G,G1,Confirmed engine false positive,false_positive_engine_rule_bug,product_bug_fix,no,CS-2776,
+#3083,Ulta Beauty (Marketing property),3,A,A4,Static egress IP not enabled,static_ip_not_enabled_for_property,evinced_config_change,yes,,"Soft-blocked pages were scanned as successes, not failed pages."
+#3099,Salesforce,5,H,H5,Out of scope / noise,unclear_request_no_info,unresolved,no,,
+#3121,Ulta Beauty,5,F,F3,UI bug / UI confusion,ui_layout_broken_deploy,product_bug_fix,no,CS-2785,
+#3136,unknown (Stacey),5,F,F4,Integration issue (Jira / ADO / MCP),mcp_auth_error,product_bug_fix,maybe,,
+#3151,unknown (rel.infaqa.com),5,G,G4,Suppression / masking request,false_positive_suppression_request,workaround,no,,
+#3152,Port of Seattle,5,C,C5,Grouping / URL-normalization rules,crawl_coverage_grouping_rules,evinced_config_change,maybe,,Mainly crawl irregularity (class 4)
+#3169,Optum / WellMed (wellmedhealthcare.com),3,A,A1,WAF / firewall hard block,bot_protection_waf_block,customer_side_whitelist,yes,,
+#3177,General Mills,5,H,H3,Config / admin task,property_creation_task,evinced_config_change,no,CS-2792,
+#3190,Capital One,5,H,H1,Access & licence,access_permissions,unresolved,no,,
+#3195,Bell Canada,5,G,G1,Confirmed engine false positive,false_positive_bulk_dispute,product_bug_fix,no,CS-2800,
+#3198,Chick-fil-A,2,B,B2,Login / interaction selector mismatch,interaction_selector_stale,evinced_config_change,yes,,
+#3206,"Bell Media / Bell (tsn.ca, ctvnews.ca, bell.m2m.com)",1,A,A1,WAF / firewall hard block,ip_block_403_firewall,customer_side_whitelist,yes,,"bell.m2m.com is really class 2/4 (1 page, 403)."
+#3219,unknown (Stacey),5,F,F4,Integration issue (Jira / ADO / MCP),feature_request_mcp_collections,feature_request,no,CS-2801,
+#3228,Salesforce (all salesforce.com),1,E,E3,Pipeline dispatch / state-machine failure,crawl_dispatch_connection_refused_scrape_server_pool_exhaustion,product_bug_fix,yes,CS-2821 EW-20379 EI-1596 EW-18425,
+#3231,Bell Canada,5,H,H3,Config / admin task,property_restore_archived,evinced_config_change,no,,
+#3232,Bell Canada (entreprise.bell.ca MCORP),4,C,C6,Non-link (JS) navigation,js_navigation_no_href_links,unresolved,maybe,,
+#3238,Bell Canada,5,B,B4,Multi-step / custom login flow needs configuration,login_multistep_config,evinced_config_change,no,,
+#3241,Bell Canada (eordering.bell.ca),4,B,B1,MFA / 2FA blocks login,mfa_login_blocked,unresolved,maybe,,Login failure; could be class 1/2 depending on page count.
+#3248,Ulta Beauty (www.ulta.com),3,D,D1,Heavy page load timeout,page_ready_timeout_heavy_pages,evinced_config_change,yes,CS-2833,
+#3255,Bell Canada,5,H,H2,Access setup questions (IPs / headers),ip_whitelist_info_request,explanation_only,no,,
+#3270,Bell Canada,5,F,F1,Export failure,export_row_limit,workaround,maybe,,
+#3283,Salesforce,5,G,G3,Score / severity / WCAG configuration,severity_change_engine_bump,product_bug_fix,no,CS-2834,
+#3284,HCA Healthcare,5,D,D3,Incomplete render → findings variance,false_positive_incomplete_render,unresolved,maybe,CS-2848,
+#3293,Chick-fil-A (shop.chick-fil-a.com),3,D,D2,Analysis engine crash / limit,engine_limit_huge_dom,workaround,yes,CS-2845,
+#3301,Bell Canada,5,A,A1,WAF / firewall hard block,bot_protection_whitelist_refused,unresolved,yes,,Really class 1/2 (blocked crawl)
+#3315,Deloitte Canada (DU North SharePoint),3,E,E3,Pipeline dispatch / state-machine failure,unknown_engineering_fix,product_bug_fix,maybe,CS-2843,Wording ('failed the scan') suggests the whole scan failed - may be class 1.
+#3317,NatWest / Adobe,4,H,H5,Out of scope / noise,egress_encrypted_followup_unreadable,unresolved,no,,No technical content; duplicate/follow-up of #2914 (class 5 or merge).
+#3327,Bell Canada,5,H,H2,Access setup questions (IPs / headers),basic_auth_custom_header,unresolved,no,,
+#3340,Capital One (investor.capitalone.com),2,A,A6,Outdated browser user agent blocked,bot_protection_akamai_old_user_agent,evinced_config_change,yes,CS-2856,
+#3369,Sky Germany (sky.de),3,A,A1,WAF / firewall hard block,bot_protection_waf_block,customer_side_whitelist,maybe,,
+#3370,Bell Canada,5,F,F2,Export count semantics,export_count_mismatch,explanation_only,no,,
+#3371,Capital One,5,H,H1,Access & licence,access_permissions,unresolved,no,,
+#3420,Bell Canada (community.environicsanalytics.com Zendesk),2,A,A2,Bot challenge page (Cloudflare / reCAPTCHA),bot_protection_cloudflare_challenge,evinced_config_change,yes,,"Crawl found 1 page (challenge page), not strictly 0; borderline class 4."
+#3425,Bell Canada,5,A,A4,Static egress IP not enabled,fast_tier_non_static_ips,explanation_only,yes,,
+#3463,Oregon Metro,5,H,H3,Config / admin task,iframe_scanning_config,evinced_config_change,no,,

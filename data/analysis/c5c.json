@@ -1,0 +1,846 @@
+[
+ {
+  "ticket": "#1895",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "TAM update: www.ctv.ca scan finished but many pages errored because the crawler login user/credentials no longer worked; customer then decommissioned the property.",
+  "sub_issue": "login_credentials_invalid",
+  "mechanism": "Crawler login credentials for ctv.ca were no longer valid (user removed/disabled), causing login failures on pages.",
+  "resolution": "Customer said ctv.ca is being decommissioned and removed it from onboarding scope; CS-2454 closed.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "login failure on authenticated pages",
+   "scan completed with failed pages"
+  ],
+  "ui_signals": [
+   "credentials issue error message (screenshot)"
+  ],
+  "jira": [
+   "CS-2454"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Really class 3 (successful scan with failed pages due to login creds)"
+ },
+ {
+  "ticket": "#1902",
+  "gt_class": "5",
+  "client": "Optum",
+  "summary": "Admin saw 11 duplicate healthmarkets.com properties and asked who created them.",
+  "sub_issue": "property_creator_audit_request",
+  "mechanism": "No defect; customer needed audit info (property creator) not exposed in UI.",
+  "resolution": "Support queried backend and shared creator per property.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1918",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Views on a huge property (70k max pages, 470 regex includes, 17 views) loaded very slowly or returned 500; Manage Views failed; later view-vs-property score discrepancy questions.",
+  "sub_issue": "ui_view_query_500_large_regex",
+  "mechanism": "Scans API with viewId (GET /api/scans?propertyId=..&viewId=..) returns 500/timeouts because view regex filters are enormous with heavy wildcard usage on a very large property, hitting backend limits.",
+  "resolution": "Some Views filter performance improvements (CS-2514); support rebuilt leaner views (Support - Sitecore/DotCMS/ASC) with simplified regex; advised splitting properties/fewer regexes.",
+  "resolution_type": "workaround",
+  "log_signals": [
+   "GET /api/scans?propertyId=<id>&viewId=<id> -> 500",
+   "slow response on scans API with viewId",
+   "regex limits hit for view filter"
+  ],
+  "ui_signals": [
+   "500 on Manage Views",
+   "views return blank",
+   "dashboard very slow"
+  ],
+  "jira": [
+   "CS-2514"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1952",
+  "gt_class": "5",
+  "client": "Sainsbury's (Argos)",
+  "summary": "Page said it had one issue but none displayed.",
+  "sub_issue": "ui_stale_view_filter",
+  "mechanism": "An old saved View was still selected and filtered the issue list.",
+  "resolution": "Customer self-resolved by clearing the view selection.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "page shows 1 issue but list empty"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1967",
+  "gt_class": "5",
+  "client": "Evernorth (Cigna)",
+  "summary": "Login flow changed to two-step (username page, then password page); properties needed reconfiguration; afterwards list scan had pages failing as redirects to guest/login page.",
+  "sub_issue": "login_flow_changed_session_logout",
+  "mechanism": "Form login could not handle the new multi-step login; then crawling/scanning guest and forgot-password pages logged the session out (and concurrent crawl+list on same user), so subsequent pages redirected to /web/public/guest and failed; a few seed URLs were stale (now query-filter URLs).",
+  "resolution": "Configured multiple-interaction login (scraper.user-interaction.configuration in Retool, form login off), adjusted grouping; excluded guest/forgot-password/register paths via regex; customer replaced 14 stale seed URLs (CS-2555, CS-2576).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "scraper.user-interaction.configuration",
+   "redirect to /web/public/guest during scan",
+   "login attempted on wrong pages while already logged in",
+   "crawl collected 0 URLs"
+  ],
+  "ui_signals": [
+   "pages 'failed' in urls-status report"
+  ],
+  "jira": [
+   "CS-2555",
+   "CS-2576"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Has class 3 traits (failed pages from session logout) and class 2 (crawl found 0 URLs)"
+ },
+ {
+  "ticket": "#1976",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Add to Azure (ADO) modal description field repeated the issue content multiple times.",
+  "sub_issue": "ado_integration_formatting_bug",
+  "mechanism": "Frontend/export bug: issue object serialized repeatedly into the ADO description.",
+  "resolution": "Fix released (CS-2526); customer confirmed.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "repeated Url/Type/Summary blocks in Add to Azure description"
+  ],
+  "jira": [
+   "CS-2526"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1988",
+  "gt_class": "5",
+  "client": "Super (Happening)",
+  "summary": "Site Scanner showed an error message; platform access affected.",
+  "sub_issue": "platform_outage",
+  "mechanism": "Temporary technical error affecting platform access; fixed by engineering, restored 08:55 UTC.",
+  "resolution": "Engineering incident fix; no customer action.",
+  "resolution_type": "infra_fix",
+  "log_signals": [
+   "platform-wide errors/5xx around incident window"
+  ],
+  "ui_signals": [
+   "error message on Site Scanner (screenshot)"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1992",
+  "gt_class": "5",
+  "client": "Medienkonzepte (Swiss site)",
+  "summary": "Detailed FN/FP feedback report; asked why score changed; later critical count shifted between scans with same config/engine.",
+  "sub_issue": "score_change_page_not_stabilized",
+  "mechanism": "Between scans /magazine/ URLs shifted from Critical to Needs Review because page was not fully loaded/stable at validation time (incomplete evaluations); color-contrast/target-size FPs are Needs Review by design.",
+  "resolution": "Explained Needs Review semantics and score math; engineering (CS-2540/EW-17199) found no config/engine change; no time-to-stabilization setting supported; FN items logged as feedback.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "same engine version across scans",
+   "validations moved Critical -> Needs Review (incomplete)"
+  ],
+  "ui_signals": [
+   "score 92 -> 91",
+   "Needs Review color contrast"
+  ],
+  "jira": [
+   "CS-2540",
+   "EW-17199"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1993",
+  "gt_class": "5",
+  "client": "Verizon",
+  "summary": "Saving any property after edit failed with 'Cannot save property'; workaround toggling schedule crawl option.",
+  "sub_issue": "ui_property_save_missing_timezone",
+  "mechanism": "Frontend bug: save validation failed when no time zone was selected under Schedule Scans; unhelpful error.",
+  "resolution": "Frontend fix released (CS-2543); error message improved.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "property save request failing validation (timezone missing)"
+  ],
+  "ui_signals": [
+   "Cannot save property"
+  ],
+  "jira": [
+   "CS-2543"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1994",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "Scan Comparison ignored the selected View and showed all regions.",
+  "sub_issue": "scan_compare_beta_unsupported",
+  "mechanism": "Scan compare is an old unmaintained beta feature that does not respect views.",
+  "resolution": "Explained feature is unsupported; customer stopped using it.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "scan comparison shows URLs outside selected view"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#1995",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Questions on CI/CD integration and how Site Scanner compares to competitors.",
+  "sub_issue": "sales_tam_question",
+  "mechanism": "Not a defect; pre-sales/positioning question.",
+  "resolution": "Routed to TAM, answered offline.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Not a site-scanner issue"
+ },
+ {
+  "ticket": "#2001",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Email recall message created a duplicate ticket.",
+  "sub_issue": "duplicate_ticket",
+  "mechanism": "Email recall auto-created ticket.",
+  "resolution": "Closed as duplicate.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Not a real issue"
+ },
+ {
+  "ticket": "#2052",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "ADO integration dropped text when description contained <ul>/<script> etc.; HTML special chars not escaped.",
+  "sub_issue": "ado_integration_formatting_bug",
+  "mechanism": "Description not HTML-escaped when sent to Azure DevOps; '<script>' text interpreted as markup, hiding rest of description. Fixed in Site Scanner first, then WFA.",
+  "resolution": "Fixes CS-2557 (Site Scanner) and CS-2674 (WFA); customer moved off ADO before confirming WFA.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Azure ticket missing text after '<script>'"
+  ],
+  "jira": [
+   "CS-2557",
+   "CS-2674"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2059",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Requested a working session on reporting/dashboards/exports and access levels; wants exec-level reports.",
+  "sub_issue": "reporting_feature_request",
+  "mechanism": "No defect; advanced reporting capability does not exist.",
+  "resolution": "Sessions held, mockup shared, linked to existing FR, usage report sent.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2062",
+  "gt_class": "5",
+  "client": "ServiceNow",
+  "summary": "HubSpot form submission with no message content.",
+  "sub_issue": "vague_request_no_details",
+  "mechanism": "Empty contact form submission.",
+  "resolution": "Asked for details; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2064",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Asked whether scans are desktop-only and whether other viewports can be scanned.",
+  "sub_issue": "viewport_config_request",
+  "mechanism": "Site Scanner scans desktop viewport by default; no UI to change it.",
+  "resolution": "Feature request CS-2560 filed (followed up in #2072).",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-2560"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2065",
+  "gt_class": "5",
+  "client": "unknown",
+  "summary": "Intermittent error in Web Flow Analyzer when navigating between pages.",
+  "sub_issue": "wfa_extension_bug",
+  "mechanism": "unknown (never established).",
+  "resolution": "Asked for WFA version/call; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "WFA error on page change (screenshot)"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "WFA ticket, not Site Scanner"
+ },
+ {
+  "ticket": "#2072",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Wanted scans at 320/375/768/1024px viewports.",
+  "sub_issue": "viewport_config_request",
+  "mechanism": "Viewport is configurable per property in backend config (no UI); still web validations.",
+  "resolution": "Support duplicated property per viewport and set viewport values in DB (CS-2590); full scans kicked off.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "property viewport configuration (backend/Retool)"
+  ],
+  "ui_signals": [],
+  "jira": [
+   "CS-2590"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2077",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Bulk onboarding of 38 properties with per-site blockers (UA allowlist, IP whitelisting, cookie config for regional redirect); business.bell.ca returned blank pages.",
+  "sub_issue": "onboarding_bulk_property_setup",
+  "mechanism": "Per-site blockers; business.bell.ca strict bot detection returned empty HTML (<html> only) to GCP scanner IPs -> blank screenshots; aliant.bell.ca regional redirect needed cookie.",
+  "resolution": "Evinced configured properties; requested UA/IP whitelisting by customer security team; pending.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "empty HTML response (only <html> tag)",
+   "blank screenshots",
+   "scanner egress IPs 34.138.234.108, 35.243.229.51, 35.185.77.254, 35.231.185.238, 104.196.127.82 (scan-pool-nat1..5, us-east1)"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Mix of onboarding/bot-protection; could be class 1/3 for individual sites"
+ },
+ {
+  "ticket": "#2089",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Requested official configuration and troubleshooting documentation.",
+  "sub_issue": "onboarding_config_docs_request",
+  "mechanism": "No defect; documentation request.",
+  "resolution": "Docs reference shared; Evinced did initial configuration.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2095",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Team unable to push issues to Jira via Site Scanner Jira integration; also asked about Mobile Flow Analyzer access.",
+  "sub_issue": "integration_access_help",
+  "mechanism": "unknown; likely Jira integration setup/permissions on customer side.",
+  "resolution": "Offered call; no documented resolution.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "unable to integrate issues into JIRA"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2107",
+  "gt_class": "5",
+  "client": "Voya",
+  "summary": "POC user requested access to Site Scanner.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Account/license provisioning request.",
+  "resolution": "Handed to account team.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2111",
+  "gt_class": "5",
+  "client": "Chick-fil-A",
+  "summary": "Staging property setup required 2FA callback; support asked customer to allowlist scanner IPs.",
+  "sub_issue": "ip_whitelist_request",
+  "mechanism": "Staging site protected by security systems/2FA; scanner IPs must be allowlisted.",
+  "resolution": "Shared scanner IPs; solutions engineer call offered; auto-closed.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "scanner egress IPs 34.138.234.108, 35.243.229.51, 35.185.77.254, 35.231.185.238, 104.196.127.82 (scan-pool-nat1..5, us-east1)"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2128",
+  "gt_class": "5",
+  "client": "Verizon",
+  "summary": "Recurrence of 'cannot save property' on Save / Save and Crawl.",
+  "sub_issue": "ui_property_save_missing_timezone",
+  "mechanism": "Same frontend timezone validation bug as #1993.",
+  "resolution": "Fixed with CS-2543.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "property save request failing validation (timezone missing)"
+  ],
+  "ui_signals": [
+   "Cannot save property"
+  ],
+  "jira": [
+   "CS-2543"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2129",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Users requested access to Site Scanner and Mobile Flow Analyzer integration.",
+  "sub_issue": "integration_access_help",
+  "mechanism": "Users already had access; request unclear.",
+  "resolution": "Offered walk-through; solved without clear action.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2131",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "image-alt issues made up ~95% of issues on capitalonecareers.com.",
+  "sub_issue": "false_positive_dynamic_content_timing",
+  "mechanism": "Site adds alt='' via JS (fixAltAttribute/MutationObserver on #content only); tracking pixels inserted later outside observed area, so scanner sees images without alt (true issues at scan time).",
+  "resolution": "Explained root cause; customer to fix pixel insertion (add alt on creation / PerformanceObserver); offered to skip issues.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "image-alt issues ~95% of findings"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2139",
+  "gt_class": "5",
+  "client": "Sainsbury's",
+  "summary": "Page table Total Issues did not equal sum of visible severity columns (Best Practice included, no column).",
+  "sub_issue": "ui_severity_totals_mismatch",
+  "mechanism": "Totals included Needs Review/Best Practice which had no column.",
+  "resolution": "UI changed to 'Other severities' column so totals add up (CS-2584).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Total Issues not matching column sum"
+  ],
+  "jira": [
+   "CS-2584"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2152",
+  "gt_class": "5",
+  "client": "AbbVie",
+  "summary": "User could not see/access Site Scanner module.",
+  "sub_issue": "license_expired_no_access",
+  "mechanism": "Tenant Site Scanner license had expired.",
+  "resolution": "License extended; invitation resent.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "tenant license expired"
+  ],
+  "ui_signals": [
+   "Site Scanner module not visible"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2166",
+  "gt_class": "5",
+  "client": "Super (Happening)",
+  "summary": "Needed logged-in config for superbet.ro where login is in a modal without URL, and geo-blocked Greece site needing whitelisted IP solution.",
+  "sub_issue": "login_config_help",
+  "mechanism": "Login modal with no URL not supported by simple form login; superbet.gr geolocation blocks scanner (0 results).",
+  "resolution": "Asked for details; auto-closed (reopened as #2270).",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Greece site 0 results = class 2 aspect"
+ },
+ {
+  "ticket": "#2174",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "All views showed last scan Jun 15, 2025 although property should scan monthly.",
+  "sub_issue": "ui_stale_scan_timestamp",
+  "mechanism": "unknown (never established; property not identified).",
+  "resolution": "Asked for property link; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "scheduled scans not running since 2025-06-15?"
+  ],
+  "ui_signals": [
+   "last scan Jun 15, 2025"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Could be scheduler_missed_run (class 1/2)"
+ },
+ {
+  "ticket": "#2178",
+  "gt_class": "5",
+  "client": "Medienkonzepte",
+  "summary": "Asked why score jumped 60->83 between two scans; wants scan diff tool.",
+  "sub_issue": "score_delta_explanation",
+  "mechanism": "Genuine site change: Presentation-role-conflict and Accessible name instances dropped; same engine 16.10.1, same 257 pages, 0 failures.",
+  "resolution": "Explained; no compare tool (FR); pointed to Element Template Signature ID in CSV export.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "engine version 16.10.1"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2235",
+  "gt_class": "5",
+  "client": "State of Connecticut",
+  "summary": "WFA: Manage Sessions crashed, old sessions inaccessible, admin dashboard missing sessions, dropdowns broken, platform export incomplete.",
+  "sub_issue": "wfa_extension_bug",
+  "mechanism": "CORS preflight on ingestion.evinced.com/product/wfa rejected content-encoding header for large gzip payloads so sync failed; corrupted 'undefined' sessions crashed Manage Sessions (TypeError reading 'TOGGLES'/'reportEngineState'); platform CSV export missing columns.",
+  "resolution": "Fixes in extension 1.3.126 and backend (CS-2596, CS-2610/2611/2613/2614/2615, EW-16855); support manually provided XLSX exports.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "Request header field content-encoding is not allowed by Access-Control-Allow-Headers in preflight response",
+   "ingestion.evinced.com/product/wfa",
+   "TypeError: Cannot read properties of undefined (reading 'TOGGLES')",
+   "TypeError: Cannot read properties of undefined (reading 'reportEngineState')",
+   "Sentry WFA-PROD-17",
+   "WFA/TOGGLES/ENABLE_PLATFORM_LABELS"
+  ],
+  "ui_signals": [
+   "Something went wrong. The error has been reported."
+  ],
+  "jira": [
+   "CS-2596",
+   "CS-2610",
+   "CS-2611",
+   "CS-2613",
+   "CS-2614",
+   "CS-2615",
+   "EW-16855"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "WFA ticket, not Site Scanner"
+ },
+ {
+  "ticket": "#2241",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "Questions about subscription pricing vs Siteimprove.",
+  "sub_issue": "sales_tam_question",
+  "mechanism": "Commercial question.",
+  "resolution": "Routed to account/contract owner.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Not a site-scanner issue"
+ },
+ {
+  "ticket": "#2245",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "'Show Full URL' toggle on All Issues page did nothing.",
+  "sub_issue": "ui_toggle_bug",
+  "mechanism": "Frontend bug in Show Full URL toggle.",
+  "resolution": "Fix released (CS-2602).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Show Full URL toggle has no effect"
+  ],
+  "jira": [
+   "CS-2602"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2270",
+  "gt_class": "5",
+  "client": "Super (Happening)",
+  "summary": "Reopen of #2166: Romania login in a modal; Greece site returns 0 results due to geolocation block despite whitelisted IPs.",
+  "sub_issue": "login_config_help",
+  "mechanism": "Login modal without URL requires Multiple Interactions flow; superbet.gr geo-blocks scanner IPs.",
+  "resolution": "Multiple Interactions configured for Romania; awaiting password; Greece geo issue unresolved; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "0 pages (geo-blocked)"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Greece part is class 2 (0 pages, geo-block)"
+ },
+ {
+  "ticket": "#2274",
+  "gt_class": "5",
+  "client": "Myers and Stauffer",
+  "summary": "Excel export failed for a property (hit 10k unique row limit) although UI showed 4,291 issues; after fix export had 6,224 rows.",
+  "sub_issue": "export_row_limit",
+  "mechanism": "Processing problem with large Excel exports (failure at ~10k unique rows); row count != issue count because export is one row per occurrence.",
+  "resolution": "Fixed (CS-2413); explained row vs issue count.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "Excel export failure for large exports"
+  ],
+  "ui_signals": [
+   "export error"
+  ],
+  "jira": [
+   "CS-2413"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2289",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "HubSpot form submission with almost no details.",
+  "sub_issue": "vague_request_no_details",
+  "mechanism": "No issue described.",
+  "resolution": "Asked for details per KBA; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2290",
+  "gt_class": "5",
+  "client": "Charter (Spectrum)",
+  "summary": "Several authenticated properties found only 0-2 pages; regex not working for one page.",
+  "sub_issue": "login_config_help",
+  "mechanism": "Login flows not configured/incorrect selectors (kite inputs, modal sign-in button, dropdown location select); one set of credentials invalid.",
+  "resolution": "Support configured login selectors/waits per property; all crawled and scanned; SELECT_OPTION dropdown login raised with team.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "crawl found 0-2 pages",
+   "login selector not found"
+  ],
+  "ui_signals": [
+   "crawl only finds 1-2 pages",
+   "no pages found"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Really class 2/4 (0 or few pages due to missing login config)"
+ },
+ {
+  "ticket": "#2343",
+  "gt_class": "5",
+  "client": "Bell",
+  "summary": "13 properties have reCAPTCHA on login forms; asked how to onboard.",
+  "sub_issue": "login_recaptcha_bot_block",
+  "mechanism": "reCAPTCHA (v2/v3/Enterprise) blocks the bot login.",
+  "resolution": "Advised IP whitelisting (preferred) or v2 bypass token; customer working on whitelisting.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "scanner egress IPs 34.138.234.108, 35.243.229.51, 35.185.77.254, 35.231.185.238, 104.196.127.82 (scan-pool-nat1..5, us-east1)",
+   "reCAPTCHA challenge on login page"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2362",
+  "gt_class": "5",
+  "client": "Edgewater Healthcare",
+  "summary": "Requested new property with login for a domain.",
+  "sub_issue": "login_config_help",
+  "mechanism": "Setup request; needed login credentials.",
+  "resolution": "Support created property with login and ran scan.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2392",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "Property score showed 1/0.",
+  "sub_issue": "score_delta_explanation",
+  "mechanism": "Score formula genuinely ~0: 677k issues over 10,023 pages, mostly Critical Aria-required-parent and Button-name from two shared components. (Note: null scoreResult.score also renders as 0.)",
+  "resolution": "Explained score formula and top offending components.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "scoreResult.score"
+  ],
+  "ui_signals": [
+   "score 1 / 0"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2397",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Wanted to remove a property that was still scanning.",
+  "sub_issue": "property_archive_howto",
+  "mechanism": "User didn't know how to archive.",
+  "resolution": "Instructed to archive via property menu.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2576",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "Wanted Best Practice and Needs Review severities hidden on all reports.",
+  "sub_issue": "severity_filter_config",
+  "mechanism": "Tenant-level severity configuration.",
+  "resolution": "Evinced disabled NR and BP for tenant; historic data ages out.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2584",
+  "gt_class": "5",
+  "client": "Evernorth",
+  "summary": "WFA session showed 120 pages for a ~15-page flow.",
+  "sub_issue": "wfa_session_page_count_bug",
+  "mechanism": "WFA sent extra data: 99 pages from other sessions (same ingestion timestamp) attached to session; buildPagesObject not limited to synced session pages (PR 3988).",
+  "resolution": "Fix merged for new sessions only (CS-2658, EW-18705).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "buildPagesObject",
+   "pages with identical ingestion timestamp"
+  ],
+  "ui_signals": [
+   "120 pages in WFA session"
+  ],
+  "jira": [
+   "CS-2658",
+   "EW-18705"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "WFA ticket, not Site Scanner"
+ },
+ {
+  "ticket": "#2756",
+  "gt_class": "5",
+  "client": "NatWest",
+  "summary": "One user saw different scan results than a colleague.",
+  "sub_issue": "ui_stale_view_filter",
+  "mechanism": "Likely cached View filtering scans; not permissions.",
+  "resolution": "Advised clearing cache/cookies and re-login; auto-closed.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [
+   "different scan results per user"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2780",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Download CSV showed error, then 'will be emailed' but email never arrived.",
+  "sub_issue": "export_csv_not_delivered",
+  "mechanism": "Export CSV function broken (frontend/export pipeline).",
+  "resolution": "Fixed by engineering next day.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "CSV export job failed / email not sent"
+  ],
+  "ui_signals": [
+   "error after Download CSV",
+   "CSV never emailed"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ }
+]

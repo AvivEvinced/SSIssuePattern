@@ -1,0 +1,826 @@
+[
+ {
+  "ticket": "#2794",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Onboarding snr.bell.ca with a two-step (username->Next->password) login; after support configured it, crawl missed many /User/ pages and some pages failed scan.",
+  "sub_issue": "login_multistep_session_loss",
+  "mechanism": "Multi-step login configured by support; crawler then lost session: hit /servlet/Logout and /authnz/user-check (HTTP 401), short inactivity timeout, Group vs User areas need separate logins that revoke each other, parallel workers. Later remaining failures: engine language-attribute-vs-content check threw error and dropped pages (Site Scanner only); finally concurrent GROUP+USERS scans with the same account caused portal to reject login.",
+  "resolution": "Multi-step login on backend; exclude regex for /servlet/Logout and authnz; split into GROUP and USERS properties; speed tier slow (single browser); maxPagesCount 100->250; seed URLs added as starting pages; language check disabled on USERS property, fixed in analysis-web 16.34.10 (CS-2802); advise not to scan both properties concurrently.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "[browser] [error] Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+   "final url redirected to /authnz/user-check or login page",
+   "speed tier slow",
+   "maxPagesCount",
+   "scrape-server final-URL and status-code lines (404/500)",
+   "analysis-web 16.34.10"
+  ],
+  "ui_signals": [
+   "pages failed to scan",
+   "results show login page instead of actual page"
+  ],
+  "jira": [
+   "EW-20088",
+   "CS-2802"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Mostly crawl/login/failed-pages issues (class 3/4) rather than 'Other'"
+ },
+ {
+  "ticket": "#2797",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Customer requested WCAG 2.0 A/AA-only scans across ~11 properties; 2.2 Target Size still appeared; also glentel.com pages came back empty/'Untitled'.",
+  "sub_issue": "wcag_version_scoping_config",
+  "mechanism": "Default runs all WCAG levels/versions. Property-level enginesConfiguration needed (AXE_CONFIG runOnly wcag2a/wcag2aa, USE_LOCKED_TEXT_SPACING_VALIDATOR false); Target Size still emitted until ENABLE_AXE_OPT_IN=false added. Temporary test page cap (10/50) caused low page counts. glentel.com: site/CDN rate limit HTTP 429 -> empty captured pages. cloudkettle.com 301-redirects to ateko.com. sdktek/protexxa: 'final url not included in whitelist'.",
+  "resolution": "Retool property-level config (TOGGLES + AXE_CONFIG runOnly + ENABLE_AXE_OPT_IN:false) applied to all properties; CS-2738 for Target Size leak; FR CS-2680 for showing WCAG version in UI; glentel needs IP allowlist on site side.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "scraperConfiguration.accessibilityConfiguration.enginesConfiguration",
+   "ENABLE_AXE_OPT_IN",
+   "runOnly wcag2a wcag2aa",
+   "HTTP 429 Too Many Requests",
+   "not including url in result url set. reason: final url not included in whitelist",
+   "301 redirect to ateko.com"
+  ],
+  "ui_signals": [
+   "Target Size (2.5.8) issues still shown",
+   "pages titled 'Untitled' with no content",
+   "no WCAG version indicator in UI"
+  ],
+  "jira": [
+   "CS-2738",
+   "CS-2680"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2800",
+  "gt_class": "5",
+  "client": "Bell Canada (IBM)",
+  "summary": "Customer wanted Site Scanner -> Jira integration like WFA/MFA; 'Connect to Jira' led to Atlassian cloud login and Access Denied.",
+  "sub_issue": "jira_onprem_integration_unsupported",
+  "mechanism": "Site Scanner Jira integration supports Jira Cloud only; Bell uses on-prem Jira server, so OAuth goes to Atlassian cloud where accounts don't exist.",
+  "resolution": "Explained limitation; FR CS-2702 for on-prem Jira; workaround CSV export.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [
+   "Access Denied",
+   "Connect to Jira"
+  ],
+  "jira": [
+   "CS-2702"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2801",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Wanted to remove a URL (magazine.hcahealthcare.com) from an already-completed scan because its defects skewed numbers.",
+  "sub_issue": "remove_url_from_completed_scan",
+  "mechanism": "Completed scan results are immutable; URL removed from seed list only affects future scans.",
+  "resolution": "Workaround: create a view filtering out the URL; exclude in property settings going forward.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2812",
+  "gt_class": "5",
+  "client": "Superbet",
+  "summary": "Needed new Greece site (superbet.gr) scanned using whitelisted static IPs like Brazil/Belgium due to geo-blocking; Romania login pending.",
+  "sub_issue": "ip_whitelist_geo_block",
+  "mechanism": "Site geo-blocks non-local traffic (403 at geo-block edge); requires property to egress via static IPs and customer to allowlist them on the Greek edge.",
+  "resolution": "Static IPs enabled for property; customer's team updated Greek edge allowlist; Greece scanning.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "http status code is: 403",
+   "static IP / speed tier regular"
+  ],
+  "ui_signals": [
+   "crawl blocked by geo-block"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2824",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "CIAM team asked for justification (dedicated? hosted where? security) before whitelisting scanner IPs for reCAPTCHA bypass.",
+  "sub_issue": "ip_whitelist_info_request",
+  "mechanism": "Customer security due-diligence; no failure.",
+  "resolution": "Explained IPs are Site Scanner-specific (shared across customers), hosted on GCP, TLS1.2.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2875",
+  "gt_class": "5",
+  "client": "McGraw Hill ALEKS",
+  "summary": "Requested masking 'Composite not in focus sequence' for #timeline-table on aleks.com across products; claims WFA changes focus behavior causing FP.",
+  "sub_issue": "false_positive_suppression_request",
+  "mechanism": "Suspected false positive / WFA altering focus behavior; not established (repro deferred until test accounts available).",
+  "resolution": "Deferred; no fix.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "Composite not in focus sequence"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Mostly about WFA, not Site Scanner"
+ },
+ {
+  "ticket": "#2884",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "User submitted contact form asking to renew Site Scanner access.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Access controlled via customer SSO/group membership; not established in this ticket.",
+  "resolution": "Asked for details; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2901",
+  "gt_class": "5",
+  "client": "Hilton",
+  "summary": "Clicking several Hilton properties produced an error page, auto sign-out and 'Product error' rocket page; scans of Hilton.com pages showed Hilton's 'Something went wrong' page.",
+  "sub_issue": "ui_error_loading_property_backend",
+  "mechanism": "Transient platform error when opening property pages (resolved by Evinced team, details not given); separately Hilton's Akamai WAF/bot protection served error page to scanner.",
+  "resolution": "Evinced fixed the UI error (unspecified); IP allowlist provided for Akamai.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "Product error",
+   "auto sign-out",
+   "Something went wrong (site error page in scans)"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2903",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Site owners of starz.ca demanded evidence of reCAPTCHA block and a domain to whitelist before allowlisting scanner.",
+  "sub_issue": "bot_protection_403_whitelist",
+  "mechanism": "Apex starz.ca returned 403 to crawler (bot protection), final url not in whitelist; www.starz.ca returned 200 and is a single-page site.",
+  "resolution": "Provided log evidence and static IPs/custom header option; customer used www.starz.ca and got 1 page (expected).",
+  "resolution_type": "customer_config_change",
+  "log_signals": [
+   "browser was opened successfully. version: Chrome/126",
+   "going from url: about:blank to url: https://starz.ca",
+   "[browser] [error] Failed to load resource: the server responded with a status of 403 ()",
+   "finished waiting for page to stabilize. final url after redirections:",
+   "http status code is: 403",
+   "not including url in result url set. reason: final url not included in whitelist"
+  ],
+  "ui_signals": [
+   "reCAPTCHA blocking scan"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Really class 1/2 (blocked / 0-1 pages)"
+ },
+ {
+  "ticket": "#2946",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Onboarding mybell.bell.ca two-step login; login always ends on SMS MFA challenge despite IP-based MFA bypass.",
+  "sub_issue": "mfa_2fa_blocks_login",
+  "mechanism": "Auth0 MFA (identification.bell.ca/u/mfa-sms-challenge) triggered; customer bypass applies only to test/pilot-flagged users from whitelisted IPs; provided account isn't a test/pilot user.",
+  "resolution": "Static IPs enabled; waiting on customer for test/pilot-flag credentials; unresolved.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "redirect to identification.bell.ca/u/mfa-sms-challenge",
+   "crawl found zero pages after login"
+  ],
+  "ui_signals": [
+   "0 pages"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Effectively class 2 (0 pages due to MFA)"
+ },
+ {
+  "ticket": "#2956",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "Duplicate contact-form submission about Site Scanner access.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Duplicate of #2884; access via SSO.",
+  "resolution": "Pointed to existing thread.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2959",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Onboarding crave.ca with two-step login (email->Continue->password->Continue).",
+  "sub_issue": "login_multistep_config",
+  "mechanism": "Standard login config supports single page; also initial credentials were invalid.",
+  "resolution": "Customer supplied valid credentials; support configured multi-step login flow (clicks/waits/inputs) on backend.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "login flow: invalid credentials"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2960",
+  "gt_class": "5",
+  "client": "Booking.com",
+  "summary": "Scan shows the same issue repeated per language version of a page; asked to dedupe or filter to one language.",
+  "sub_issue": "duplicate_issues_multilang",
+  "mechanism": "Each localized URL is scanned as a distinct page so identical template issues repeat per language.",
+  "resolution": "Asked clarifying questions; suggested scoping to one language or per-language views; no resolution recorded.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2979",
+  "gt_class": "5",
+  "client": "Eversana",
+  "summary": "Site Scanner data not showing and no scans accessible for a day.",
+  "sub_issue": "ui_data_not_loading_outage",
+  "mechanism": "Platform-side issue affecting multiple users (not isolated); cause not stated.",
+  "resolution": "Support exported CSV/Excel/PDF meanwhile; service recovered same day.",
+  "resolution_type": "infra_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "data not showing",
+   "can't access any scans"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#2998",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Reported 2 false positives (e.g. 'Scrollable region must have keyboard access') on a BCE dev page.",
+  "sub_issue": "false_positive_unreproducible",
+  "mechanism": "Could not reproduce (internal page, incomplete SingleFile DOM); issue disappeared on its own.",
+  "resolution": "Closed after issue no longer appeared.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "Scrollable region must have keyboard access"
+  ],
+  "jira": [
+   "CS-2768"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Found with WFA, not Site Scanner"
+ },
+ {
+  "ticket": "#3000",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Page flagged with 66 issues that didn't reproduce; screenshot showed page not fully loaded with mega-menu content exposed; also 10 failed pages and view dropdown not updating.",
+  "sub_issue": "false_positive_incomplete_render",
+  "mechanism": "Scan executed before page fully loaded/stabilized, exposing banner-menu DOM (accessible-name issues on menu logos).",
+  "resolution": "Forwarded to PM; re-scan showed only 3 legit issues; no fix.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "view dropdown value not updating"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3009",
+  "gt_class": "5",
+  "client": "Maverik",
+  "summary": "Customer WAF required custom headers (incl. timestamp/signature) to let scanner in.",
+  "sub_issue": "custom_headers_config",
+  "mechanism": "Customer WAF rule; scanner can only send static header values (no per-request timestamp/signature).",
+  "resolution": "Configured static header X-Maverik-Client on property plus static IPs; customer SecOps confirmed rule matches.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "extra headers configured"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3051",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "User asked to renew Site Scanner access; SSO login still failing.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Access governed by Capital One SSO group membership, not Evinced account status.",
+  "resolution": "Directed to customer's internal admin.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "SSO login error"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3052",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Requested scanner IPs because dpxmedcity.net blocks external access; later crawl returned 1 page.",
+  "sub_issue": "ip_whitelist_request",
+  "mechanism": "Pre-launch sites blocked to external traffic; needed static IPs on property + customer allowlist.",
+  "resolution": "Static IP enabled on 'Pre-launch sites' property; customer allowlisted; scan got 245 pages.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "static IP / speed tier"
+  ],
+  "ui_signals": [
+   "crawl returns single page"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3053",
+  "gt_class": "5",
+  "client": "prospect (individual)",
+  "summary": "Prospect asked to use the tool for his business site.",
+  "sub_issue": "sales_lead",
+  "mechanism": "Not a support issue.",
+  "resolution": "Passed to Sales.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Not a site-scanner support issue"
+ },
+ {
+  "ticket": "#3059",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Bell submitted 3,139 'false positives' on ateko.com (color contrast, accessible name, redundant focusable children).",
+  "sub_issue": "false_positive_bulk_dispute",
+  "mechanism": "Mostly true positives duplicated across pages (~5 distinct defects); WCAG 2.0 scoping also involved; engine fix for redundant focusable children; Bell Cyber accessible-name FPs caused by page load state.",
+  "resolution": "Reverted to WCAG 2.1; engine server-side fix (CS-2800); explained valid issues; Bell Cyber switched to slow speed tier.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "speed tier slow"
+  ],
+  "ui_signals": [
+   "color-contrast",
+   "Redundant focusable children",
+   "Accessible name"
+  ],
+  "jira": [
+   "CS-2800"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3068",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Requested reverting all properties from WCAG 2.0 scoping back to WCAG 2.1.",
+  "sub_issue": "wcag_version_scoping_config",
+  "mechanism": "Property-level engine config previously restricting to 2.0 A/AA.",
+  "resolution": "Removed restriction on properties (2.2 rules like Target Size now included).",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "enginesConfiguration AXE_CONFIG runOnly"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3072",
+  "gt_class": "5",
+  "client": "Amazon",
+  "summary": "SERIOUS_SEVERITY_NO_DESCRIPTIVE_TEXT reported on aria-hidden, tabindex=-1 link with sibling link containing text.",
+  "sub_issue": "false_positive_engine_rule_bug",
+  "mechanism": "Engine rule bug flagged aria-hidden duplicate link.",
+  "resolution": "Fixed in engine release (CS-2776).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "SERIOUS_SEVERITY_NO_DESCRIPTIVE_TEXT"
+  ],
+  "jira": [
+   "CS-2776"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3099",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "Contact form 'need to get the development done' with no details.",
+  "sub_issue": "unclear_request_no_info",
+  "mechanism": "Never established.",
+  "resolution": "Asked for details; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "500 errors on /api/open-invitations (Evie hint only)"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3121",
+  "gt_class": "5",
+  "client": "Ulta Beauty",
+  "summary": "Site Scanner UI appeared distorted/misaligned after login.",
+  "sub_issue": "ui_layout_broken_deploy",
+  "mechanism": "Front-end regression in a deployment.",
+  "resolution": "Engineering deployed a fix same day (CS-2785).",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "interface distorted/misaligned"
+  ],
+  "jira": [
+   "CS-2785"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3136",
+  "gt_class": "5",
+  "client": "unknown (Stacey)",
+  "summary": "Site Scanner MCP login failed: 'Couldn't register with siteScanner's sign-in service.'",
+  "sub_issue": "mcp_auth_error",
+  "mechanism": "MCP remote server Auth0 registration issue; details not documented.",
+  "resolution": "Solved on a call with team.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "Couldn't register with siteScanner's sign-in service"
+  ],
+  "ui_signals": [
+   "Couldn't register with siteScanner's sign-in service"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3151",
+  "gt_class": "5",
+  "client": "unknown (rel.infaqa.com)",
+  "summary": "Wanted a way to mark issues/components as false positive; one component dominates FPs.",
+  "sub_issue": "false_positive_suppression_request",
+  "mechanism": "No in-product dismiss; customer considers keyboard-resize component not applicable.",
+  "resolution": "Support added validation skip for component on URLs containing domain (initial exclusion had wrong domain); FR for admin-configurable skip validations.",
+  "resolution_type": "workaround",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3152",
+  "gt_class": "5",
+  "client": "Port of Seattle",
+  "summary": "Asked how to ensure full-site scan; scan returned <2,000 pages vs ~3,800 expected; also Azure DevOps integration and admin users.",
+  "sub_issue": "crawl_coverage_grouping_rules",
+  "mechanism": "Bot protection served block page (scans returned 1 page) and URL fragments/sort/filter params caused duplicates hitting 5000 cap; grouping rules needed.",
+  "resolution": "Customer allowlisted IPs; support configured grouping rules (ignore fragments, exclude sort/filter params, keep pagination); enabled Azure integration; added admins.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "crawl hit maxPages 5000",
+   "block page returned, single page crawled"
+  ],
+  "ui_signals": [
+   "scan returns 1 page"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Mainly crawl irregularity (class 4)"
+ },
+ {
+  "ticket": "#3177",
+  "gt_class": "5",
+  "client": "General Mills",
+  "summary": "Property creation task passed to TE team.",
+  "sub_issue": "property_creation_task",
+  "mechanism": "n/a (setup task).",
+  "resolution": "Done via CS-2792.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-2792"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3190",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "Contact-form submission about Site Scanner with no message.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Never established.",
+  "resolution": "Asked how to help; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3195",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Bell flagged 3,747 findings as FPs on Dome Productions, Bell Cyber, Astral and requested review.",
+  "sub_issue": "false_positive_bulk_dispute",
+  "mechanism": "Mostly true positives (contrast measured against wrong background) repeated across pages; some engine issues.",
+  "resolution": "Duplicate of #3059; engine server-side fix CS-2800; asked to rescan.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [],
+  "ui_signals": [
+   "color-contrast",
+   "Language attribute mismatch",
+   "Interactable role"
+  ],
+  "jira": [
+   "CS-2800"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3219",
+  "gt_class": "5",
+  "client": "unknown (Stacey)",
+  "summary": "Feature request to expose collections in Site Scanner MCP.",
+  "sub_issue": "feature_request_mcp_collections",
+  "mechanism": "MCP tools scoped to property/scan; collections not exposed though API GET /api/collections exists.",
+  "resolution": "FR CS-2801.",
+  "resolution_type": "feature_request",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [
+   "CS-2801"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3231",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Requested restoring an accidentally archived property.",
+  "sub_issue": "property_restore_archived",
+  "mechanism": "User archived property.",
+  "resolution": "Support restored it.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3238",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Requested custom multi-step login config for Bell TV.",
+  "sub_issue": "login_multistep_config",
+  "mechanism": "Login flow needs several steps (provider selection, email, password).",
+  "resolution": "Support configured multi-step login; crawled/scanned; confirmed working.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3255",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Vendor asked for 'destination' of scanner IPs before whitelisting.",
+  "sub_issue": "ip_whitelist_info_request",
+  "mechanism": "Customer misunderstanding: IPs are source (egress) not destination.",
+  "resolution": "Explained IPs are Evinced's static outbound GCP addresses.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3270",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Could not export issues from properties with >10k issues (some have millions); asked to raise limit.",
+  "sub_issue": "export_row_limit",
+  "mechanism": "Export limit (120k issues; customer saw 10k) and CSV worker timeouts for huge issue counts.",
+  "resolution": "Support ran backend exports with raised limits and shared via Uploadify (split zips); recommended grouping rules for rds/ctvnews/tsn.",
+  "resolution_type": "workaround",
+  "log_signals": [
+   "scan-csv.max-allowed-issues-count",
+   "scan.csv-worker.export.poll-creation.duration-minutes"
+  ],
+  "ui_signals": [
+   "export limit on All issues tab"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3283",
+  "gt_class": "5",
+  "client": "Salesforce",
+  "summary": "'Missing contextual labeling' severity changed from Serious to Critical between scans.",
+  "sub_issue": "severity_change_engine_bump",
+  "mechanism": "Engine bump (a11ygator 0.61.1->0.63.1, analysis-web v16.16.0) changed MISSING_CONTEXTUAL_LABELING severity.",
+  "resolution": "Fixed in engine (CS-2834); new scans show Serious; historical scans unchanged.",
+  "resolution_type": "product_bug_fix",
+  "log_signals": [
+   "MISSING_CONTEXTUAL_LABELING",
+   "a11ygator 0.63.1",
+   "analysis-web v16.16.0"
+  ],
+  "ui_signals": [
+   "severity Critical instead of Serious"
+  ],
+  "jira": [
+   "CS-2834"
+  ],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3284",
+  "gt_class": "5",
+  "client": "HCA Healthcare",
+  "summary": "Huge spike of Target Size and color-contrast issues in September scan; screenshots showed pages rendered without CSS.",
+  "sub_issue": "false_positive_incomplete_render",
+  "mechanism": "Many dotCMS pages evaluated without CSS loaded (cause unknown; logs showed no stylesheet errors); October normal.",
+  "resolution": "Escalated to R&D (CS-2848) to flag CSS-less renders; one-off.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "stylesheet load status in scan logs",
+   "page load timeouts skipped"
+  ],
+  "ui_signals": [
+   "Target Size spike",
+   "color-contrast spike"
+  ],
+  "jira": [
+   "CS-2848"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3301",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Onboarding myprepaidcenter.com sites needing 2FA bypass via IP allowlist; vendor (Blackhawk) confusion over destination IPs.",
+  "sub_issue": "bot_protection_whitelist_refused",
+  "mechanism": "All crawls got HTTP 405 from DataDome bot protection (behind Fastly CDN) at username step; 2FA can't be automated; vendor refused allowlisting third-party scanner.",
+  "resolution": "No fix; recommended SDK/WFA instead.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "http status code is: 405",
+   "DataDome header on response",
+   "Fastly 151.101.x.x"
+  ],
+  "ui_signals": [
+   "login stops at username step"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "Really class 1/2 (blocked crawl)"
+ },
+ {
+  "ticket": "#3327",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Staging site uses HTTP basic auth, not supported by login config.",
+  "sub_issue": "basic_auth_custom_header",
+  "mechanism": "Site Scanner lacks basic-auth login method.",
+  "resolution": "Proposed custom header to bypass auth; customer dropped staging.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [
+   "basic auth pop-up"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3370",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Issue count in exported file differs from UI count.",
+  "sub_issue": "export_count_mismatch",
+  "mechanism": "Export has one row per component/selector, repeating Issue IDs.",
+  "resolution": "Explained; dedupe by Issue ID in Excel.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3371",
+  "gt_class": "5",
+  "client": "Capital One",
+  "summary": "User requested Site Scanner license renewal.",
+  "sub_issue": "access_permissions",
+  "mechanism": "Provisioning requires customer account admin approval.",
+  "resolution": "Asked for admin confirmation; closed no response.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3425",
+  "gt_class": "5",
+  "client": "Bell Canada",
+  "summary": "Bell saw unknown Google IPv6 addresses logging into its sites and asked if they were Evinced.",
+  "sub_issue": "fast_tier_non_static_ips",
+  "mechanism": "8 Bell properties on 'fast' speed tier: crawl runs on Google Cloud Functions (production_crawl_link_extractor) with random Google IPs, not the 5 pinned IPs; logged in many times in parallel.",
+  "resolution": "Confirmed IPs were Evinced; offered moving properties to regular tier (static IPs) with fewer pages.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "production_crawl_link_extractor",
+   "speed tier fast",
+   "crawler public IP logged",
+   "User-Agent Chrome/112 Mac"
+  ],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": ""
+ },
+ {
+  "ticket": "#3463",
+  "gt_class": "5",
+  "client": "Oregon Metro",
+  "summary": "SE asked how to enable iframe scanning tenant-wide.",
+  "sub_issue": "iframe_scanning_config",
+  "mechanism": "Config toggle question.",
+  "resolution": "Confirmed toggle config with SE.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": ""
+ }
+]

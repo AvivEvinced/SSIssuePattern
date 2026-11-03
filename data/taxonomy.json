@@ -1,0 +1,1458 @@
+{
+ "families": [
+  {
+   "id": "A",
+   "name": "Access blocked",
+   "definition": "The site, network or bot protection prevents the scanner from fetching pages.",
+   "count": 33,
+   "subs": [
+    {
+     "id": "A1",
+     "name": "WAF / firewall hard block",
+     "definition": "Customer WAF or firewall (Cloudflare, Akamai, DataDome, PerimeterX, IP deny) rejects scanner requests with 403/405 or an 'Access denied' page.",
+     "fix": "Customer allowlists the 5 static NAT IPs (scan-pool-nat1..5) and/or Evinced adds an agreed custom header; enable static IP on the property.",
+     "signature": "http status code is: 403|405 \u00b7 [browser] Failed to load resource: ... status of 403 \u00b7 OPEN_PAGE_TIMEOUT \u00b7 'Access denied'",
+     "detectability": "yes",
+     "count": 13,
+     "gt": {
+      "1": 2,
+      "2": 1,
+      "3": 2,
+      "4": 4,
+      "5": 4
+     },
+     "resolution": {
+      "customer_side_whitelist": 9,
+      "evinced_config_change": 1,
+      "workaround": 1,
+      "customer_config_change": 1,
+      "unresolved": 1
+     },
+     "raw_labels": [
+      "bot_protection_403_whitelist",
+      "bot_protection_customer_waf",
+      "bot_protection_partial_block",
+      "bot_protection_waf_block",
+      "bot_protection_whitelist_refused",
+      "ip_block_403_firewall",
+      "ip_not_whitelisted_internal_site",
+      "ip_whitelist_request",
+      "login_page_access_blocked",
+      "login_required_and_firewall_ip_allowlist",
+      "site_blocking_not_whitelisted"
+     ],
+     "tickets": [
+      "#792",
+      "#952",
+      "#1296",
+      "#1493",
+      "#1665",
+      "#2111",
+      "#2851",
+      "#2903",
+      "#3052",
+      "#3169",
+      "#3206",
+      "#3301",
+      "#3369"
+     ]
+    },
+    {
+     "id": "A2",
+     "name": "Bot challenge page (Cloudflare / reCAPTCHA)",
+     "definition": "An interstitial JS or CAPTCHA challenge is served, so the crawl finds ~1 page and the scan analyses the challenge page.",
+     "fix": "Custom user agent via puppeteer-args (--user-agent=...), custom header or IP allowlist; reCAPTCHA v2 bypass token.",
+     "signature": "1 discovered page \u00b7 page title 'Just a moment...' / 'Sorry, you have been blocked' \u00b7 reCAPTCHA iframe",
+     "detectability": "yes",
+     "count": 4,
+     "gt": {
+      "2": 1,
+      "4": 2,
+      "5": 1
+     },
+     "resolution": {
+      "evinced_config_change": 1,
+      "unresolved": 2,
+      "customer_side_whitelist": 1
+     },
+     "raw_labels": [
+      "bot_protection_cloudflare_challenge",
+      "login_recaptcha_bot_block"
+     ],
+     "tickets": [
+      "#2288",
+      "#2343",
+      "#2450",
+      "#3420"
+     ]
+    },
+    {
+     "id": "A3",
+     "name": "Soft block (block page with HTTP 200)",
+     "definition": "The WAF returns a block or error page with status 200 (or empty <html>), so the page is counted as successful and the block page itself is scanned.",
+     "fix": "Same as A1, but it has to be detected from content: same title or small DOM across many pages, spike of landmark/H1 issues.",
+     "signature": "No HTTP error \u00b7 empty HTML / blank screenshot \u00b7 'Access Denied' / 'We can't load this page' in content",
+     "detectability": "maybe",
+     "count": 3,
+     "gt": {
+      "3": 2,
+      "5": 1
+     },
+     "resolution": {
+      "evinced_config_change": 1,
+      "customer_side_whitelist": 2
+     },
+     "raw_labels": [
+      "bot_protection_soft_block_200",
+      "onboarding_bulk_property_setup"
+     ],
+     "tickets": [
+      "#1192",
+      "#2077",
+      "#2374"
+     ]
+    },
+    {
+     "id": "A4",
+     "name": "Static egress IP not enabled",
+     "definition": "Customer allowlisted the NAT IPs, but the property or tenant isn't using them (flag off, property override, or fast tier on Cloud Functions), so traffic comes from random GCP IPs.",
+     "fix": "Support turns on scan.use-static-ip / url-set.use-static-ip (Retool); move off the fast tier.",
+     "signature": "Crawler public IP not in scan-pool-nat1..5 \u00b7 production_crawl_link_extractor (fast tier) \u00b7 property override use-static-ip=false",
+     "detectability": "yes",
+     "count": 5,
+     "gt": {
+      "3": 2,
+      "4": 1,
+      "5": 2
+     },
+     "resolution": {
+      "evinced_config_change": 3,
+      "infra_fix": 1,
+      "explanation_only": 1
+     },
+     "raw_labels": [
+      "fast_tier_non_static_ips",
+      "ip_whitelist_egress_misconfig",
+      "static_ip_not_configured",
+      "static_ip_not_enabled_for_property"
+     ],
+     "tickets": [
+      "#233",
+      "#1387",
+      "#2400",
+      "#3083",
+      "#3425"
+     ]
+    },
+    {
+     "id": "A5",
+     "name": "Rate limiting (HTTP 429)",
+     "definition": "The site rate-limits the crawler; failed pages yield no outbound links, so discovery stalls and page counts swing between runs.",
+     "fix": "speed-tier.slow / lower concurrency; static IP + allowlist; don't schedule sibling properties at the same time.",
+     "signature": "http status code is: 429 \u00b7 ERR_HTTP2_SERVER_REFUSED_STREAM \u00b7 high page-timeout ratio",
+     "detectability": "yes",
+     "count": 3,
+     "gt": {
+      "4": 3
+     },
+     "resolution": {
+      "workaround": 1,
+      "customer_side_whitelist": 1,
+      "evinced_config_change": 1
+     },
+     "raw_labels": [
+      "bot_protection_akamai_rate_limit",
+      "rate_limit_429_link_discovery_loss"
+     ],
+     "tickets": [
+      "#1597",
+      "#2185",
+      "#2914"
+     ]
+    },
+    {
+     "id": "A6",
+     "name": "Outdated browser user agent blocked",
+     "definition": "Bot manager blocks old Chrome user agents (the scanner sent Chrome 65; Akamai requires 130+).",
+     "fix": "Override the user agent / upgrade the browser in puppeteer-args.",
+     "signature": "browser was opened successfully. version: Chrome/<old> \u00b7 Akamai block",
+     "detectability": "yes",
+     "count": 1,
+     "gt": {
+      "2": 1
+     },
+     "resolution": {
+      "evinced_config_change": 1
+     },
+     "raw_labels": [
+      "bot_protection_akamai_old_user_agent"
+     ],
+     "tickets": [
+      "#3340"
+     ]
+    },
+    {
+     "id": "A7",
+     "name": "Geo-blocking",
+     "definition": "Site blocks or redirects non-local IPs (US scanner egress), e.g. a geo redirect away from the login page.",
+     "fix": "Customer allowlists the NAT IPs; region-specific egress not available.",
+     "signature": "final url after redirections: <other-country page> \u00b7 selector not found after redirect",
+     "detectability": "maybe",
+     "count": 2,
+     "gt": {
+      "5": 2
+     },
+     "resolution": {
+      "customer_side_whitelist": 2
+     },
+     "raw_labels": [
+      "ip_whitelist_geo_block",
+      "login_flow_geo_redirect"
+     ],
+     "tickets": [
+      "#1566",
+      "#2812"
+     ]
+    },
+    {
+     "id": "A8",
+     "name": "Redirect loop",
+     "definition": "Site returns endless 302s to scanner IPs (staging/auth gateways).",
+     "fix": "Customer-side fix or allowlist.",
+     "signature": "Too many redirects \u00b7 repeated 302 on seed",
+     "detectability": "yes",
+     "count": 1,
+     "gt": {
+      "2": 1
+     },
+     "resolution": {
+      "unresolved": 1
+     },
+     "raw_labels": [
+      "redirect_loop_too_many_redirects"
+     ],
+     "tickets": [
+      "#2881"
+     ]
+    },
+    {
+     "id": "A9",
+     "name": "TLS / SSL certificate error",
+     "definition": "Expired or invalid certificate on a host makes its pages fail.",
+     "fix": "Customer renews the certificate (or Evinced ignores certificate errors for the property).",
+     "signature": "net::ERR_CERT_* on page load",
+     "detectability": "yes",
+     "count": 1,
+     "gt": {
+      "3": 1
+     },
+     "resolution": {
+      "explanation_only": 1
+     },
+     "raw_labels": [
+      "ssl_certificate_expired"
+     ],
+     "tickets": [
+      "#1283"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "B",
+   "name": "Authentication & session",
+   "definition": "The scanner can't log in, or loses the session while crawling.",
+   "count": 32,
+   "subs": [
+    {
+     "id": "B1",
+     "name": "MFA / 2FA blocks login",
+     "definition": "Login ends on an SMS/OTP/MFA challenge, which Site Scanner can't complete.",
+     "fix": "Dedicated test user without MFA, IP-based MFA bypass, or use WFA/SDK instead.",
+     "signature": "final URL after login matches /mfa|/otp|challenge \u00b7 0 pages",
+     "detectability": "yes",
+     "count": 5,
+     "gt": {
+      "2": 3,
+      "4": 1,
+      "5": 1
+     },
+     "resolution": {
+      "unresolved": 5
+     },
+     "raw_labels": [
+      "login_2fa_unsupported",
+      "mfa_2fa_blocks_login",
+      "mfa_login_blocked"
+     ],
+     "tickets": [
+      "#391",
+      "#1119",
+      "#2167",
+      "#2946",
+      "#3241"
+     ]
+    },
+    {
+     "id": "B2",
+     "name": "Login / interaction selector mismatch",
+     "definition": "The stored login or interaction selectors don't match the page: the site changed, they were wrong from the start, IDs are generated per load, or a hashed CSS class changed.",
+     "fix": "Update to stable selectors (name/aria/data-*); raise interaction timeoutSeconds.",
+     "signature": "encountered error while running a function with timeout \u00b7 No element found for selector: <sel> \u00b7 cannot find User Name Selector",
+     "detectability": "yes",
+     "count": 6,
+     "gt": {
+      "2": 5,
+      "4": 1
+     },
+     "resolution": {
+      "customer_config_change": 1,
+      "product_bug_fix": 1,
+      "evinced_config_change": 4
+     },
+     "raw_labels": [
+      "dynamic_login_selectors",
+      "interaction_selector_stale",
+      "login_selector_not_found",
+      "login_selector_stale",
+      "login_selector_wrong"
+     ],
+     "tickets": [
+      "#243",
+      "#1324",
+      "#2132",
+      "#2143",
+      "#2371",
+      "#3198"
+     ]
+    },
+    {
+     "id": "B3",
+     "name": "Stale / invalid credentials",
+     "definition": "The crawler logs in with an expired password (including a product bug where edited credentials weren't copied from the scanner to the crawler); repeated failures can get the IP locked out.",
+     "fix": "Customer updates the password; make sure crawler and scanner configs are in sync.",
+     "signature": "wrong-password / login failed in crawler logs from the NAT IP \u00b7 login alert in #sup-site_scanner-alerts",
+     "detectability": "yes",
+     "count": 3,
+     "gt": {
+      "4": 1,
+      "5": 2
+     },
+     "resolution": {
+      "evinced_config_change": 2,
+      "explanation_only": 1
+     },
+     "raw_labels": [
+      "crawler_login_stale_credentials_and_oom",
+      "login_credentials_invalid",
+      "login_creds_not_propagated_to_crawler"
+     ],
+     "tickets": [
+      "#1390",
+      "#1475",
+      "#1895"
+     ]
+    },
+    {
+     "id": "B4",
+     "name": "Multi-step / custom login flow needs configuration",
+     "definition": "Two-step forms, modal logins, SSO hops, or expiring session URLs aren't handled by the simple login form; needs backend Multiple Interactions.",
+     "fix": "Evinced configures scraper.user-interaction.configuration (multi-interaction script) on the backend.",
+     "signature": "bound handleRequest execution took more than 300000 ms \u00b7 login URL 404 \u00b7 scraper.user-interaction.configuration",
+     "detectability": "maybe",
+     "count": 15,
+     "gt": {
+      "1": 2,
+      "2": 4,
+      "3": 1,
+      "5": 8
+     },
+     "resolution": {
+      "product_bug_fix": 1,
+      "evinced_config_change": 11,
+      "unresolved": 3
+     },
+     "raw_labels": [
+      "login_config_help",
+      "login_dynamic_session_url",
+      "login_flow_failed",
+      "login_flow_failed_product_bug",
+      "login_flow_misconfigured_redirect",
+      "login_multi_step_custom_script",
+      "login_multistep_config"
+     ],
+     "tickets": [
+      "#199",
+      "#571",
+      "#869",
+      "#997",
+      "#1214",
+      "#1607",
+      "#2058",
+      "#2153",
+      "#2166",
+      "#2239",
+      "#2270",
+      "#2290",
+      "#2362",
+      "#2959",
+      "#3238"
+     ]
+    },
+    {
+     "id": "B5",
+     "name": "Session lost mid-crawl",
+     "definition": "The authenticated session drops while crawling: parallel workers, crawling logout or session-check URLs, or two properties logging in at once.",
+     "fix": "parallelism=1; exclude logout/session URLs; stagger schedules.",
+     "signature": "status of 401 (Unauthorized) \u00b7 final url = /login|/guest after successful login",
+     "detectability": "yes",
+     "count": 3,
+     "gt": {
+      "4": 1,
+      "5": 2
+     },
+     "resolution": {
+      "evinced_config_change": 3
+     },
+     "raw_labels": [
+      "login_flow_changed_session_logout",
+      "login_multistep_session_loss",
+      "session_logout_parallelism"
+     ],
+     "tickets": [
+      "#1818",
+      "#1967",
+      "#2794"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "C",
+   "name": "Crawl scope configuration",
+   "definition": "Property settings (regex, seeds, grouping, mode) produce the wrong URL set.",
+   "count": 30,
+   "subs": [
+    {
+     "id": "C1",
+     "name": "Include regex matches nothing / invalid regex",
+     "definition": "The include regex or locale filter matches none of the seed or discovered URLs, or the regex is malformed (unescaped slashes).",
+     "fix": "Fix the regex (test against real seed URLs).",
+     "signature": "0 URLs \u00b7 not including url in result url set \u00b7 regex parse error",
+     "detectability": "yes",
+     "count": 4,
+     "gt": {
+      "1": 1,
+      "2": 2,
+      "4": 1
+     },
+     "resolution": {
+      "customer_config_change": 2,
+      "evinced_config_change": 2
+     },
+     "raw_labels": [
+      "invalid_regex_in_property_config",
+      "regex_excludes_all",
+      "regex_mismatch_locale_format"
+     ],
+     "tickets": [
+      "#301",
+      "#833",
+      "#1648",
+      "#2172"
+     ]
+    },
+    {
+     "id": "C2",
+     "name": "Redirect target outside the domain whitelist",
+     "definition": "The seed redirects (www/non-www, locale path, query string) to a final URL that the domain whitelist or include regex doesn't allow, so every page is dropped.",
+     "fix": "Add the final domain/path to the whitelist, or use the post-redirect URL as seed.",
+     "signature": "not including url in result url set. reason: final url not included in whitelist",
+     "detectability": "yes",
+     "count": 5,
+     "gt": {
+      "2": 3,
+      "4": 1,
+      "5": 1
+     },
+     "resolution": {
+      "evinced_config_change": 3,
+      "customer_config_change": 2
+     },
+     "raw_labels": [
+      "domain_whitelist_mismatch",
+      "property_domain_validation_seed_path",
+      "regex_excludes_redirect_target"
+     ],
+     "tickets": [
+      "#910",
+      "#926",
+      "#944",
+      "#1638",
+      "#2783"
+     ]
+    },
+    {
+     "id": "C3",
+     "name": "Scope too broad / unexpected URLs",
+     "definition": "Include domain or regex is too wide (or the site exposes rewrite paths), so out-of-scope or locale URLs are crawled and page counts inflate.",
+     "fix": "Narrow the include regex / seed list; filter after the scan with a View.",
+     "signature": "page count jump vs previous crawl \u00b7 property PUT/urlsets POST change",
+     "detectability": "maybe",
+     "count": 8,
+     "gt": {
+      "4": 3,
+      "5": 5
+     },
+     "resolution": {
+      "explanation_only": 2,
+      "evinced_config_change": 2,
+      "feature_request": 1,
+      "customer_config_change": 3
+     },
+     "raw_labels": [
+      "crawl_scope_config_help",
+      "crawl_scope_view_filter",
+      "include_regex_scope_misconfigured",
+      "property_scope_regex_config",
+      "seed_scope_change_soft404_and_relative_link",
+      "stale_crawl_comparison_site_changed",
+      "unexpected_locale_urls_crawled"
+     ],
+     "tickets": [
+      "#346",
+      "#1011",
+      "#1498",
+      "#1612",
+      "#1626",
+      "#2222",
+      "#2889",
+      "#2895"
+     ]
+    },
+    {
+     "id": "C4",
+     "name": "Seed unreachable / soft-404 / error-page redirect",
+     "definition": "The seed returns 404, or listed URLs redirect to the site's 404/500 page, which then gets scanned.",
+     "fix": "Use deeper or valid seed URLs; exclude error pages.",
+     "signature": "Success Redirected to https://<host>/500 \u00b7 seed 404",
+     "detectability": "yes",
+     "count": 3,
+     "gt": {
+      "4": 1,
+      "5": 2
+     },
+     "resolution": {
+      "evinced_config_change": 1,
+      "feature_request": 1,
+      "explanation_only": 1
+     },
+     "raw_labels": [
+      "redirect_to_error_page_scanned",
+      "seed_path_unreachable_404"
+     ],
+     "tickets": [
+      "#1413",
+      "#1600",
+      "#1737"
+     ]
+    },
+    {
+     "id": "C5",
+     "name": "Grouping / URL-normalization rules",
+     "definition": "Grouping merges distinct pages (fragment SPA routes, query params) or fails to merge duplicates (///, sort/filter params).",
+     "fix": "Adjust grouping rules ('as different pages', untick 'ignoring URL fragments'); add param variants as seeds.",
+     "signature": "page count far below expected with many fragment/param URLs",
+     "detectability": "no",
+     "count": 5,
+     "gt": {
+      "2": 1,
+      "4": 3,
+      "5": 1
+     },
+     "resolution": {
+      "evinced_config_change": 4,
+      "product_bug_fix": 1
+     },
+     "raw_labels": [
+      "crawl_coverage_grouping_rules",
+      "grouping_rules_query_params_collapsed",
+      "query_param_pages_not_discovered",
+      "spa_fragment_urls_grouped",
+      "url_normalization_duplicate_slashes"
+     ],
+     "tickets": [
+      "#594",
+      "#2144",
+      "#2154",
+      "#2915",
+      "#3152"
+     ]
+    },
+    {
+     "id": "C6",
+     "name": "Non-link (JS) navigation",
+     "definition": "Navigation uses onclick / ng-click / javascript:void(0) with no href, so the crawler finds nothing to follow.",
+     "fix": "Switch to List mode or give an explicit seed list.",
+     "signature": "crawl ends with 1 discovered page and no auth/blocking errors",
+     "detectability": "maybe",
+     "count": 4,
+     "gt": {
+      "1": 1,
+      "4": 3
+     },
+     "resolution": {
+      "customer_config_change": 1,
+      "evinced_config_change": 2,
+      "unresolved": 1
+     },
+     "raw_labels": [
+      "js_navigation_no_href_links",
+      "non_standard_navigation_links",
+      "seed_domain_config_spa_or_login"
+     ],
+     "tickets": [
+      "#1813",
+      "#2234",
+      "#2757",
+      "#3232"
+     ]
+    },
+    {
+     "id": "C7",
+     "name": "List-mode misconfiguration",
+     "definition": "List mode with a single URL, or the scan reusing a stale crawl list ('crawl before scan' off).",
+     "fix": "Correct the mode / enable 'crawl before scan'.",
+     "signature": "constant page count across runs",
+     "detectability": "maybe",
+     "count": 1,
+     "gt": {
+      "5": 1
+     },
+     "resolution": {
+      "customer_config_change": 1
+     },
+     "raw_labels": [
+      "list_mode_single_url_misconfig"
+     ],
+     "tickets": [
+      "#1722"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "D",
+   "name": "Page render & analysis engine",
+   "definition": "Individual pages time out, crash the engine, or are analysed before they finish rendering.",
+   "count": 12,
+   "subs": [
+    {
+     "id": "D1",
+     "name": "Heavy page load timeout",
+     "definition": "Heavy pages (maps, product grids, 5k complex pages) never reach the ready state within waitForPageReadySeconds/gotoURL limits.",
+     "fix": "Exclude the URLs, raise timeouts, or reduce maxPagesCount; engine fixes.",
+     "signature": "Function: gotoURL execution took more than 40000 ms \u00b7 waitForPageReadySeconds",
+     "detectability": "yes",
+     "count": 3,
+     "gt": {
+      "1": 2,
+      "3": 1
+     },
+     "resolution": {
+      "product_bug_fix": 2,
+      "evinced_config_change": 1
+     },
+     "raw_labels": [
+      "page_load_timeout_specific_urls",
+      "page_ready_timeout_heavy_pages",
+      "scan_fails_large_page_count_complex_pages"
+     ],
+     "tickets": [
+      "#1755",
+      "#1793",
+      "#3248"
+     ]
+    },
+    {
+     "id": "D2",
+     "name": "Analysis engine crash / limit",
+     "definition": "The analysis engine fails on specific DOMs (AMP circular visibility, ~21k-element DOM).",
+     "fix": "Engine fix; exclude the page as a workaround.",
+     "signature": "FAILED_TO_RUN_ENGINES \u00b7 CircularEvValueError \u00b7 EvincedEnginesPlugin.ts runAnalysis",
+     "detectability": "yes",
+     "count": 2,
+     "gt": {
+      "3": 2
+     },
+     "resolution": {
+      "unresolved": 1,
+      "workaround": 1
+     },
+     "raw_labels": [
+      "engine_error_circular_visibility_amp",
+      "engine_limit_huge_dom"
+     ],
+     "tickets": [
+      "#2244",
+      "#3293"
+     ]
+    },
+    {
+     "id": "D3",
+     "name": "Incomplete render \u2192 findings variance",
+     "definition": "The page is analysed before it stabilises (late JS, missing CSS, pop-up interstitial), producing spurious or flipping findings and scores.",
+     "fix": "Longer wait or stabilisation, cookie to suppress the pop-up, re-scan.",
+     "signature": "Target Size / contrast spikes between runs \u00b7 blank screenshot",
+     "detectability": "maybe",
+     "count": 7,
+     "gt": {
+      "5": 7
+     },
+     "resolution": {
+      "customer_config_change": 1,
+      "product_bug_fix": 1,
+      "explanation_only": 3,
+      "unresolved": 2
+     },
+     "raw_labels": [
+      "false_positive_dynamic_content_timing",
+      "false_positive_heading_one",
+      "false_positive_incomplete_render",
+      "popup_interstitial_scan_variance",
+      "score_change_page_not_stabilized",
+      "screenshot_render_artifact"
+     ],
+     "tickets": [
+      "#731",
+      "#827",
+      "#1604",
+      "#1992",
+      "#2131",
+      "#3000",
+      "#3284"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "E",
+   "name": "Evinced platform & infra",
+   "definition": "Backend, scheduler, pipeline or limits on Evinced's side.",
+   "count": 32,
+   "subs": [
+    {
+     "id": "E1",
+     "name": "Platform outage / infra incident",
+     "definition": "Evinced-wide incident: scans and crawls hang or fail, or the UI can't load data.",
+     "fix": "Infra fix, then rerun.",
+     "signature": "Scan ... state changed from RUNNING to FAILED (many tenants at once) \u00b7 passed its timeout, marking it as FAILED \u00b7 kubernetes job failed",
+     "detectability": "yes",
+     "count": 12,
+     "gt": {
+      "1": 7,
+      "3": 1,
+      "5": 4
+     },
+     "resolution": {
+      "infra_fix": 11,
+      "product_bug_fix": 1
+     },
+     "raw_labels": [
+      "dashboard_not_loading_tenant_migration",
+      "infra_transient_page_failure",
+      "platform_outage",
+      "platform_outage_june2026",
+      "scan_failed_infra_error",
+      "scan_stuck_infra",
+      "ui_data_not_loading_outage",
+      "ui_error_loading_scan_backend_outage"
+     ],
+     "tickets": [
+      "#639",
+      "#685",
+      "#917",
+      "#1711",
+      "#1869",
+      "#1988",
+      "#2751",
+      "#2752",
+      "#2755",
+      "#2760",
+      "#2764",
+      "#2979"
+     ]
+    },
+    {
+     "id": "E2",
+     "name": "Scheduler bug (missed / wrong next run)",
+     "definition": "Next-run computation is wrong (timezone/date bugs), so scheduled runs are skipped or shown on the wrong date.",
+     "fix": "Product fix; manual rerun.",
+     "signature": "JobScheduler ... next schedule job time is \u00b7 nextScheduleJobTime mismatch \u00b7 no crawl at the scheduled time",
+     "detectability": "yes",
+     "count": 7,
+     "gt": {
+      "1": 4,
+      "5": 3
+     },
+     "resolution": {
+      "product_bug_fix": 6,
+      "unresolved": 1
+     },
+     "raw_labels": [
+      "scheduler_next_run_date_bug",
+      "scheduler_next_run_timezone_bug",
+      "ui_stale_scan_timestamp"
+     ],
+     "tickets": [
+      "#1378",
+      "#1381",
+      "#1396",
+      "#1399",
+      "#1404",
+      "#1421",
+      "#2174"
+     ]
+    },
+    {
+     "id": "E3",
+     "name": "Pipeline dispatch / state-machine failure",
+     "definition": "Crawl\u2192scan hand-off fails: crawl POST refused (scrape-server DB pool exhausted), scan phase never triggered, RUNNING\u2192FAILED bugs.",
+     "fix": "Product/infra fix; retry the job.",
+     "signature": "Failed running create crawl request \u00b7 Connection refused \u00b7 HikariPool-1 - Connection is not available \u00b7 JobService failed processing URL set state changed",
+     "detectability": "yes",
+     "count": 5,
+     "gt": {
+      "1": 4,
+      "3": 1
+     },
+     "resolution": {
+      "product_bug_fix": 5
+     },
+     "raw_labels": [
+      "crawl_and_scan_scan_phase_not_triggered_regression",
+      "crawl_dispatch_connection_refused_scrape_server_pool_exhaustion",
+      "scan_failed_platform_bug",
+      "unknown_engineering_fix"
+     ],
+     "tickets": [
+      "#87",
+      "#1557",
+      "#1618",
+      "#3228",
+      "#3315"
+     ]
+    },
+    {
+     "id": "E4",
+     "name": "Tenant limits reached",
+     "definition": "Concurrent-scan or tenant/licence limits block new scans.",
+     "fix": "Raise limit.running-scans-count or the licence.",
+     "signature": "LimitExceededException: ... limit of concurrently running scans has been reached",
+     "detectability": "yes",
+     "count": 2,
+     "gt": {
+      "1": 2
+     },
+     "resolution": {
+      "evinced_config_change": 2
+     },
+     "raw_labels": [
+      "concurrent_scan_limit_exceeded",
+      "tenant_scan_limit_reached"
+     ],
+     "tickets": [
+      "#149",
+      "#2192"
+     ]
+    },
+    {
+     "id": "E5",
+     "name": "Backend query error / timeout ('Error loading scan')",
+     "definition": "UI endpoints fail on heavy Views, huge regexes, deleted scans, or backend 502s.",
+     "fix": "Simplify the View; backend fix.",
+     "signature": "GET /api/scans?propertyId&viewId \u2192 500/502 \u00b7 Scan <id> could not be found \u00b7 Error loading scan",
+     "detectability": "yes",
+     "count": 6,
+     "gt": {
+      "5": 6
+     },
+     "resolution": {
+      "explanation_only": 1,
+      "product_bug_fix": 3,
+      "workaround": 2
+     },
+     "raw_labels": [
+      "scan_deleted_not_found",
+      "ui_error_loading_property_backend",
+      "ui_error_loading_scan_backend_timeout",
+      "ui_view_query_500_large_regex",
+      "view_config_load_failure"
+     ],
+     "tickets": [
+      "#953",
+      "#975",
+      "#1019",
+      "#1051",
+      "#1918",
+      "#2901"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "F",
+   "name": "Product UI, export & integrations",
+   "definition": "Non-crawl product defects and reporting behaviour.",
+   "count": 47,
+   "subs": [
+    {
+     "id": "F1",
+     "name": "Export failure",
+     "definition": "Export not produced or delivered: 10k-row Excel limit, email job not sent, spam quarantine, bad filename, missing columns.",
+     "fix": "Filter to under 10k rows; product fix; customer allowlists the sender.",
+     "signature": "There was a problem creating your export \u00b7 scan-csv.max-allowed-issues-count",
+     "detectability": "yes",
+     "count": 10,
+     "gt": {
+      "5": 10
+     },
+     "resolution": {
+      "customer_side_whitelist": 2,
+      "workaround": 4,
+      "unresolved": 1,
+      "product_bug_fix": 3
+     },
+     "raw_labels": [
+      "export_csv_delimiter_locale",
+      "export_csv_not_delivered",
+      "export_email_blocked_spam_filter",
+      "export_email_quarantined_customer_spam_filter",
+      "export_filename_special_chars",
+      "export_missing_columns_bug",
+      "export_row_limit",
+      "export_screenshot_links_require_login"
+     ],
+     "tickets": [
+      "#558",
+      "#726",
+      "#1056",
+      "#1342",
+      "#1352",
+      "#1602",
+      "#1727",
+      "#2274",
+      "#2780",
+      "#3270"
+     ]
+    },
+    {
+     "id": "F2",
+     "name": "Export count semantics",
+     "definition": "Export row counts differ from the UI (one row per component/selector/language), so IDs look duplicated.",
+     "fix": "Explanation.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 5,
+     "gt": {
+      "5": 5
+     },
+     "resolution": {
+      "explanation_only": 4,
+      "feature_request": 1
+     },
+     "raw_labels": [
+      "duplicate_issues_multilang",
+      "export_count_mismatch",
+      "export_duplicate_ids_nested_interactive",
+      "export_row_semantics_elements_vs_issues"
+     ],
+     "tickets": [
+      "#676",
+      "#1336",
+      "#1476",
+      "#2960",
+      "#3370"
+     ]
+    },
+    {
+     "id": "F3",
+     "name": "UI bug / UI confusion",
+     "definition": "Front-end defects (save fails without a time zone, blank settings, toggles, severity totals, Edge content-type) or misread UI (sorting, stale View filter, deprecated compare).",
+     "fix": "Product fix or explanation.",
+     "signature": "Content-Type 'application/x-www-form-urlencoded' not supported \u00b7 /collections/undefined/properties",
+     "detectability": "maybe",
+     "count": 22,
+     "gt": {
+      "1": 1,
+      "5": 21
+     },
+     "resolution": {
+      "explanation_only": 4,
+      "product_bug_fix": 11,
+      "workaround": 4,
+      "unresolved": 2,
+      "feature_request": 1
+     },
+     "raw_labels": [
+      "compare_scans_deprecated",
+      "custom_severity_ui_bug",
+      "remove_url_from_completed_scan",
+      "scan_compare_beta_unsupported",
+      "ui_collection_id_undefined",
+      "ui_crawl_count_mismatch",
+      "ui_dashboard_not_loading",
+      "ui_error_loading_scan_client_side",
+      "ui_filter_bug_unconfirmed",
+      "ui_layout_broken_deploy",
+      "ui_property_save_missing_timezone",
+      "ui_property_settings_blank_page",
+      "ui_scan_list_sort_confusion",
+      "ui_severity_totals_mismatch",
+      "ui_stale_view_filter",
+      "ui_toggle_bug",
+      "ui_view_filter_confusion",
+      "unsupported_browser_edge"
+     ],
+     "tickets": [
+      "#186",
+      "#260",
+      "#734",
+      "#863",
+      "#867",
+      "#891",
+      "#915",
+      "#989",
+      "#1068",
+      "#1340",
+      "#1348",
+      "#1420",
+      "#1639",
+      "#1952",
+      "#1993",
+      "#1994",
+      "#2128",
+      "#2139",
+      "#2245",
+      "#2756",
+      "#2801",
+      "#3121"
+     ]
+    },
+    {
+     "id": "F4",
+     "name": "Integration issue (Jira / ADO / MCP)",
+     "definition": "Ticket-system or MCP integration errors: permissions, formatting, on-prem unsupported, auth.",
+     "fix": "Product fix / permission change.",
+     "signature": "TF401322 \u00b7 WorkItemUnauthorizedRuleBypassException \u00b7 MCP auth error",
+     "detectability": "maybe",
+     "count": 10,
+     "gt": {
+      "5": 10
+     },
+     "resolution": {
+      "product_bug_fix": 5,
+      "unresolved": 2,
+      "explanation_only": 1,
+      "feature_request": 2
+     },
+     "raw_labels": [
+      "ado_integration_formatting_bug",
+      "ado_integration_permissions",
+      "feature_request_mcp_collections",
+      "integration_access_help",
+      "jira_integration_reporter_field",
+      "jira_onprem_integration_config",
+      "jira_onprem_integration_unsupported",
+      "mcp_auth_error"
+     ],
+     "tickets": [
+      "#203",
+      "#1554",
+      "#1806",
+      "#1976",
+      "#2052",
+      "#2095",
+      "#2129",
+      "#2800",
+      "#3136",
+      "#3219"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "G",
+   "name": "Findings accuracy & scoring",
+   "definition": "Whether issues, severities and scores are right.",
+   "count": 30,
+   "subs": [
+    {
+     "id": "G1",
+     "name": "Confirmed engine false positive",
+     "definition": "A rule really misfires (contrast on gradients/opacity, text spacing, a rule bug, wrong selector).",
+     "fix": "Engine fix (Jira).",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 11,
+     "gt": {
+      "5": 11
+     },
+     "resolution": {
+      "product_bug_fix": 7,
+      "unresolved": 2,
+      "evinced_config_change": 1,
+      "explanation_only": 1
+     },
+     "raw_labels": [
+      "false_positive_bulk_dispute",
+      "false_positive_color_contrast",
+      "false_positive_engine_rule_bug",
+      "false_positive_locked_text_spacing",
+      "wrong_css_selector_component"
+     ],
+     "tickets": [
+      "#159",
+      "#247",
+      "#473",
+      "#694",
+      "#818",
+      "#1267",
+      "#1632",
+      "#1682",
+      "#3059",
+      "#3072",
+      "#3195"
+     ]
+    },
+    {
+     "id": "G2",
+     "name": "Disputed finding: true positive",
+     "definition": "Customer reports an FP that turns out to be valid, or can't be reproduced.",
+     "fix": "Explanation with evidence.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 8,
+     "gt": {
+      "5": 8
+     },
+     "resolution": {
+      "explanation_only": 7,
+      "unresolved": 1
+     },
+     "raw_labels": [
+      "false_positive_image_alt",
+      "false_positive_nested_interactive",
+      "false_positive_target_size",
+      "false_positive_unreproducible",
+      "issue_validity_explanation"
+     ],
+     "tickets": [
+      "#545",
+      "#732",
+      "#750",
+      "#1014",
+      "#1129",
+      "#1574",
+      "#1663",
+      "#2998"
+     ]
+    },
+    {
+     "id": "G3",
+     "name": "Score / severity / WCAG configuration",
+     "definition": "Score or severity changes (engine bumps, formula), Needs Review semantics, WCAG version scoping.",
+     "fix": "Explanation or property engine config (enginesConfiguration, AXE runOnly).",
+     "signature": "engine version change between scans",
+     "detectability": "no",
+     "count": 9,
+     "gt": {
+      "5": 9
+     },
+     "resolution": {
+      "explanation_only": 5,
+      "evinced_config_change": 3,
+      "product_bug_fix": 1
+     },
+     "raw_labels": [
+      "needs_review_semantics",
+      "score_calculation_explanation",
+      "score_delta_explanation",
+      "score_reset_request",
+      "severity_change_engine_bump",
+      "severity_filter_config",
+      "wcag_version_scoping_config"
+     ],
+     "tickets": [
+      "#371",
+      "#730",
+      "#1732",
+      "#2178",
+      "#2392",
+      "#2576",
+      "#2797",
+      "#3068",
+      "#3283"
+     ]
+    },
+    {
+     "id": "G4",
+     "name": "Suppression / masking request",
+     "definition": "Customer wants to hide a rule or component; there's no in-product dismiss.",
+     "fix": "View filter workaround / feature request.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 2,
+     "gt": {
+      "5": 2
+     },
+     "resolution": {
+      "unresolved": 1,
+      "workaround": 1
+     },
+     "raw_labels": [
+      "false_positive_suppression_request"
+     ],
+     "tickets": [
+      "#2875",
+      "#3151"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "H",
+   "name": "Account, requests & noise",
+   "definition": "Non-incident tickets.",
+   "count": 63,
+   "subs": [
+    {
+     "id": "H1",
+     "name": "Access & licence",
+     "definition": "User or role permissions, user not in tenant, expired licence.",
+     "fix": "Retool add_user_to_tenant / role change.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 10,
+     "gt": {
+      "5": 10
+     },
+     "resolution": {
+      "explanation_only": 3,
+      "evinced_config_change": 3,
+      "unresolved": 4
+     },
+     "raw_labels": [
+      "access_permissions",
+      "access_readonly_role",
+      "access_user_not_in_tenant",
+      "license_expired_no_access"
+     ],
+     "tickets": [
+      "#599",
+      "#709",
+      "#1370",
+      "#2107",
+      "#2152",
+      "#2884",
+      "#2956",
+      "#3051",
+      "#3190",
+      "#3371"
+     ]
+    },
+    {
+     "id": "H2",
+     "name": "Access setup questions (IPs / headers)",
+     "definition": "Proactive questions about scanner IPs, custom headers, basic auth, Evinced domains.",
+     "fix": "Share the NAT IP list / header options.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 9,
+     "gt": {
+      "5": 9
+     },
+     "resolution": {
+      "explanation_only": 5,
+      "evinced_config_change": 3,
+      "unresolved": 1
+     },
+     "raw_labels": [
+      "basic_auth_custom_header",
+      "custom_headers_config",
+      "evinced_domains_allowlist_question",
+      "ip_whitelist_info_request"
+     ],
+     "tickets": [
+      "#184",
+      "#274",
+      "#454",
+      "#515",
+      "#1138",
+      "#2824",
+      "#3009",
+      "#3255",
+      "#3327"
+     ]
+    },
+    {
+     "id": "H3",
+     "name": "Config / admin task",
+     "definition": "Onboarding, property creation/copy/restore, schedule, viewport, iframe, login set-up help with no failure.",
+     "fix": "Support performs the task.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 11,
+     "gt": {
+      "5": 11
+     },
+     "resolution": {
+      "evinced_config_change": 6,
+      "customer_config_change": 1,
+      "explanation_only": 3,
+      "feature_request": 1
+     },
+     "raw_labels": [
+      "iframe_scanning_config",
+      "onboarding_config_docs_request",
+      "property_archive_howto",
+      "property_copy_request",
+      "property_creation_task",
+      "property_creator_audit_request",
+      "property_restore_archived",
+      "schedule_frequency_adjustment",
+      "tenant_provisioning_request",
+      "viewport_config_request"
+     ],
+     "tickets": [
+      "#1054",
+      "#1071",
+      "#1116",
+      "#1902",
+      "#2064",
+      "#2072",
+      "#2089",
+      "#2397",
+      "#3177",
+      "#3231",
+      "#3463"
+     ]
+    },
+    {
+     "id": "H4",
+     "name": "Feature request / how-to",
+     "definition": "Feature asks and product questions.",
+     "fix": "Product feedback.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 13,
+     "gt": {
+      "5": 13
+     },
+     "resolution": {
+      "feature_request": 7,
+      "explanation_only": 6
+     },
+     "raw_labels": [
+      "crawl_behavior_question",
+      "crawler_link_discovery_question",
+      "export_date_range_feature_request",
+      "feature_question_existing",
+      "feature_request_component_naming",
+      "feature_request_ui",
+      "new_validation_feature_request",
+      "report_naming_feature_request",
+      "reporting_feature_request",
+      "ui_how_to_question",
+      "view_config_question",
+      "wcag_version_filter_feature_request",
+      "wfa_vs_scanner_discrepancy"
+     ],
+     "tickets": [
+      "#501",
+      "#561",
+      "#646",
+      "#710",
+      "#1027",
+      "#1094",
+      "#1175",
+      "#1392",
+      "#1662",
+      "#1698",
+      "#1802",
+      "#1812",
+      "#2059"
+     ]
+    },
+    {
+     "id": "H5",
+     "name": "Out of scope / noise",
+     "definition": "Not Site Scanner (WFA, sales), duplicates, empty requests, unknown cause.",
+     "fix": "Route / close.",
+     "signature": "\u2014",
+     "detectability": "no",
+     "count": 20,
+     "gt": {
+      "1": 2,
+      "2": 3,
+      "3": 1,
+      "4": 3,
+      "5": 11
+     },
+     "resolution": {
+      "unresolved": 10,
+      "evinced_config_change": 1,
+      "workaround": 1,
+      "explanation_only": 5,
+      "product_bug_fix": 3
+     },
+     "raw_labels": [
+      "duplicate_ticket",
+      "egress_encrypted_followup_unreadable",
+      "meeting_request_umbrella",
+      "sales_lead",
+      "sales_tam_question",
+      "site_migrated_login_reconfig_abandoned",
+      "unclear_request_no_info",
+      "unknown",
+      "unknown_not_investigated",
+      "unknown_unresolved_in_thread",
+      "vague_request_no_details",
+      "wfa_extension_bug",
+      "wfa_session_page_count_bug",
+      "wfa_sessions_not_loading"
+     ],
+     "tickets": [
+      "#447",
+      "#583",
+      "#649",
+      "#959",
+      "#1033",
+      "#1364",
+      "#1995",
+      "#2001",
+      "#2062",
+      "#2065",
+      "#2168",
+      "#2235",
+      "#2241",
+      "#2289",
+      "#2584",
+      "#2813",
+      "#2962",
+      "#3053",
+      "#3099",
+      "#3317"
+     ]
+    }
+   ]
+  }
+ ],
+ "gt_classes": {
+  "1": "Scan/crawl failure (not 0 pages)",
+  "2": "0 pages",
+  "3": "Successful scan with failed pages",
+  "4": "Crawl irregularities",
+  "5": "Other"
+ }
+}

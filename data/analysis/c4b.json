@@ -1,0 +1,303 @@
+[
+ {
+  "ticket": "#2185",
+  "client": "NatWest Group (NatWest / RBS / Ulster Bank)",
+  "summary": "Customer saw far fewer scanned pages than indexed (e.g. 185 vs 1,100 on Ulster Bank /business, 590 vs 1,900 on RBS) and erratic month-to-month page counts on NatWest properties.",
+  "sub_issue": "rate_limit_429_link_discovery_loss",
+  "mechanism": "Two factors per support: (1) seed list/crawl config drifted between runs (different seed sets, axe settings toggled), so runs are not comparable; (2) customer site rate-limits the crawler - many HTTP 429s in crawl logs, throttled pages dropped. Also many URLs were PDFs/XLS (non-HTML) counted as failures. Deep root cause confirmed later in follow-up #2914 (429s at subresource level + timeouts lose link extraction).",
+  "resolution": "Explained; advised stable seed list / sitemap-based seeds, locking crawl config, and allowlisting crawler (EvincedBot UA or 5 static NAT IPs). Customer escalated to Adobe (host); continued in #2914.",
+  "resolution_type": "customer_side_whitelist",
+  "log_signals": [
+   "HTTP 429 responses in crawl logs",
+   "crawl config logged at crawl start (compare 2 crawls' config by crawlId)",
+   "EvincedBot user-agent",
+   "non-HTML asset URLs (.pdf/.xls) failing in crawl"
+  ],
+  "ui_signals": [
+   "page count much lower than sitemap/indexed count",
+   "page count fluctuates month to month"
+  ],
+  "jira": [
+   "CS-275",
+   "CS-561",
+   "PDW-914"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2222",
+  "client": "Capital One",
+  "summary": "Customer compared page counts of same properties (resources.dinersclub.com, content.pulsenetwork.com) between sandbox (SDK) tenant and prod exclusive tenant and saw discrepancies.",
+  "sub_issue": "stale_crawl_comparison_site_changed",
+  "mechanism": "Original issue (Slack): misconfigured Puppeteer args and an outdated browser version likely flagged as a bot, so crawler found only one page; fixed earlier. Remaining discrepancy: sandbox property crawled a year earlier, site content changed since - comparing crawls from different times/tenants.",
+  "resolution": "Earlier Puppeteer args/browser version updated by Evinced; for this ticket support confirmed prod crawls expected and explained the difference.",
+  "resolution_type": "explanation_only",
+  "log_signals": [
+   "crawler found only 1 page (pre-fix)",
+   "puppeteer launch args / browser version in crawl config"
+  ],
+  "ui_signals": [
+   "different page counts for same URL across tenants"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2234",
+  "client": "Bell Canada (businessmail.mts.ca)",
+  "summary": "Authenticated property indexed only 1 page (login/mailbox page); crawler did not get past it to other sections.",
+  "sub_issue": "js_navigation_no_href_links",
+  "mechanism": "Login actually succeeded; the AngularJS webmail app's nav links are href=\"javascript:void(0);\" with ng-click handlers (hash routes), so there are no URLs for the crawler to follow. (--disable-web-security toggle was tried with no effect.)",
+  "resolution": "Switched property to list mode/seed list with the customer-supplied hash-route URLs (#/mail/..., #/calendar, #/preferences/...); crawl and scan succeeded.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "crawl finished with 1 page discovered",
+   "anchors with href=javascript:void(0)",
+   "--disable-web-security chrome flag in crawl/scan config"
+  ],
+  "ui_signals": [
+   "only 1 page indexed (login page)"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2288",
+  "client": "Bell Canada (community.environicsanalytics.com)",
+  "summary": "Both the non-login and login properties of community.environicsanalytics.com crawled only one page.",
+  "sub_issue": "bot_protection_cloudflare_challenge",
+  "mechanism": "Non-login: crawler hits a Cloudflare challenge page (bot detection) and cannot discover links. Login property: multi-interaction login needed configuration (credentials requested).",
+  "resolution": "Asked customer to allowlist the 5 Site Scanner NAT IPs or provide a bypass header; customer could not get it done in time and closed the ticket (reopened as #2450).",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "Cloudflare challenge page returned to crawler (e.g. 'Just a moment' / cf-challenge)",
+   "crawl result: 1 page"
+  ],
+  "ui_signals": [
+   "only one page crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2450",
+  "client": "Bell Canada (community.environicsanalytics.com, Zendesk-hosted)",
+  "summary": "Reopen of #2288: crawl still returns only one page; customer says no IP restrictions exist.",
+  "sub_issue": "bot_protection_cloudflare_challenge",
+  "mechanism": "Site is a Zendesk Help Center fronted by Zendesk-controlled Cloudflare WAF/bot management; crawler gets the challenge page. Customer has no control over the WAF, so neither IP allowlist nor custom header is possible. An alternate scraper was tried without success.",
+  "resolution": "No fix; recommended using Web Flow Analyzer (WFA) for this third-party-hosted site and closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "Cloudflare challenge / bot detection page",
+   "crawl result: 1 page",
+   "scan returns 1 page"
+  ],
+  "ui_signals": [
+   "crawl is only picking up one page"
+  ],
+  "jira": [],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2813",
+  "client": "Bell Canada",
+  "summary": "Customer requested a meeting about Site Scanner concerns (untitled pages, low page counts, onboarded site issues); used as an umbrella agenda referencing other tickets.",
+  "sub_issue": "meeting_request_umbrella",
+  "mechanism": "unknown - no technical investigation in this ticket; agenda referenced #2797, #2783, #2450, #2794, #2768, #2343.",
+  "resolution": "Meeting held; ticket closed by customer.",
+  "resolution_type": "explanation_only",
+  "log_signals": [],
+  "ui_signals": [
+   "untitled pages",
+   "low page count"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Meeting/coordination request, not a single crawl irregularity; arguably class 5.",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2889",
+  "client": "Verizon",
+  "summary": "Customer's properties for verizon.com/business sections pulled wrong URLs (e.g. 3,919 of 4,293 pages outside /business; Mobile property pulled all /business pages instead of /business/products/mobile); asked Evinced to build TK_EV_ copies that work.",
+  "sub_issue": "include_regex_scope_misconfigured",
+  "mechanism": "Property scoping (include regex / include domain www.verizon.com) did not restrict the crawl to the intended path; crawler followed links across the whole included domain, so out-of-scope pages were crawled.",
+  "resolution": "Evinced created TK_EV_ copy properties and refined the regexes/scope until output matched (Mobile -> only /business/products/mobile, 17 pages); walkthrough call held. Jira CS-2728 done.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "crawled URLs not matching include regex prefix",
+   "propertyId crawl config: includeDomain + regex"
+  ],
+  "ui_signals": [
+   "scanned pages do not contain /business",
+   "wrong URLs pulled"
+  ],
+  "jira": [
+   "CS-2728"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2895",
+  "client": "Verizon",
+  "summary": "Customer reported Site Scanner scanning pre-redirect (client-side JS redirect) URLs producing false positives (html-has-lang, viewport), plus page counts jumping (5,000 -> 943 on Stores, 4 -> ~5,000 on My Access).",
+  "sub_issue": "seed_scope_change_soft404_and_relative_link",
+  "mechanism": "Established: old URLs are soft-404s (URL stays, content shows 'can't find that page', no redirect) so they load as valid pages and get scanned; My Access property scope had been widened to all of www.verizon.com and seeded with dead /my-access-rewards URLs (change from a customer IP, no audit log), causing ~5,000 pages; relative href=\"banner\" link in the Transcend cookie-consent dialog resolves against every page producing /banner 404 pages. Stores 5,000->943 drop not explained. Scanner does follow real redirects.",
+  "resolution": "Explained; recommended removing stale seed URLs and an exclude regex like .*/banner/?$ (or dismissing consent dialog before link extraction as done in #2172). Feature requests: audit log of property changes (CS-1751), non-URL-based exclusion / soft-404 detection (CS-2360 context). Ticket kept on hold.",
+  "resolution_type": "feature_request",
+  "log_signals": [
+   "redirect flag on crawled/scanned page",
+   "urlsets POST + property PUT (config save) in admin-server access logs; 500s on Evinced-side saves",
+   "/banner URLs discovered across paths",
+   "page count delta between consecutive crawls"
+  ],
+  "ui_signals": [
+   "false positives html-has-lang / document type on old URLs",
+   "page count 4 -> 4,999",
+   "'Sorry. We can't find that page.'"
+  ],
+  "jira": [
+   "EW-14664",
+   "CS-2754",
+   "CS-1751",
+   "CS-2360",
+   "CS-2543"
+  ],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Mostly false-positive/feature-request discussion (class 5); page-count swing is a secondary thread.",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2914",
+  "client": "NatWest Group (natwest.com, rbs.co.uk)",
+  "summary": "Follow-up to #2185: natwest.com page coverage swung wildly month to month (3,264 / 1,152 / 4,518 / 731 / 3,164 / 1,828) vs ~3,500+ sitemap pages; rbs.co.uk stuck at fixed count.",
+  "sub_issue": "rate_limit_429_link_discovery_loss",
+  "mechanism": "Site rate-limits the crawler: 22-58% of requests got HTTP 429 plus ERR_HTTP2_SERVER_REFUSED_STREAM; pages that fail/time out (up to 91s loads, 1,384 timeouts in a ~5h July run with reuseBrowser off) yield no outbound links so discovery stalls and varies per run. Crawler does not read sitemap.xml. Property was not on the static NAT pool (traffic came from ephemeral GCP IP). rbs.co.uk had 'Crawl before scan' disabled so it rescanned a June-2024 crawl list. Later: two properties scheduled at the same time on same site triggered 429s causing error-page false positives.",
+  "resolution": "Moved property to speed-tier.slow (one request at a time) -> 4,615 pages, 0 errors; enabled static NAT IPs; recrawled rbs.co.uk and set slow tier (2,593 pages); excluded 403 editor URLs; suggested staggering schedules. Separate engine FP (anchor without href on breadcrumb) fixed in CS-2847 / analysis-web 16.34.12.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [
+   "HTTP 429",
+   "ERR_HTTP2_SERVER_REFUSED_STREAM",
+   "page load timeout",
+   "reuseBrowser",
+   "speed-tier.slow / speed-tier.regular",
+   "crawl duration ~296 min",
+   "scan marked Failed after 24h while scan-worker still running",
+   "static NAT pool not enabled (egress IP 34.26.21.167)",
+   "crawl before scan disabled"
+  ],
+  "ui_signals": [
+   "page count fluctuates between monthly scans",
+   "scan shows Failed then Done",
+   "Too Many Requests"
+  ],
+  "jira": [
+   "CS-2829",
+   "CS-2847",
+   "EW-21529"
+  ],
+  "detectable_in_logs": "yes",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2915",
+  "client": "Bell Media (Astral out-of-home)",
+  "summary": "Crawler did not capture query-parameter variants (?sidePanel=login, ?menu=open, ?menu=search) under the-lede/out-of-home/astral-home.",
+  "sub_issue": "query_param_pages_not_discovered",
+  "mechanism": "Dynamic-content pages exist only as URL-parameter variants that are not linked as plain hrefs; URL-parameter/grouping handling needed so they are treated as separate pages.",
+  "resolution": "Support added the parameter URLs to the seed list and ensured fragments/params not excluded; customer added a grouping rule scoped to astral-home. Resolved.",
+  "resolution_type": "evinced_config_change",
+  "log_signals": [],
+  "ui_signals": [
+   "expected parameter URLs missing from crawl"
+  ],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#2962",
+  "client": "Bell Media (ctv.ca / crave.ca)",
+  "summary": "Customer asked for help crawling CTV pages after ctv.ca moved under crave.ca, needing a backend login-script change.",
+  "sub_issue": "site_migrated_login_reconfig_abandoned",
+  "mechanism": "unknown - site was decommissioned/migrated; no investigation done.",
+  "resolution": "Customer archived the property and closed the ticket.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "Configuration/onboarding request rather than crawl irregularity; likely class 5.",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#3232",
+  "client": "Bell Canada (entreprise.bell.ca MCORP)",
+  "summary": "Authenticated property crawled only the landing page; links on the page use onclick navigation with no href.",
+  "sub_issue": "js_navigation_no_href_links",
+  "mechanism": "Navigation via onclick handlers / dead links so crawler finds no URLs; after seeding URLs, scan then hits Login?FEServiceFailed=true and subsequent pages fail - suspected throttling/WAF on the app. Also an initial fix toggled the static IP setting and dropped the customer's exclude regex, pulling the whole domain.",
+  "resolution": "Added explicit URLs to seed list; scan still failing after Login?FEServiceFailed=true; asked for IP allowlist confirmation / custom header. Pending.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "Login?FEServiceFailed=true",
+   "pages failing after login redirect",
+   "throttling during scan",
+   "static IP pool toggle per property"
+  ],
+  "ui_signals": [
+   "only landing page crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#3241",
+  "client": "Bell Canada (eordering.bell.ca)",
+  "summary": "Post-login pages not crawled after IP whitelisting; crawler stuck at login.",
+  "sub_issue": "mfa_login_blocked",
+  "mechanism": "Login requires multi-factor authentication that cannot be disabled for the test user.",
+  "resolution": "Customer's app team refused to disable 2FA; site not onboarded; closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [
+   "login interaction stops at MFA/OTP step"
+  ],
+  "ui_signals": [
+   "post-login pages not crawled"
+  ],
+  "jira": [],
+  "detectable_in_logs": "maybe",
+  "gt_class_doubt": "Login failure; could be class 1/2 depending on page count.",
+  "gt_class": "4"
+ },
+ {
+  "ticket": "#3317",
+  "client": "NatWest / Adobe",
+  "summary": "Egress-encrypted follow-up email to the #2914 thread from Adobe; content unreadable by support.",
+  "sub_issue": "egress_encrypted_followup_unreadable",
+  "mechanism": "unknown - no content; follow-up to #2914.",
+  "resolution": "Support asked sender to resend unencrypted; auto-closed.",
+  "resolution_type": "unresolved",
+  "log_signals": [],
+  "ui_signals": [],
+  "jira": [],
+  "detectable_in_logs": "no",
+  "gt_class_doubt": "No technical content; duplicate/follow-up of #2914 (class 5 or merge).",
+  "gt_class": "4"
+ }
+]
