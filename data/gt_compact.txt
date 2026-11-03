@@ -1,0 +1,279 @@
+87|Comcast|1
+149|Comcast|1
+159|Cigna Healthcare|5
+184|Charter|5
+186|Church & Dwight|5
+199|Cigna Healthcare|1
+203|Maximus|5
+233|Maximus|5
+243|Charter|2
+247|Cigna Healthcare|5
+260|UnitedHealth Group|5
+274|Charter|5
+301|Comcast|2
+346|Maximus|5
+371|UnitedHealth Group|5
+391|Comcast|2
+447|Comcast|2
+454|Total Wine|5
+473|Hearst|5
+501|Ulta Inc.|5
+515|Zalando SE|5
+545|Comcast|5
+558|Church & Dwight|5
+561|Total Wine|5
+571|Zalando SE|5
+583|Comcast|1
+594|UnitedHealth Group|4
+599|Deloitte Canada|5
+639|Total Wine|1
+646|Comcast|5
+649|Comcast|2
+676|Capital One|5
+685|Total Wine|3
+694|Shopify|5
+709|Hearst|5
+710|Total Wine|5
+726|Hearst|5
+730|Sainsbury's|5
+731|Total Wine|5
+732|Total Wine|5
+734|Sainsbury's|5
+750|Deloitte Canada|5
+792|Sainsbury's|4
+818|UnitedHealth Group|5
+827|Superbet|5
+833|Hearst|4
+863|Ulta Inc.|5
+867|Hearst|5
+869|Zalando SE|3
+891|Salesforce|5
+910|Capital One|5
+915|Hearst|5
+917|Hearst|5
+926|UnitedHealth Group|2
+944|Hearst|2
+952|Hearst|4
+953|UnitedHealth Group|5
+959|Hearst|1
+975|Capital One|5
+989|Sainsbury's|5
+997|Cigna Healthcare|2
+1011|Sainsbury's|5
+1014|Sainsbury's|5
+1019|Ulta Inc.|5
+1027|Ulta Inc.|5
+1033|Ulta Inc.|2
+1051|HCA Healthcare|5
+1054|Hearst|5
+1056|Hearst|5
+1068|Ulta Inc.|1
+1071|Capital One|5
+1094|Comcast|5
+1116|Hearst|5
+1119|Capital One|2
+1129|Charter|5
+1138|Verizon|5
+1175|Progressive|5
+1192|Sainsbury's|3
+1214|Zalando SE|5
+1267|NatWest|5
+1283|Sainsbury's|3
+1296|RJ Reynolds|1
+1324|Zalando SE|2
+1336|UnitedHealth Group|5
+1340|Cigna Healthcare|5
+1342|Verizon|5
+1348|Deloitte Canada|5
+1352|Myers and Stauffer|5
+1364|American Airlines|5
+1370|Progressive|5
+1378|HCA Healthcare|5
+1381|HCA Healthcare|5
+1387|Hyatt|4
+1390|Ulta Inc.|5
+1392|Unknown|5
+1396|Cigna Healthcare|1
+1399|Salesforce|1
+1404|Comcast|1
+1413|Sainsbury's|5
+1420|UnitedHealth Group|5
+1421|Progressive|1
+1475|Ulta Inc.|4
+1476|Cigna Healthcare|5
+1493|Hyatt|4
+1498|Myers and Stauffer|5
+1554|HCA Healthcare|5
+1557|Hyatt|1
+1566|Comcast|5
+1574|NatWest|5
+1597|Sainsbury's|4
+1600|Sainsbury's|5
+1602|Hyatt|5
+1604|Ulta Inc.|5
+1607|Charter|2
+1612|HCA Healthcare|5
+1618|Shopify|1
+1626|Unknown|5
+1632|NatWest|5
+1638|Verizon|4
+1639|Verizon|5
+1648|HCA Healthcare|1
+1662|Progressive|5
+1663|Ulta Inc.|5
+1665|Lufthansa|4
+1682|Ulta Inc.|5
+1698|Verizon|5
+1711|Cigna Healthcare|1
+1722|StorageVault|5
+1727|Sainsbury's|5
+1732|Fanatics|5
+1737|Salesforce|4
+1755|Stepstone|1
+1793|Hyatt|1
+1802|Assured Insurance|5
+1806|Verizon|5
+1812|BECU|5
+1813|Charter|4
+1818|CollectiveHealth|4
+1869|Salesforce|5
+1895|Bell Canada|5
+1902|UnitedHealth Group|5
+1918|HCA Healthcare|5
+1952|Sainsbury's|5
+1967|Cigna Healthcare|5
+1976|HCA Healthcare|5
+1988|Superbet|5
+1992|Lufthansa|5
+1993|Verizon|5
+1994|Salesforce|5
+1995|Bell Canada|5
+2001|Bell Canada|5
+2052|HCA Healthcare|5
+2058|RJ Reynolds|1
+2059|Bell Canada|5
+2062|ServiceNow|5
+2064|NatWest|5
+2065|NatWest|5
+2072|NatWest|5
+2077|Bell Canada|5
+2089|Bell Canada|5
+2095|Bell Canada|5
+2107|Voya|5
+2111|Chick-fil-A|5
+2128|Verizon|5
+2129|Bell Canada|5
+2131|Capital One|5
+2132|Charter|2
+2139|Sainsbury's|5
+2143|Bell Canada|4
+2144|Bell Canada|4
+2152|Unknown|5
+2153|Bell Canada|2
+2154|Bell Canada|2
+2166|Superbet|5
+2167|Bell Canada|2
+2168|Bell Canada|3
+2172|Verizon|2
+2174|Salesforce|5
+2178|Lufthansa|5
+2185|NatWest|4
+2192|NatWest|1
+2222|Capital One|4
+2234|Bell Canada|4
+2235|State of CT|5
+2239|Bell Canada|2
+2241|Bell Canada|5
+2244|Capital One|3
+2245|Salesforce|5
+2270|Superbet|5
+2274|Myers and Stauffer|5
+2288|Bell Canada|4
+2289|Capital One|5
+2290|Charter|5
+2343|Bell Canada|5
+2362|Cimpress|5
+2371|Bell Canada|2
+2374|Ulta Inc.|3
+2392|Salesforce|5
+2397|NatWest|5
+2400|Thyssenkrupp|3
+2450|Bell Canada|4
+2576|NatWest|5
+2584|Cigna Healthcare|5
+2751|Bell Canada|1
+2752|Verizon|1
+2755|Progressive|1
+2756|NatWest|5
+2757|Bell Canada|1
+2760|StorageVault|1
+2764|State of CT|1
+2780|HCA Healthcare|5
+2783|Bell Canada|2
+2794|Bell Canada|5
+2797|Bell Canada|5
+2800|Bell Canada|5
+2801|HCA Healthcare|5
+2812|Superbet|5
+2813|Bell Canada|4
+2824|Bell Canada|5
+2851|UnitedHealth Group|2
+2875|McGraw Hill|5
+2881|Lufthansa|2
+2884|Capital One|5
+2889|Verizon|4
+2895|Verizon|4
+2901|Hilton|5
+2903|Bell Canada|5
+2914|NatWest|4
+2915|Bell Canada|4
+2946|Bell Canada|5
+2956|Capital One|5
+2959|Bell Canada|5
+2960|Booking.com|5
+2962|Bell Canada|4
+2979|EVERSANA|5
+2998|Bell Canada|5
+3000|Ulta Inc.|5
+3009|Maverik|5
+3051|Capital One|5
+3052|HCA Healthcare|5
+3053|Unknown|5
+3059|Bell Canada|5
+3068|Bell Canada|5
+3072|Amazon|5
+3083|Ulta Inc.|3
+3099|Salesforce|5
+3121|Ulta Inc.|5
+3136|State of CT|5
+3151|Salesforce|5
+3152|Port Of Seattle|5
+3169|UnitedHealth Group|3
+3177|Unknown|5
+3190|Capital One|5
+3195|Bell Canada|5
+3198|Chick-fil-A|2
+3206|Bell Canada|1
+3219|State of CT|5
+3228|Salesforce|1
+3231|Bell Canada|5
+3232|Bell Canada|4
+3238|Bell Canada|5
+3241|Bell Canada|4
+3248|Ulta Inc.|3
+3255|Bell Canada|5
+3270|Bell Canada|5
+3283|Salesforce|5
+3284|HCA Healthcare|5
+3293|Chick-fil-A|3
+3301|Bell Canada|5
+3315|Deloitte Canada|3
+3317|NatWest|4
+3327|Bell Canada|5
+3340|Capital One|2
+3369|Comcast|3
+3370|Bell Canada|5
+3371|Capital One|5
+3420|Bell Canada|2
+3425|Bell Canada|5
+3463|Oregon Metro|5

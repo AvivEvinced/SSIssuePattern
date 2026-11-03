@@ -1,0 +1,1397 @@
+[
+{
+"Ticket": "87",
+"Client": "Comcast",
+"Class": "1"
+},
+{
+"Ticket": "149",
+"Client": "Comcast",
+"Class": "1"
+},
+{
+"Ticket": "159",
+"Client": "Cigna Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "184",
+"Client": "Charter",
+"Class": "5"
+},
+{
+"Ticket": "186",
+"Client": "Church & Dwight",
+"Class": "5"
+},
+{
+"Ticket": "199",
+"Client": "Cigna Healthcare",
+"Class": "1"
+},
+{
+"Ticket": "203",
+"Client": "Maximus",
+"Class": "5"
+},
+{
+"Ticket": "233",
+"Client": "Maximus",
+"Class": "5"
+},
+{
+"Ticket": "243",
+"Client": "Charter",
+"Class": "2"
+},
+{
+"Ticket": "247",
+"Client": "Cigna Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "260",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "274",
+"Client": "Charter",
+"Class": "5"
+},
+{
+"Ticket": "301",
+"Client": "Comcast",
+"Class": "2"
+},
+{
+"Ticket": "346",
+"Client": "Maximus",
+"Class": "5"
+},
+{
+"Ticket": "371",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "391",
+"Client": "Comcast",
+"Class": "2"
+},
+{
+"Ticket": "447",
+"Client": "Comcast",
+"Class": "2"
+},
+{
+"Ticket": "454",
+"Client": "Total Wine",
+"Class": "5"
+},
+{
+"Ticket": "473",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "501",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "515",
+"Client": "Zalando SE",
+"Class": "5"
+},
+{
+"Ticket": "545",
+"Client": "Comcast",
+"Class": "5"
+},
+{
+"Ticket": "558",
+"Client": "Church & Dwight",
+"Class": "5"
+},
+{
+"Ticket": "561",
+"Client": "Total Wine",
+"Class": "5"
+},
+{
+"Ticket": "571",
+"Client": "Zalando SE",
+"Class": "5"
+},
+{
+"Ticket": "583",
+"Client": "Comcast",
+"Class": "1"
+},
+{
+"Ticket": "594",
+"Client": "UnitedHealth Group",
+"Class": "4"
+},
+{
+"Ticket": "599",
+"Client": "Deloitte Canada",
+"Class": "5"
+},
+{
+"Ticket": "639",
+"Client": "Total Wine",
+"Class": "1"
+},
+{
+"Ticket": "646",
+"Client": "Comcast",
+"Class": "5"
+},
+{
+"Ticket": "649",
+"Client": "Comcast",
+"Class": "2"
+},
+{
+"Ticket": "676",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "685",
+"Client": "Total Wine",
+"Class": "3"
+},
+{
+"Ticket": "694",
+"Client": "Shopify",
+"Class": "5"
+},
+{
+"Ticket": "709",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "710",
+"Client": "Total Wine",
+"Class": "5"
+},
+{
+"Ticket": "726",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "730",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "731",
+"Client": "Total Wine",
+"Class": "5"
+},
+{
+"Ticket": "732",
+"Client": "Total Wine",
+"Class": "5"
+},
+{
+"Ticket": "734",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "750",
+"Client": "Deloitte Canada",
+"Class": "5"
+},
+{
+"Ticket": "792",
+"Client": "Sainsbury's",
+"Class": "4"
+},
+{
+"Ticket": "818",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "827",
+"Client": "Superbet",
+"Class": "5"
+},
+{
+"Ticket": "833",
+"Client": "Hearst",
+"Class": "4"
+},
+{
+"Ticket": "863",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "867",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "869",
+"Client": "Zalando SE",
+"Class": "3"
+},
+{
+"Ticket": "891",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "910",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "915",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "917",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "926",
+"Client": "UnitedHealth Group",
+"Class": "2"
+},
+{
+"Ticket": "944",
+"Client": "Hearst",
+"Class": "2"
+},
+{
+"Ticket": "952",
+"Client": "Hearst",
+"Class": "4"
+},
+{
+"Ticket": "953",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "959",
+"Client": "Hearst",
+"Class": "1"
+},
+{
+"Ticket": "975",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "989",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "997",
+"Client": "Cigna Healthcare",
+"Class": "2"
+},
+{
+"Ticket": "1011",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "1014",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "1019",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "1027",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "1033",
+"Client": "Ulta Inc.",
+"Class": "2"
+},
+{
+"Ticket": "1051",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1054",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "1056",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "1068",
+"Client": "Ulta Inc.",
+"Class": "1"
+},
+{
+"Ticket": "1071",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "1094",
+"Client": "Comcast",
+"Class": "5"
+},
+{
+"Ticket": "1116",
+"Client": "Hearst",
+"Class": "5"
+},
+{
+"Ticket": "1119",
+"Client": "Capital One",
+"Class": "2"
+},
+{
+"Ticket": "1129",
+"Client": "Charter",
+"Class": "5"
+},
+{
+"Ticket": "1138",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "1175",
+"Client": "Progressive",
+"Class": "5"
+},
+{
+"Ticket": "1192",
+"Client": "Sainsbury's",
+"Class": "3"
+},
+{
+"Ticket": "1214",
+"Client": "Zalando SE",
+"Class": "5"
+},
+{
+"Ticket": "1267",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "1283",
+"Client": "Sainsbury's",
+"Class": "3"
+},
+{
+"Ticket": "1296",
+"Client": "RJ Reynolds",
+"Class": "1"
+},
+{
+"Ticket": "1324",
+"Client": "Zalando SE",
+"Class": "2"
+},
+{
+"Ticket": "1336",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "1340",
+"Client": "Cigna Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1342",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "1348",
+"Client": "Deloitte Canada",
+"Class": "5"
+},
+{
+"Ticket": "1352",
+"Client": "Myers and Stauffer",
+"Class": "5"
+},
+{
+"Ticket": "1364",
+"Client": "American Airlines",
+"Class": "5"
+},
+{
+"Ticket": "1370",
+"Client": "Progressive",
+"Class": "5"
+},
+{
+"Ticket": "1378",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1381",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1387",
+"Client": "Hyatt",
+"Class": "4"
+},
+{
+"Ticket": "1390",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "1392",
+"Client": "Unknown",
+"Class": "5"
+},
+{
+"Ticket": "1396",
+"Client": "Cigna Healthcare",
+"Class": "1"
+},
+{
+"Ticket": "1399",
+"Client": "Salesforce",
+"Class": "1"
+},
+{
+"Ticket": "1404",
+"Client": "Comcast",
+"Class": "1"
+},
+{
+"Ticket": "1413",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "1420",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "1421",
+"Client": "Progressive",
+"Class": "1"
+},
+{
+"Ticket": "1475",
+"Client": "Ulta Inc.",
+"Class": "4"
+},
+{
+"Ticket": "1476",
+"Client": "Cigna Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1493",
+"Client": "Hyatt",
+"Class": "4"
+},
+{
+"Ticket": "1498",
+"Client": "Myers and Stauffer",
+"Class": "5"
+},
+{
+"Ticket": "1554",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1557",
+"Client": "Hyatt",
+"Class": "1"
+},
+{
+"Ticket": "1566",
+"Client": "Comcast",
+"Class": "5"
+},
+{
+"Ticket": "1574",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "1597",
+"Client": "Sainsbury's",
+"Class": "4"
+},
+{
+"Ticket": "1600",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "1602",
+"Client": "Hyatt",
+"Class": "5"
+},
+{
+"Ticket": "1604",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "1607",
+"Client": "Charter",
+"Class": "2"
+},
+{
+"Ticket": "1612",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1618",
+"Client": "Shopify",
+"Class": "1"
+},
+{
+"Ticket": "1626",
+"Client": "Unknown",
+"Class": "5"
+},
+{
+"Ticket": "1632",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "1638",
+"Client": "Verizon",
+"Class": "4"
+},
+{
+"Ticket": "1639",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "1648",
+"Client": "HCA Healthcare",
+"Class": "1"
+},
+{
+"Ticket": "1662",
+"Client": "Progressive",
+"Class": "5"
+},
+{
+"Ticket": "1663",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "1665",
+"Client": "Lufthansa",
+"Class": "4"
+},
+{
+"Ticket": "1682",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "1698",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "1711",
+"Client": "Cigna Healthcare",
+"Class": "1"
+},
+{
+"Ticket": "1722",
+"Client": "StorageVault",
+"Class": "5"
+},
+{
+"Ticket": "1727",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "1732",
+"Client": "Fanatics",
+"Class": "5"
+},
+{
+"Ticket": "1737",
+"Client": "Salesforce",
+"Class": "4"
+},
+{
+"Ticket": "1755",
+"Client": "Stepstone",
+"Class": "1"
+},
+{
+"Ticket": "1793",
+"Client": "Hyatt",
+"Class": "1"
+},
+{
+"Ticket": "1802",
+"Client": "Assured Insurance",
+"Class": "5"
+},
+{
+"Ticket": "1806",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "1812",
+"Client": "BECU",
+"Class": "5"
+},
+{
+"Ticket": "1813",
+"Client": "Charter",
+"Class": "4"
+},
+{
+"Ticket": "1818",
+"Client": "CollectiveHealth",
+"Class": "4"
+},
+{
+"Ticket": "1869",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "1895",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "1902",
+"Client": "UnitedHealth Group",
+"Class": "5"
+},
+{
+"Ticket": "1918",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1952",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "1967",
+"Client": "Cigna Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1976",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "1988",
+"Client": "Superbet",
+"Class": "5"
+},
+{
+"Ticket": "1992",
+"Client": "Lufthansa",
+"Class": "5"
+},
+{
+"Ticket": "1993",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "1994",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "1995",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2001",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2052",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "2058",
+"Client": "RJ Reynolds",
+"Class": "1"
+},
+{
+"Ticket": "2059",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2062",
+"Client": "ServiceNow",
+"Class": "5"
+},
+{
+"Ticket": "2064",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "2065",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "2072",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "2077",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2089",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2095",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2107",
+"Client": "Voya",
+"Class": "5"
+},
+{
+"Ticket": "2111",
+"Client": "Chick-fil-A",
+"Class": "5"
+},
+{
+"Ticket": "2128",
+"Client": "Verizon",
+"Class": "5"
+},
+{
+"Ticket": "2129",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2131",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "2132",
+"Client": "Charter",
+"Class": "2"
+},
+{
+"Ticket": "2139",
+"Client": "Sainsbury's",
+"Class": "5"
+},
+{
+"Ticket": "2143",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2144",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2152",
+"Client": "Unknown",
+"Class": "5"
+},
+{
+"Ticket": "2153",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "2154",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "2166",
+"Client": "Superbet",
+"Class": "5"
+},
+{
+"Ticket": "2167",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "2168",
+"Client": "Bell Canada",
+"Class": "3"
+},
+{
+"Ticket": "2172",
+"Client": "Verizon",
+"Class": "2"
+},
+{
+"Ticket": "2174",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "2178",
+"Client": "Lufthansa",
+"Class": "5"
+},
+{
+"Ticket": "2185",
+"Client": "NatWest",
+"Class": "4"
+},
+{
+"Ticket": "2192",
+"Client": "NatWest",
+"Class": "1"
+},
+{
+"Ticket": "2222",
+"Client": "Capital One",
+"Class": "4"
+},
+{
+"Ticket": "2234",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2235",
+"Client": "State of CT",
+"Class": "5"
+},
+{
+"Ticket": "2239",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "2241",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2244",
+"Client": "Capital One",
+"Class": "3"
+},
+{
+"Ticket": "2245",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "2270",
+"Client": "Superbet",
+"Class": "5"
+},
+{
+"Ticket": "2274",
+"Client": "Myers and Stauffer",
+"Class": "5"
+},
+{
+"Ticket": "2288",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2289",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "2290",
+"Client": "Charter",
+"Class": "5"
+},
+{
+"Ticket": "2343",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2362",
+"Client": "Cimpress",
+"Class": "5"
+},
+{
+"Ticket": "2371",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "2374",
+"Client": "Ulta Inc.",
+"Class": "3"
+},
+{
+"Ticket": "2392",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "2397",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "2400",
+"Client": "Thyssenkrupp",
+"Class": "3"
+},
+{
+"Ticket": "2450",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2576",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "2584",
+"Client": "Cigna Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "2751",
+"Client": "Bell Canada",
+"Class": "1"
+},
+{
+"Ticket": "2752",
+"Client": "Verizon",
+"Class": "1"
+},
+{
+"Ticket": "2755",
+"Client": "Progressive",
+"Class": "1"
+},
+{
+"Ticket": "2756",
+"Client": "NatWest",
+"Class": "5"
+},
+{
+"Ticket": "2757",
+"Client": "Bell Canada",
+"Class": "1"
+},
+{
+"Ticket": "2760",
+"Client": "StorageVault",
+"Class": "1"
+},
+{
+"Ticket": "2764",
+"Client": "State of CT",
+"Class": "1"
+},
+{
+"Ticket": "2780",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "2783",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "2794",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2797",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2800",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2801",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "2812",
+"Client": "Superbet",
+"Class": "5"
+},
+{
+"Ticket": "2813",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2824",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2851",
+"Client": "UnitedHealth Group",
+"Class": "2"
+},
+{
+"Ticket": "2875",
+"Client": "McGraw Hill",
+"Class": "5"
+},
+{
+"Ticket": "2881",
+"Client": "Lufthansa",
+"Class": "2"
+},
+{
+"Ticket": "2884",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "2889",
+"Client": "Verizon",
+"Class": "4"
+},
+{
+"Ticket": "2895",
+"Client": "Verizon",
+"Class": "4"
+},
+{
+"Ticket": "2901",
+"Client": "Hilton",
+"Class": "5"
+},
+{
+"Ticket": "2903",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2914",
+"Client": "NatWest",
+"Class": "4"
+},
+{
+"Ticket": "2915",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2946",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2956",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "2959",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "2960",
+"Client": "Booking.com",
+"Class": "5"
+},
+{
+"Ticket": "2962",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "2979",
+"Client": "EVERSANA",
+"Class": "5"
+},
+{
+"Ticket": "2998",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3000",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "3009",
+"Client": "Maverik",
+"Class": "5"
+},
+{
+"Ticket": "3051",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "3052",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "3053",
+"Client": "Unknown",
+"Class": "5"
+},
+{
+"Ticket": "3059",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3068",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3072",
+"Client": "Amazon",
+"Class": "5"
+},
+{
+"Ticket": "3083",
+"Client": "Ulta Inc.",
+"Class": "3"
+},
+{
+"Ticket": "3099",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "3121",
+"Client": "Ulta Inc.",
+"Class": "5"
+},
+{
+"Ticket": "3136",
+"Client": "State of CT",
+"Class": "5"
+},
+{
+"Ticket": "3151",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "3152",
+"Client": "Port Of Seattle",
+"Class": "5"
+},
+{
+"Ticket": "3169",
+"Client": "UnitedHealth Group",
+"Class": "3"
+},
+{
+"Ticket": "3177",
+"Client": "Unknown",
+"Class": "5"
+},
+{
+"Ticket": "3190",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "3195",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3198",
+"Client": "Chick-fil-A",
+"Class": "2"
+},
+{
+"Ticket": "3206",
+"Client": "Bell Canada",
+"Class": "1"
+},
+{
+"Ticket": "3219",
+"Client": "State of CT",
+"Class": "5"
+},
+{
+"Ticket": "3228",
+"Client": "Salesforce",
+"Class": "1"
+},
+{
+"Ticket": "3231",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3232",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "3238",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3241",
+"Client": "Bell Canada",
+"Class": "4"
+},
+{
+"Ticket": "3248",
+"Client": "Ulta Inc.",
+"Class": "3"
+},
+{
+"Ticket": "3255",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3270",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3283",
+"Client": "Salesforce",
+"Class": "5"
+},
+{
+"Ticket": "3284",
+"Client": "HCA Healthcare",
+"Class": "5"
+},
+{
+"Ticket": "3293",
+"Client": "Chick-fil-A",
+"Class": "3"
+},
+{
+"Ticket": "3301",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3315",
+"Client": "Deloitte Canada",
+"Class": "3"
+},
+{
+"Ticket": "3317",
+"Client": "NatWest",
+"Class": "4"
+},
+{
+"Ticket": "3327",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3340",
+"Client": "Capital One",
+"Class": "2"
+},
+{
+"Ticket": "3369",
+"Client": "Comcast",
+"Class": "3"
+},
+{
+"Ticket": "3370",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3371",
+"Client": "Capital One",
+"Class": "5"
+},
+{
+"Ticket": "3420",
+"Client": "Bell Canada",
+"Class": "2"
+},
+{
+"Ticket": "3425",
+"Client": "Bell Canada",
+"Class": "5"
+},
+{
+"Ticket": "3463",
+"Client": "Oregon Metro",
+"Class": "5"
+}
+]
