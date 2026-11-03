@@ -1,0 +1,394 @@
+[
+ {
+  "ticket": "#2903",
+  "sub_id": "A1",
+  "outcome": "detected",
+  "run_window": "2026-07-27..07-28 (customer re-ran on 07-27; ticket 07-24; 07-14..07-24 had no starz crawls)",
+  "evidence": "[backtest] 403 on seed (http status + browser 403) across 3 jobs, 1 page visited; A1 rule fires.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'starz\\\\.ca' | groupby $m.templateid aggregate count() as n, any_value($d.message:string) as sample"
+ },
+ {
+  "ticket": "#3340",
+  "sub_id": "A6",
+  "outcome": "detected_family",
+  "run_window": "2026-10-08..10-14 (ticket 10-02; 09-30..10-02 had no crawls of this host)",
+  "evidence": "[backtest] Seed block (ERR_HTTP2_PROTOCOL_ERROR -> INTERNAL_ERROR) visible, but logged browser version is Chrome/126; UA cause not shown -> A1/A5/A6 family only.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'investor\\\\.capitalone' && !($d.message:string ~ '^\\\\[browser\\\\]') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,160) as sample"
+ },
+ {
+  "ticket": "#3301",
+  "sub_id": "A1",
+  "outcome": "detected",
+  "run_window": "2026-09-23..09-25",
+  "evidence": "[backtest] 405 browser resource errors (DataDome) before login selector failure; rule login R1 -> A1.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && ($d.context.url:string ~ 'myprepaidcenter' || $d.url:string ~ 'myprepaidcenter') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,160) as sample"
+ },
+ {
+  "ticket": "#3228",
+  "sub_id": "E3",
+  "outcome": "detected",
+  "run_window": "2026-09-01 06:55..07:10 (ticket 09-09; thread names the incident time)",
+  "evidence": "[backtest] scrape-server HikariPool exhaustion + admin/front Failed running create crawl request at the 09-01 07:00 scheduled run.",
+  "query": "source logs | filter $d.message:string ~ 'Connection is not available' || $d.message:string ~ 'create crawl request' | groupby $l.applicationname, $l.subsystemname aggregate count() as n, substr(any_value($d.message:string),0,200) as sample"
+ },
+ {
+  "ticket": "#2371",
+  "sub_id": "B2",
+  "outcome": "detected",
+  "run_window": "2026-05-28..06-02",
+  "evidence": "[backtest] Interaction exception 'is not a valid selector' naming the bad elementSelector; crawl stuck on login.jsp.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'jasperwireless' && $d.message:string ~ 'Exception' | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),60,400) as sample"
+ },
+ {
+  "ticket": "#3198",
+  "sub_id": "B2",
+  "outcome": "missed",
+  "run_window": "2026-09-03 15:40..17:00 (plus 09-01..09-03 pre-window: nothing)",
+  "evidence": "[backtest] Interaction flow ran at the stated time but no No element found for selector / selector error surfaced; generic timeout only.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'order\\\\.chick-fil-a' && !($d.message:string ~ '^\\\\[browser\\\\]') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,300) as sample"
+ },
+ {
+  "ticket": "#2914",
+  "sub_id": "A5",
+  "outcome": "not_testable",
+  "run_window": "2026-07-20..07-28 (day buckets), detail 07-27",
+  "evidence": "[backtest] 429-heavy run not in the week before ticket; run date not in thread.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.message:string ~ 'http status code is' && $d.url:string ~ 'natwest' | groupby formatTimestamp($m.timestamp, '%Y-%m-%d') as day, $d.message:string as msg aggregate count() as n"
+ },
+ {
+  "ticket": "#3420",
+  "sub_id": "A2",
+  "outcome": "detected_family",
+  "run_window": "2026-10-17..10-19",
+  "evidence": "[backtest] 403 + 1 page per job visible, but no Cloudflare/challenge marker -> A1 vs A2 not separable.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'environicsanalytics' && !($d.message:string ~ '^\\\\[browser\\\\] \\\\[warn') | groupby substr($d.message:string,0,200) as msg aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs"
+ },
+ {
+  "ticket": "#3248",
+  "sub_id": "D1",
+  "outcome": "not_testable",
+  "run_window": "2026-09-11..09-14",
+  "evidence": "[backtest] Failing scan (heavy /shop /p pages) not found in 09-11..09-14; only page-cap warnings.",
+  "query": "source logs | filter ($l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') && $d.context.url:string ~ 'www\\\\.ulta\\\\.com' && $m.severity != INFO | groupby $l.subsystemname, substr($d.message:string,0,200) as msg aggregate count() as n"
+ },
+ {
+  "ticket": "#3293",
+  "sub_id": "D2",
+  "outcome": "not_testable",
+  "run_window": "2026-09-17..09-24 (scan seen ~09-23 22:00 UTC)",
+  "evidence": "[backtest] FAILED_TO_RUN_ENGINES detector exists but no chick-fil-a URL among failures in window; failing scan not pinned.",
+  "query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.message:string ~ 'failed due to FAILED_TO_RUN_ENGINES' | groupby substr($d.context.url:string,0,70) as url aggregate count() as n"
+ },
+ {
+  "ticket": "#2751",
+  "sub_id": "E1",
+  "outcome": "detected",
+  "run_window": "2026-06-24..06-30, per-day volume by subsystem",
+  "evidence": "[backtest] June outage: worker log volume collapse ~75x (06-26..06-28) while scrape-server steady, then 06-29 backlog surge (shared check).",
+  "query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors"
+ },
+ {
+  "ticket": "#2752",
+  "sub_id": "E1",
+  "outcome": "detected",
+  "run_window": "2026-06-24..06-30, per-day volume by subsystem",
+  "evidence": "[backtest] June outage: worker log volume collapse ~75x (06-26..06-28) while scrape-server steady, then 06-29 backlog surge (shared check).",
+  "query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors"
+ },
+ {
+  "ticket": "#2755",
+  "sub_id": "E1",
+  "outcome": "detected",
+  "run_window": "2026-06-24..06-30, per-day volume by subsystem",
+  "evidence": "[backtest] June outage: worker log volume collapse ~75x (06-26..06-28) while scrape-server steady, then 06-29 backlog surge (shared check).",
+  "query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors"
+ },
+ {
+  "ticket": "#2760",
+  "sub_id": "E1",
+  "outcome": "detected",
+  "run_window": "2026-06-24..06-30, per-day volume by subsystem",
+  "evidence": "[backtest] June outage: worker log volume collapse ~75x (06-26..06-28) while scrape-server steady, then 06-29 backlog surge (shared check).",
+  "query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors"
+ },
+ {
+  "ticket": "#2764",
+  "sub_id": "E1",
+  "outcome": "detected",
+  "run_window": "2026-06-24..06-30, per-day volume by subsystem",
+  "evidence": "[backtest] June outage: worker log volume collapse ~75x (06-26..06-28) while scrape-server steady, then 06-29 backlog surge (shared check).",
+  "query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors"
+ },
+ {
+  "ticket": "#2851",
+  "sub_id": "A1",
+  "outcome": "missed",
+  "run_window": "2026-07-14 (29 crawl jobs on vitalpointqa-new.optum.com)",
+  "evidence": "Run found: GO_TO_URL 'error going to url ... current url: about:blank', DNS_ERROR_COULD_NOT_FIND_URL, PAGE_INTERACTION_PLUGIN_ERROR; no 403/405 at all -> rule points to C4 (unreachable/internal host), not A1 IP block.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'vitalpointqa' | groupby substr($d.message:string,0,140) as msg aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | orderby n desc"
+ },
+ {
+  "ticket": "#2881",
+  "sub_id": "A8",
+  "outcome": "detected",
+  "run_window": "2026-07-17..07-24 (7 crawl jobs on stage-business.lufthansagroup.com)",
+  "evidence": "'got error while scraping net::ERR_TOO_MANY_REDIRECTS at https://stage-business.lufthansagroup.com/' on seed + /de/de/homepage in 7 jobs -> crawl INTERNAL_ERROR; A8 signature fires directly.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'lufthansagroup' && !($d.message:string ~ 'browser] [warn') | groupby substr($d.message:string,0,130) as msg aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | orderby n desc"
+ },
+ {
+  "ticket": "#2812",
+  "sub_id": "A7",
+  "outcome": "detected_family",
+  "run_window": "2026-07-02..07-24 (6 crawl jobs on superbet.gr, 07-02)",
+  "evidence": "Seed superbet.gr returns 'http status code is: 403' + browser 403, 1 page visited, final URL = seed (no geo/unavailable redirect) -> reads as A1 block; A7 geo marker absent.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'superbet.gr' && !($d.message:string ~ 'browser] [warn') | groupby substr($d.message:string,0,130) as msg aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | orderby n desc"
+ },
+ {
+  "ticket": "#2400",
+  "sub_id": "A4",
+  "outcome": "detected",
+  "run_window": "2026-06-05 11:00..15:00 (stagingonlinemetals.com, property e0d30a0a)",
+  "evidence": "Seed 403 on crawls-pool / scans-node-pool nodes (11:00, 12:00); after support enabled static IPs the same seed returns 200 on crawls-pool-stat / scans-pool-stati nodes (15:00) -> A4 node-pool rule fires.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.url:string ~ 'stagingonlinemetals' && $d.message:string ~ 'status code is' | groupby formatTimestamp($m.timestamp,'%m-%d %H') as h, $l.subsystemname as sub, substr($d.resource.attributes['k8s.node.name']:string,0,48) as node, $d.message:string as msg aggregate count() as n"
+ },
+ {
+  "ticket": "#2450",
+  "sub_id": "A2",
+  "outcome": "detected_family",
+  "run_window": "2026-06-02 (1 crawl job, community.environicsanalytics.com)",
+  "evidence": "Seed 'http status code is: 403', 1 page visited; no challenge/202/Cloudflare marker -> A1 vs A2 not separable (same as #3420).",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'environicsanalytics' && ($d.message:string ~ 'status code is' || $d.message:string ~ 'status of 4' || $d.message:string ~ 'visited' || $d.message:string ~ 'final url after') | groupby formatTimestamp($m.timestamp,'%m-%d') as d, substr($d.message:string,0,110) as msg aggregate count() as n"
+ },
+ {
+  "ticket": "#2783",
+  "sub_id": "C2",
+  "outcome": "detected_family",
+  "run_window": "2026-06-24..07-02 (glentel, sphere-media, sdktek, protexxa, mtsmail crawl jobs)",
+  "evidence": "'final url not included in whitelist' rejections on seed final URL in 6 jobs (www->apex, /en/, auth.mtsmail.ca SAML) but rejected host IS inside 'allowed domains: {glentel.com}' etc. -> rule R5 reads C1 (regex/path), not C2; whitelist family pinned, sub-issue wrong.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && ($d.message:string ~ 'allowed domains' || $d.message:string ~ 'not included in whitelist' || $d.message:string ~ 'final url after redirections') && ($d.url:string ~ 'glentel' || $d.url:string ~ 'sphere-media' || $d.url:string ~ 'sdktek' || $d.url:string ~ 'protexxa' || $d.url:string ~ 'mtsmail' || ...) | groupby $d.resource.attributes['k8s.job.name'] as job aggregate any_value(allowed line), sum(whitelist rejects) as wl, any_value(final url)"
+ },
+ {
+  "ticket": "#2794",
+  "sub_id": "B5",
+  "outcome": "detected_family",
+  "run_window": "2026-07-06..07-08 (7 crawl jobs on snr.bell.ca, 1 pod each)",
+  "evidence": "Each job: one 'finished interacting with page' (login OK) then 6-16 of 6-19 final URLs land on snr.bell.ca/Login/ -> session wall visible, but single pod per job so B5 sibling-pod test can't separate it from B3/gated pages.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'snr.bell.ca' && ($d.message:string ~ 'final url after redirections' || $d.message:string ~ 'starting page interaction plugin' || $d.message:string ~ 'finished interacting with page' || $d.message:string ~ 'failed due to' || $d.message:string ~ 'No element found') | groupby day, job, pod aggregate finals, login_landings, login_ok"
+ },
+ {
+  "ticket": "#2915",
+  "sub_id": "C5",
+  "outcome": "missed",
+  "run_window": "2026-07-24..07-31 (bellmedia.ca out-of-home crawls)",
+  "evidence": "Crawls of /advertising-sales/out-of-home ran (thousands of 200s) but no 'sanitized url was already visited' / '#' fragment rejects; missing parameterised astral-home pages leave no log trace (only page counts).",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'out-of-home' && !($d.message:string ~ '[browser]') && !($d.message:string ~ 'pages so far') | groupby day, substr($d.message:string,0,85) as msg aggregate count() as n, sum(if($d.url:string ~ '#',1,0)) as frag"
+ },
+ {
+  "ticket": "#2946",
+  "sub_id": "B1",
+  "outcome": "missed",
+  "run_window": "2026-07-29..07-30 (1 crawl job on mybell.bell.ca)",
+  "evidence": "Only run found is the single-step login: final url identification.bell.ca/u/login/identifier, 'No element found for selector: #password' -> PAGE_INTERACTION_PLUGIN_ERROR. Reads as B4 (identifier-first); no mfa/otp/verify landing logged, MFA found only by manual test.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.url:string ~ 'mybell.bell.ca' && ($d.message:string ~ 'final url after redirections' || $d.message:string ~ 'finished interacting' || $d.message:string ~ 'failed due to' || $d.message:string ~ 'No element found' || $d.message:string ~ 'clicking element' || $d.message:string ~ 'typing text') | groupby day, substr($d.message:string,0,120) as msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#2959",
+  "sub_id": "B4",
+  "outcome": "detected_family",
+  "run_window": "2026-08-03..08-04 (4 crawl jobs on crave.ca)",
+  "evidence": "08-03: positional header selector 'No element found' (B2-shaped); 08-04: on IdP account.bellmedia.ca/login 'typing text in element: email' then 'No element found for selector: email' -> PAGE_INTERACTION_PLUGIN_ERROR. Login failure on IdP visible, but B2 vs B4 (and the bad-credentials cause) not separable.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.url:string ~ 'crave.ca' && (final url / finished interacting / failed due to / No element found / clicking element / typing text / starting page interaction) | groupby day, substr($d.message:string,0,120) as msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#3238",
+  "sub_id": "B4",
+  "outcome": "detected_family",
+  "run_window": "2026-09-10..09-15 (tv.bell.ca crawl jobs; 09-15 multi-step config succeeds)",
+  "evidence": "09-10..09-14 failing runs: 'No element found for selector: #headlessui-control-_r_gt_' (generated id) and chooser button [text=\"Best\"] not found on tv.bell.ca/login; 09-15 full multi-step sequence + 'finished interacting with page successfully' -> /home. Login-step failure visible but rule R3 reads it as B2 (dynamic selector), B4 not pinned.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'tv.bell.ca' && (final url / finished interacting / failed due to / No element found / clicking element / typing text / starting page interaction) | groupby day, substr($d.message:string,0,110) as msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#3241",
+  "sub_id": "B1",
+  "outcome": "missed",
+  "run_window": "2026-09-10..09-12 (eordering.bell.ca crawl jobs)",
+  "evidence": "Runs found: only public /Guides/ pages with 200s, no mfa|otp|verify landing and no interaction-failure lines; MFA wall identified by support manually, not visible in logs.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'eordering' && (final url / finished interacting / failed due to / No element found / clicking element / typing text / status code is) | groupby day, substr($d.message:string,0,120) as msg aggregate count() as n"
+ },
+ {
+  "ticket": "#3052",
+  "sub_id": "A1",
+  "outcome": "not_testable",
+  "run_window": "2026-08-10..08-24 (dpxmedcity.net)",
+  "evidence": "Only a healthy 08-10 run (200s) exists; no run after HCA blocked access - ticket is a proactive allowlist request, no failing run in logs.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.url:string ~ 'dpxmedcity' && ($d.message:string ~ 'status code is' || $d.message:string ~ 'status of 4' || $d.message:string ~ 'failed due to' || $d.message:string ~ 'got error while scraping') | groupby day, sub, node pool, msg aggregate count() as n"
+ },
+ {
+  "ticket": "#3083",
+  "sub_id": "A4",
+  "outcome": "missed",
+  "run_window": "2026-08-24 (2 ulta.com scan jobs, Marketing property)",
+  "evidence": "Pool half of the A4 rule is there (both jobs on scans-node-pool, not *-pool-stat*) but the block half is not: ~2,900 'http status code is: 200' vs ~160 404s - Akamai served its soft-error page with 200, so no 403/OPT block to combine with (A3-style invisibility).",
+  "query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.context.url:string ~ 'ulta.com' && $d.message:string ~ 'status code is' | groupby day, substr($d.resource.attributes['k8s.node.name']:string,0,40) as node, $d.message:string as msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#3169",
+  "sub_id": "A1",
+  "outcome": "detected",
+  "run_window": "2026-08-31 (wellmedhealthcare.com scan, 2 jobs)",
+  "evidence": "scan-worker 'http status code is: 403' on the page, 1 page visited (403 share 50% of a 2-page sample) -> A1 403 rule fires; thin sample, A1 vs A2 not separable.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.context.url:string ~ 'wellmed' && ($d.message:string ~ 'status code is' || $d.message:string ~ 'status of 4' || $d.message:string ~ 'failed due to' || $d.message:string ~ 'got error while scraping' || $d.message:string ~ 'pages so far') | groupby day, sub, msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#3206",
+  "sub_id": "A1",
+  "outcome": "detected",
+  "run_window": "2026-09-07 (bell.m2m.com: 2 crawl + 1 scan job)",
+  "evidence": "Seed 'http status code is: 403', 1 page visited, on crawls-pool-stat / scans-pool-stati nodes (static IPs already used) -> 403-at-request-1 deny-list A1, A4 ruled out.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.context.url:string ~ 'm2m.com' && (status code is / status of 4 / failed due to / got error while scraping / pages so far) | groupby day, sub, substr(k8s.node.name,21,16) as pool, msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#3369",
+  "sub_id": "A1",
+  "outcome": "detected",
+  "run_window": "2026-10-01..10-07 (sky.de scans, scans-pool-static nodes)",
+  "evidence": "10-01 scan: 251 x 403 among ~4,000 statuses (6%, many 'access denied' URLs - below the 50% threshold); 10-07 job: 40/40 'http status code is: 403' -> A1 rule fires on the latest run (WAF reputation trip on static IPs).",
+  "query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.context.url:string ~ 'sky.de' && $d.message:string ~ 'status code is' | groupby day, substr(k8s.node.name,21,16) as pool, $d.message:string as msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#2780",
+  "sub_id": "F1",
+  "outcome": "missed",
+  "run_window": "2026-06-29..07-01 (customer export attempt 06-30; fixed 07-01)",
+  "evidence": "No 'failed to generate CSV', poller-timeout, 'poll request failed' or completion-email line in admin/front/csv-worker/webapps (only crawl-worker text/csv content-type noise); likely June instrumentation gap in admin/front - failure not logged.",
+  "query": "source logs | filter ($l.subsystemname == 'admin-server' || $l.subsystemname == 'front-server' || $l.subsystemname == 'csv-worker' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && ($d.message:string ~ 'CSV' || $d.message:string ~ 'csv' || $d.message:string ~ 'poll request failed') | groupby day, sub, sev, msg aggregate count() as n"
+ },
+ {
+  "ticket": "#2901",
+  "sub_id": "E5",
+  "outcome": "missed",
+  "run_window": "2026-07-23 12:00..20:00 (Hilton properties fail to open in UI)",
+  "evidence": "front/admin-server non-Info lines in the window are only scheduler 'failed to create entity' for 3 unrelated properties; no RestExceptionHandler 5xx, FunctionLogger 'failed (' / slow invocation or Hilton-related line (that instrumentation not present in July).",
+  "query": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'admin-server') && ($d.message:string ~ 'failed (' || $d.message:string ~ 'Exception' || $d.message:string ~ 'took') && $m.severity != INFO | groupby sub, substr($d.message:string,0,110) as msg aggregate count() as n, sum(if($d.message:string ~ 'ilton',1,0)) as hilton"
+ },
+ {
+  "ticket": "#2979",
+  "sub_id": "E1",
+  "outcome": "missed",
+  "run_window": "2026-08-05 12:00..08-08 03:00 (customer: UI empty evening 08-06 and all 08-07)",
+  "evidence": "3-hourly volume/errors flat for front-server (~2.3-3.7k errors), front-webapp (~32k), admin-server (~1.5k), scrape-server normal diurnal; no collapse or error burst -> E1 volume/tenant rule does not fire (UI-side data-loading outage not logged server-side).",
+  "query": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'admin-server' || $l.subsystemname == 'front-webapp' || $l.subsystemname == 'scrape-server') | groupby formatTimestamp(roundTime($m.timestamp, 3h), '%m-%d %H') as t, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors"
+ },
+ {
+  "ticket": "#3136",
+  "sub_id": "F4",
+  "outcome": "detected_family",
+  "run_window": "2026-08-26..08-28 (MCP sign-in failure reported 08-27)",
+  "evidence": "front-server 'An invalid request caller ID was received: MCP' 307 (08-26) and 422 (08-27), gone 08-28; analytics mcp_error_occurred 68 -> 59 -> 3. MCP-side failure visible on the right days, but not tied to the tenant or to the auth0 registration error in the thread.",
+  "query": "source logs | filter $d.message:string ~ 'caller ID' || $d.message:string ~ 'mcp_error_occurred' || ($l.subsystemname ~ 'mcp' && $m.severity != INFO) | groupby day, sub, msg aggregate count() as n"
+ },
+ {
+  "ticket": "#3315",
+  "sub_id": "E3",
+  "outcome": "missed",
+  "run_window": "2026-09-28 (dunorth.deloitte.ca: 3 crawl + 2 scan jobs)",
+  "evidence": "No 'Failing URL set'/'Failed running create crawl request' for the property; logs instead show 'SCAN ... failed due to ENGINES_PLUGIN_ERROR - TypeError' on every page and crawl net::ERR_INVALID_AUTH_CREDENTIALS on SharePoint _layouts -> points to D2/engine-side, not E3.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'scrape-server') && ($d.context.url:string ~ 'dunorth' || $d.message:string ~ 'dunorth') && !($d.message:string ~ '[browser]') | groupby day, sub, substr($d.message:string,0,110) as msg aggregate count() as n, approx_count_distinct(job) as jobs"
+ },
+ {
+  "ticket": "#3000",
+  "sub_id": "D3",
+  "outcome": "missed",
+  "run_window": "2026-08-01, 08-11, 08-12 (scans of www.ulta.com/sitemap/departments)",
+  "evidence": "Scans found: browser hydration errors, 'Refused to execute script' (MIME) and 404 resources, but no 'Execution context was destroyed'; the open-menu render state that produced the 66 findings is not logged.",
+  "query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.url:string ~ 'sitemap/departments' && !($d.message:string ~ '[browser] [warn') | groupby day, substr($d.message:string,0,110) as msg aggregate count() as n"
+ },
+ {
+  "ticket": "#2889",
+  "sub_id": "C3",
+  "outcome": "missed",
+  "run_window": "2026-07-15 and 07-23 (verizon.com/business crawl jobs; attribution to the customer's properties not confirmed)",
+  "evidence": "Candidate runs: 4 jobs on 07-15 (270-4,059 lines) reject 30-40% of URLs, all shown reasons 'content type application/...'; 07-23 job 32 OK / 5 rejects. No >90% exclude-list rejection or page-cap hit -> C3 rule does not fire; include-regex mis-scope leaves no distinct line.",
+  "query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'verizon.com/business' && ($d.message:string ~ 'not including url in result url set' || $d.message:string ~ 'status code is: 200') | extract reason | groupby job aggregate count() as n, ok, rejected, any_value(reason), min(day)"
+ },
+ {
+  "ticket": "#2895",
+  "sub_id": "C3",
+  "outcome": "missed",
+  "run_window": "2026-07-12..07-21 (scans of verizon.com/stores/schedule-appointment)",
+  "evidence": "Scans log 200 and 'final url after redirections: .../stores/schedule-appointment' (the pre-JS-redirect page) - the stage-1 capture is visible only if you know the expected target; no scope/exclude rejection, so the C3 rule does not fire.",
+  "query": "source logs | filter ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.url:string ~ 'verizon.com/stores/schedule-appointment' && ($d.message:string ~ 'final url' || $d.message:string ~ 'not including' || $d.message:string ~ 'status code is' || $d.message:string ~ 'Execution context') | groupby day, sub, msg aggregate count() as n"
+ },
+ {
+  "ticket": "#3425",
+  "sub_id": "A4",
+  "outcome": "detected",
+  "run_window": "2026-10-12..10-19 (Bell crawl + scan jobs)",
+  "evidence": "All Bell crawl jobs ran on *-pool-stat* nodes, but one www.bellmedia.ca scan job ran on scans-node-pool (non-static GCP egress) - explains the unlisted Google IPs the customer saw; A4 pool rule pinpoints it (no block involved, IPv6 address itself not logged so match to the screenshot is unconfirmed).",
+  "query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.resource.attributes.environment == 'production' && $d.message:string ~ 'browser was opened successfully' && (Bell hosts on $d.context.url) | create pool from if(k8s.node.name ~ 'pool-stat', 'static', substr(k8s.node.name,21,18)) | groupby pool aggregate approx_count_distinct(job) as jobs, any_value($d.context.url) as ex"
+ },
+ {
+  "ticket": "#2756",
+  "sub_id": "F3",
+  "outcome": "not_testable",
+  "run_window": "n/a (2026-06-29)",
+  "evidence": "UI shows different results per user (cached View filter); client-side state, no server-side failure expected; not queried.",
+  "query": ""
+ },
+ {
+  "ticket": "#2800",
+  "sub_id": "F4",
+  "outcome": "not_testable",
+  "run_window": "n/a (2026-07-02..07-12)",
+  "evidence": "Jira on-prem not supported: redirect to Atlassian cloud login; Jira calls are not logged in these services (detectability residual); not queried.",
+  "query": ""
+ },
+ {
+  "ticket": "#2801",
+  "sub_id": "F3",
+  "outcome": "not_testable",
+  "run_window": "n/a",
+  "evidence": "How-to question (remove a URL from a completed scan); no failure.",
+  "query": ""
+ },
+ {
+  "ticket": "#3121",
+  "sub_id": "F3",
+  "outcome": "not_testable",
+  "run_window": "n/a (2026-08-26)",
+  "evidence": "Front-end layout regression from a deploy; pure front-end bug never reaches the server.",
+  "query": ""
+ },
+ {
+  "ticket": "#3152",
+  "sub_id": "C5",
+  "outcome": "not_testable",
+  "run_window": "n/a",
+  "evidence": "Guidance request (is <2,000 pages a full crawl?); no property/run named, no failure.",
+  "query": ""
+ },
+ {
+  "ticket": "#3219",
+  "sub_id": "F4",
+  "outcome": "not_testable",
+  "run_window": "n/a",
+  "evidence": "Feature request (collections in MCP); no failure.",
+  "query": ""
+ },
+ {
+  "ticket": "#3270",
+  "sub_id": "F1",
+  "outcome": "not_testable",
+  "run_window": "n/a",
+  "evidence": "10k-row export limit request; row-limit rejection is not logged (detectability residual) and no failed export run.",
+  "query": ""
+ },
+ {
+  "ticket": "#3284",
+  "sub_id": "D3",
+  "outcome": "not_testable",
+  "run_window": "n/a (September Enterprise-Wide scan)",
+  "evidence": "Target-size findings rising with render timing; findings-level, no log-side symptom expected (D3 residual).",
+  "query": ""
+ }
+]

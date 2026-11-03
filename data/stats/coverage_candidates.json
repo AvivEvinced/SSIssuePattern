@@ -1,0 +1,394 @@
+[
+{
+"ticket": "#2371",
+"created": "2026-06-01",
+"client": "Bell Canada (bell.jasperwireless.com)",
+"gt_class": "2",
+"sub_id": "B2",
+"raw_label": "login_selector_wrong"
+},
+{
+"ticket": "#2400",
+"created": "2026-06-05",
+"client": "POC customer (staging site, name not given)",
+"gt_class": "3",
+"sub_id": "A4",
+"raw_label": "static_ip_not_enabled_for_property"
+},
+{
+"ticket": "#2450",
+"created": "2026-06-09",
+"client": "Bell Canada (community.environicsanalytics.com, Zendesk-hosted)",
+"gt_class": "4",
+"sub_id": "A2",
+"raw_label": "bot_protection_cloudflare_challenge"
+},
+{
+"ticket": "#2751",
+"created": "2026-06-29",
+"client": "Bell Canada",
+"gt_class": "1",
+"sub_id": "E1",
+"raw_label": "platform_outage_june2026"
+},
+{
+"ticket": "#2752",
+"created": "2026-06-29",
+"client": "Verizon",
+"gt_class": "1",
+"sub_id": "E1",
+"raw_label": "platform_outage_june2026"
+},
+{
+"ticket": "#2755",
+"created": "2026-06-29",
+"client": "Progressive",
+"gt_class": "1",
+"sub_id": "E1",
+"raw_label": "platform_outage_june2026"
+},
+{
+"ticket": "#2756",
+"created": "2026-06-29",
+"client": "NatWest",
+"gt_class": "5",
+"sub_id": "F3",
+"raw_label": "ui_stale_view_filter"
+},
+{
+"ticket": "#2760",
+"created": "2026-06-29",
+"client": "StorageVault Canada (depotium.com)",
+"gt_class": "1",
+"sub_id": "E1",
+"raw_label": "platform_outage_june2026"
+},
+{
+"ticket": "#2764",
+"created": "2026-06-29",
+"client": "unknown (Stacey)",
+"gt_class": "1",
+"sub_id": "E1",
+"raw_label": "platform_outage_june2026"
+},
+{
+"ticket": "#2780",
+"created": "2026-06-30",
+"client": "HCA Healthcare",
+"gt_class": "5",
+"sub_id": "F1",
+"raw_label": "export_csv_not_delivered"
+},
+{
+"ticket": "#2783",
+"created": "2026-07-01",
+"client": "Bell Canada (multiple onboarding properties)",
+"gt_class": "2",
+"sub_id": "C2",
+"raw_label": "domain_whitelist_mismatch"
+},
+{
+"ticket": "#2794",
+"created": "2026-07-01",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "B5",
+"raw_label": "login_multistep_session_loss"
+},
+{
+"ticket": "#2800",
+"created": "2026-07-02",
+"client": "Bell Canada (IBM)",
+"gt_class": "5",
+"sub_id": "F4",
+"raw_label": "jira_onprem_integration_unsupported"
+},
+{
+"ticket": "#2801",
+"created": "2026-07-02",
+"client": "HCA Healthcare",
+"gt_class": "5",
+"sub_id": "F3",
+"raw_label": "remove_url_from_completed_scan"
+},
+{
+"ticket": "#2812",
+"created": "2026-07-07",
+"client": "Superbet",
+"gt_class": "5",
+"sub_id": "A7",
+"raw_label": "ip_whitelist_geo_block"
+},
+{
+"ticket": "#2851",
+"created": "2026-07-14",
+"client": "Optum (VitalPoint QA)",
+"gt_class": "2",
+"sub_id": "A1",
+"raw_label": "ip_not_whitelisted_internal_site"
+},
+{
+"ticket": "#2881",
+"created": "2026-07-20",
+"client": "Lufthansa (LHG B2B DE-de staging)",
+"gt_class": "2",
+"sub_id": "A8",
+"raw_label": "redirect_loop_too_many_redirects"
+},
+{
+"ticket": "#2889",
+"created": "2026-07-21",
+"client": "Verizon",
+"gt_class": "4",
+"sub_id": "C3",
+"raw_label": "include_regex_scope_misconfigured"
+},
+{
+"ticket": "#2895",
+"created": "2026-07-22",
+"client": "Verizon",
+"gt_class": "4",
+"sub_id": "C3",
+"raw_label": "seed_scope_change_soft404_and_relative_link"
+},
+{
+"ticket": "#2901",
+"created": "2026-07-23",
+"client": "Hilton",
+"gt_class": "5",
+"sub_id": "E5",
+"raw_label": "ui_error_loading_property_backend"
+},
+{
+"ticket": "#2903",
+"created": "2026-07-24",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "A1",
+"raw_label": "bot_protection_403_whitelist"
+},
+{
+"ticket": "#2914",
+"created": "2026-07-27",
+"client": "NatWest Group (natwest.com, rbs.co.uk)",
+"gt_class": "4",
+"sub_id": "A5",
+"raw_label": "rate_limit_429_link_discovery_loss"
+},
+{
+"ticket": "#2915",
+"created": "2026-07-27",
+"client": "Bell Media (Astral out-of-home)",
+"gt_class": "4",
+"sub_id": "C5",
+"raw_label": "query_param_pages_not_discovered"
+},
+{
+"ticket": "#2946",
+"created": "2026-07-30",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "B1",
+"raw_label": "mfa_2fa_blocks_login"
+},
+{
+"ticket": "#2959",
+"created": "2026-08-04",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "B4",
+"raw_label": "login_multistep_config"
+},
+{
+"ticket": "#2979",
+"created": "2026-08-07",
+"client": "Eversana",
+"gt_class": "5",
+"sub_id": "E1",
+"raw_label": "ui_data_not_loading_outage"
+},
+{
+"ticket": "#3000",
+"created": "2026-08-12",
+"client": "Ulta Beauty",
+"gt_class": "5",
+"sub_id": "D3",
+"raw_label": "false_positive_incomplete_render"
+},
+{
+"ticket": "#3052",
+"created": "2026-08-17",
+"client": "HCA Healthcare",
+"gt_class": "5",
+"sub_id": "A1",
+"raw_label": "ip_whitelist_request"
+},
+{
+"ticket": "#3083",
+"created": "2026-08-24",
+"client": "Ulta Beauty (Marketing property)",
+"gt_class": "3",
+"sub_id": "A4",
+"raw_label": "static_ip_not_enabled_for_property"
+},
+{
+"ticket": "#3121",
+"created": "2026-08-26",
+"client": "Ulta Beauty",
+"gt_class": "5",
+"sub_id": "F3",
+"raw_label": "ui_layout_broken_deploy"
+},
+{
+"ticket": "#3136",
+"created": "2026-08-27",
+"client": "unknown (Stacey)",
+"gt_class": "5",
+"sub_id": "F4",
+"raw_label": "mcp_auth_error"
+},
+{
+"ticket": "#3152",
+"created": "2026-08-28",
+"client": "Port of Seattle",
+"gt_class": "5",
+"sub_id": "C5",
+"raw_label": "crawl_coverage_grouping_rules"
+},
+{
+"ticket": "#3169",
+"created": "2026-08-31",
+"client": "Optum / WellMed (wellmedhealthcare.com)",
+"gt_class": "3",
+"sub_id": "A1",
+"raw_label": "bot_protection_waf_block"
+},
+{
+"ticket": "#3198",
+"created": "2026-09-03",
+"client": "Chick-fil-A",
+"gt_class": "2",
+"sub_id": "B2",
+"raw_label": "interaction_selector_stale"
+},
+{
+"ticket": "#3206",
+"created": "2026-09-07",
+"client": "Bell Media / Bell (tsn.ca, ctvnews.ca, bell.m2m.com)",
+"gt_class": "1",
+"sub_id": "A1",
+"raw_label": "ip_block_403_firewall"
+},
+{
+"ticket": "#3219",
+"created": "2026-09-09",
+"client": "unknown (Stacey)",
+"gt_class": "5",
+"sub_id": "F4",
+"raw_label": "feature_request_mcp_collections"
+},
+{
+"ticket": "#3228",
+"created": "2026-09-09",
+"client": "Salesforce (all salesforce.com)",
+"gt_class": "1",
+"sub_id": "E3",
+"raw_label": "crawl_dispatch_connection_refused_scrape_server_pool_exhaustion"
+},
+{
+"ticket": "#3238",
+"created": "2026-09-11",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "B4",
+"raw_label": "login_multistep_config"
+},
+{
+"ticket": "#3241",
+"created": "2026-09-11",
+"client": "Bell Canada (eordering.bell.ca)",
+"gt_class": "4",
+"sub_id": "B1",
+"raw_label": "mfa_login_blocked"
+},
+{
+"ticket": "#3248",
+"created": "2026-09-14",
+"client": "Ulta Beauty (www.ulta.com)",
+"gt_class": "3",
+"sub_id": "D1",
+"raw_label": "page_ready_timeout_heavy_pages"
+},
+{
+"ticket": "#3270",
+"created": "2026-09-21",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "F1",
+"raw_label": "export_row_limit"
+},
+{
+"ticket": "#3284",
+"created": "2026-09-22",
+"client": "HCA Healthcare",
+"gt_class": "5",
+"sub_id": "D3",
+"raw_label": "false_positive_incomplete_render"
+},
+{
+"ticket": "#3293",
+"created": "2026-09-24",
+"client": "Chick-fil-A (shop.chick-fil-a.com)",
+"gt_class": "3",
+"sub_id": "D2",
+"raw_label": "engine_limit_huge_dom"
+},
+{
+"ticket": "#3301",
+"created": "2026-09-25",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "A1",
+"raw_label": "bot_protection_whitelist_refused"
+},
+{
+"ticket": "#3315",
+"created": "2026-09-28",
+"client": "Deloitte Canada (DU North SharePoint)",
+"gt_class": "3",
+"sub_id": "E3",
+"raw_label": "unknown_engineering_fix"
+},
+{
+"ticket": "#3340",
+"created": "2026-10-02",
+"client": "Capital One (investor.capitalone.com)",
+"gt_class": "2",
+"sub_id": "A6",
+"raw_label": "bot_protection_akamai_old_user_agent"
+},
+{
+"ticket": "#3369",
+"created": "2026-10-08",
+"client": "Sky Germany (sky.de)",
+"gt_class": "3",
+"sub_id": "A1",
+"raw_label": "bot_protection_waf_block"
+},
+{
+"ticket": "#3420",
+"created": "2026-10-19",
+"client": "Bell Canada (community.environicsanalytics.com Zendesk)",
+"gt_class": "2",
+"sub_id": "A2",
+"raw_label": "bot_protection_cloudflare_challenge"
+},
+{
+"ticket": "#3425",
+"created": "2026-10-19",
+"client": "Bell Canada",
+"gt_class": "5",
+"sub_id": "A4",
+"raw_label": "fast_tier_non_static_ips"
+}
+]
