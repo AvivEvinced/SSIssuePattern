@@ -1,0 +1,187 @@
+[
+ {
+  "ticket": "#2903",
+  "sub_id": "A1",
+  "property_hint": "starz.ca (Bell Canada)",
+  "window": "2026-07-27..07-28 (customer re-ran on 07-27; ticket 07-24; 07-14..07-24 had no starz crawls)",
+  "evidence_found": "yes",
+  "signals": [
+   "crawl-worker 'http status code is: 403' (tmpl f19acea8, severity Info!) x3 jobs",
+   "'[browser] [error] Failed to load resource: the server responded with a status of 403 ()' (f1a49802)",
+   "'not including url in result url set. reason: final url not included in whitelist' (f1a281ca)",
+   "'successfully visited 1 pages so far'",
+   "www.starz.ca: 'request was handled successfully' (200, single page)",
+   "browser Chrome/126.0.6478.126"
+  ],
+  "agrees_with_root_cause": "yes",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'starz\\\\.ca' | groupby $m.templateid aggregate count() as n, any_value($d.message:string) as sample",
+  "notes": "Exactly the signatures quoted in the thread. All lines are severity Info - a 403 on the seed is NOT a WARN/ERROR, so severity filters miss it. In July the URL is $d.url (not $d.context.url) and requestId is $d.requestId; k8s.job.name = crawl job. Ticket created before the evidence run - window must follow the customer's run date, not ticket date."
+ },
+ {
+  "ticket": "#3340",
+  "sub_id": "A6",
+  "property_hint": "investor.capitalone.com (property f2e79976-…)",
+  "window": "2026-10-08..10-14 (ticket 10-02; 09-30..10-02 had no crawls of this host)",
+  "evidence_found": "partial",
+  "signals": [
+   "5 crawl jobs (~10-09) failed on the seed: 'got error while scraping net::ERR_HTTP2_PROTOCOL_ERROR at https://investor.capitalone.com/' (Warning) -> 'encountered error while running a function with timeout' (Error) x100 retries -> 'all attempts to scrape url had failed' -> 'CRAWL with id … failed due to INTERNAL_ERROR - {\"details\":\"could not scrape page\"}'",
+   "~10-14: 2 jobs succeed, 'crawling page. visited 40 pages so far', 2540 x 'http status code is: 200' (after UA fix)",
+   "'browser was opened successfully. version: Chrome/126.0.6478.126' in both failing and good runs (browser version != UA string sent)"
+  ],
+  "agrees_with_root_cause": "no",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'investor\\\\.capitalone' && !($d.message:string ~ '^\\\\[browser\\\\]') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,160) as sample",
+  "notes": "Logs show a seed-page block (Akamai tarpit -> ERR_HTTP2_PROTOCOL_ERROR -> crawl INTERNAL_ERROR) and the before/after fix, but nothing names the user-agent as cause: the logged browser version is Chrome/126 even though the UA sent was Chrome/65. Signal is family-level (A1/A5/A6 indistinguishable). Oct schema: URL in $d.context.url (July used $d.url). Templateids were re-minted between July and Oct (e.g. 'http status code is' f19acea8 -> 33948266), so template ids are not stable across months."
+ },
+ {
+  "ticket": "#3301",
+  "sub_id": "A1",
+  "property_hint": "bell.myprepaidcenter.com / virginplus.myprepaidcenter.com (Bell, DataDome behind Fastly)",
+  "window": "2026-09-23..09-25",
+  "evidence_found": "yes",
+  "signals": [
+   "crawl-worker '[browser] [error] Failed to load resource: the server responded with a status of 405 ()' x9 (Info)",
+   "'finished waiting for page to stabilize. final url after redirections: …/login/user' x40",
+   "'typing text in element: #usernameText' / 'element: #usernameText, exists: true'",
+   "'got error while scraping No element found for selector: #usernameText' (Warning)",
+   "'CRAWL with id … failed due to PAGE_INTERACTION_PLUGIN_ERROR - {details: could not scrape page}'"
+  ],
+  "agrees_with_root_cause": "yes",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && ($d.context.url:string ~ 'myprepaidcenter' || $d.url:string ~ 'myprepaidcenter') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,160) as sample",
+  "notes": "Decisive line is the 405 browser resource error (DataDome). Trap: the terminal code is PAGE_INTERACTION_PLUGIN_ERROR and the warning is 'No element found for selector', which by itself would be read as B2 (selector mismatch). Rule for investigator: when a login selector fails, check for a 403/405 resource error on the same job first -> A1, not B2. 'http status code is:' line absent on interaction-flow pages."
+ },
+ {
+  "ticket": "#3228",
+  "sub_id": "E3",
+  "property_hint": "Salesforce 'all salesforce.com' (URL set 26a0c29f; scheduled job 2026-09-01 07:00 UTC)",
+  "window": "2026-09-01 06:55..07:10 (ticket 09-09; thread names the incident time)",
+  "evidence_found": "yes",
+  "signals": [
+   "scrape-server 'HikariPool-1 - Connection is not available, request timed out after 30000ms (total=10, active=10, idle=0, waiting=7)' (Error) x33 in 15 min",
+   "admin-server 'Failed running create crawl request for URL set with ID=…' (Error) x10",
+   "front-server same 'Failed running create crawl request' x12 (Error)",
+   "admin-server METRIC_EVENT {eventType: CrawlSummary, propertyId, taskId, status: FAILED, totalUrlsCount}"
+  ],
+  "agrees_with_root_cause": "yes",
+  "detecting_query": "source logs | filter $d.message:string ~ 'Connection is not available' || $d.message:string ~ 'create crawl request' | groupby $l.applicationname, $l.subsystemname aggregate count() as n, substr(any_value($d.message:string),0,200) as sample",
+  "notes": "Platform-wide at that moment (both admin and front tenants affected), so the same signal also covers E1. The 1-2 day window before the ticket date (09-08..09-09) shows nothing; you must use the failing run time. METRIC_EVENT CrawlSummary (admin-server/front-server) is a structured per-crawl outcome record with propertyId+status - best entry point for 'crawl failed' tickets. A first query with a grouped regex '(A|B|C)' on admin-server+scrape-server returned 0 rows; separate '~' terms joined by || worked."
+ },
+ {
+  "ticket": "#2192",
+  "sub_id": "E4",
+  "property_hint": "NatWest.com / NatWest International scans (failed 2026-05-05)",
+  "window": "2026-05-04 12:00..05-06 (failed run 05-05)",
+  "evidence_found": "no",
+  "signals": [],
+  "agrees_with_root_cause": "na",
+  "detecting_query": "source logs | filter $l.applicationname == 'admin' && $d.message:string ~ 'LimitExceededException'  (returns 0 for May)",
+  "notes": "0 rows for LimitExceededException in admin+front 05-05..05-06, 0 rows for '(?i)natwest' in admin-server on 05-05, and admin-server has no 'state changed from' lines on 05-05 at all; crawl-worker had no logs in a sampled May hour (admin-server only, mostly poller noise). Early-May logs don't have the MDC/state-transition lines this ticket needs. Not a log-design gap for E4 itself, just retention/instrumentation age."
+ },
+ {
+  "ticket": "#2371",
+  "sub_id": "B2",
+  "property_hint": "bell.jasperwireless.com (Bell)",
+  "window": "2026-05-28..06-02",
+  "evidence_found": "yes",
+  "signals": [
+   "crawl-worker Error 'encountered error while running a function with timeout. retry count: 0 Exception: {url: …/provision/jsp/login.jsp, message: \"Failed to execute 'querySelector' on 'Document': '.input type=\\\"submit\\\"' is not a valid selector.\", element: {type: CLICK_ELEMENT, elementSelector: …}}' x9-10",
+   "terminal PAGE_INTERACTION_PLUGIN_ERROR 'could not scrape page' (Scraper.ts:132)",
+   "'finished waiting for page to stabilize. final url after redirections: …/login.jsp' x976 over 3 jobs (crawl never leaves login page)",
+   "Warning 'could not parse href: …javascript:Menu.continueTour();…' (JS nav, C6-type side signal)"
+  ],
+  "agrees_with_root_cause": "yes",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'jasperwireless' && $d.message:string ~ 'Exception' | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),60,400) as sample",
+  "notes": "Very discriminative: the exception JSON names the interaction type and the offending elementSelector, and the browser's 'is not a valid selector' text separates a malformed selector from a stale one ('No element found for selector'). Late-May crawl-worker logs exist (URL in $d.url)."
+ },
+ {
+  "ticket": "#3198",
+  "sub_id": "B2",
+  "property_hint": "Chick-fil-A properties f24b2608 / 23520cf6 (order.chick-fil-a.com/location interaction); discovery 2026-09-03 15:55-15:56",
+  "window": "2026-09-03 15:40..17:00 (plus 09-01..09-03 pre-window: nothing)",
+  "evidence_found": "partial",
+  "signals": [
+   "crawl-worker 'going from url: about:blank to url: https://order.chick-fil-a.com/location' / 'current page url: …/location' x54 over 2 jobs (the interaction flow runs)",
+   "'element: #input-1, exists: true, in an iframe: false' x36 (first interaction step succeeds)",
+   "generic 'encountered error while running a function with timeout' (Error) - no selector text surfaced in the top templates",
+   "side find: relative-link bug, crawler visits 'https://www.chick-fil-a.com/https:/order.chick-fil-a.com/get-started' -> 'http status code is: 404'"
+  ],
+  "agrees_with_root_cause": "no",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'order\\\\.chick-fil-a' && !($d.message:string ~ '^\\\\[browser\\\\]') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,300) as sample",
+  "notes": "Crawls with the interaction ran at the stated time, but the top-20 templates show no 'No element found for selector' line for the sc-… CLICK_ELEMENT. A stale selector that silently matches nothing or times out can end DONE with 0 URLs and no clear error. The decisive fact ('DONE with 0 URLs') likely sits in admin-server CrawlSummary METRIC_EVENT (totalUrlsCount=0), not in crawl-worker. Many concurrent Chick-fil-A crawls (www, 1346 pages) share the host; filter by k8s.job.name per property."
+ },
+ {
+  "ticket": "#2914",
+  "sub_id": "A5",
+  "property_hint": "natwest.com / rbs.co.uk properties (NatWest Group)",
+  "window": "2026-07-20..07-28 (day buckets), detail 07-27",
+  "evidence_found": "no",
+  "signals": [
+   "Only 2 (07-23) + 5 (07-27) 'http status code is: 200' lines for any natwest URL in 07-21..07-28",
+   "07-27 activity is the tylbynatwest.com property (blacklist drops, pdf content-type), not natwest.com"
+  ],
+  "agrees_with_root_cause": "na",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.message:string ~ 'http status code is' && $d.url:string ~ 'natwest' | groupby formatTimestamp($m.timestamp, '%Y-%m-%d') as day, $d.message:string as msg aggregate count() as n",
+  "notes": "The 429-heavy run discussed in the thread (~5h, 1,384 timeouts) is not in the week before the ticket. It was an earlier run and the exact date isn't in the thread. The day-bucketed status-code histogram is the right detector (a 429 share per crawl job); it just needs the run date. Two queries with grouped alternation '(natwest\\.com|rbs\\.co\\.uk)' returned 0 rows, so alternation groups in ~ look unreliable: use separate ~ terms."
+ },
+ {
+  "ticket": "#3420",
+  "sub_id": "A2",
+  "property_hint": "community.environicsanalytics.com (Bell, Zendesk Help Center behind Cloudflare)",
+  "window": "2026-10-17..10-19",
+  "evidence_found": "yes",
+  "signals": [
+   "crawl-worker 'http status code is: 403' x4 + '[browser] [error] Failed to load resource: … status of 403 ()' x6 across 3 jobs",
+   "'successfully visited 1 pages so far' x4 (4 jobs)",
+   "redirect to Zendesk '/auth/v3/signin?brand_id=…' (final url after redirections)",
+   "other jobs in the same window reach 'max number of successful visits was reached' (x124) - 200s, presumably after the UA / puppeteer-args change"
+  ],
+  "agrees_with_root_cause": "no",
+  "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'environicsanalytics' && !($d.message:string ~ '^\\\\[browser\\\\] \\\\[warn') | groupby substr($d.message:string,0,200) as msg aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+  "notes": "The block is visible (403 + 1 page per job) but logs carry no Cloudflare marker (no 'Just a moment', cf-ray or challenge title), so A2 (challenge) can't be told from A1 (hard 403). Family A pinned, sub-issue not. A page-title or response-header line in crawl-worker would separate A1/A2/A3."
+ },
+ {
+  "ticket": "#3248",
+  "sub_id": "D1",
+  "property_hint": "www.ulta.com (Ulta Beauty)",
+  "window": "2026-09-11..09-14",
+  "evidence_found": "no",
+  "signals": [
+   "crawl-worker non-Info for www.ulta.com: only 'max number of successful visits was reached' (Warning) x129 - crawl hit its page cap, no timeouts",
+   "scan-worker: a single page (www.ulta.com/) scanned OK with engines 16.32.2"
+  ],
+  "agrees_with_root_cause": "na",
+  "detecting_query": "source logs | filter ($l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') && $d.context.url:string ~ 'www\\\\.ulta\\\\.com' && $m.severity != INFO | groupby $l.subsystemname, substr($d.message:string,0,200) as msg aggregate count() as n",
+  "notes": "The scan with the failed /shop/ /p/ /stores/ pages wasn't in the window (or its per-page records don't carry context.url). Expected detector once the run is found: scan-worker 'encountered error while running a function with timeout' + 'Function: gotoURL execution took more than 40000 miliseconds' / page-ready timeout, grouped by URL path prefix."
+ },
+ {
+  "ticket": "#3293",
+  "sub_id": "D2",
+  "property_hint": "shop.chick-fil-a.com restaurant-locator page (Chick-fil-A)",
+  "window": "2026-09-17..09-24 (scan seen ~09-23 22:00 UTC)",
+  "evidence_found": "partial",
+  "signals": [
+   "scan-worker 'SCAN with id … failed due to FAILED_TO_RUN_ENGINES - {\"details\":\"could not run analysis\"}' exists (133 in 09-23..09-24 12:00, all tenants), URL in $d.context.url",
+   "shop.chick-fil-a.com pages scanned ~09-23 ('running plugin EvincedEnginesPlugin' per product URL)",
+   "no chick-fil-a URL among the top FAILED_TO_RUN_ENGINES URLs in 09-23..09-24 (Salesforce trailblazer profiles, verizon dominate)"
+  ],
+  "agrees_with_root_cause": "na",
+  "detecting_query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.message:string ~ 'failed due to FAILED_TO_RUN_ENGINES' | groupby substr($d.context.url:string,0,70) as url aggregate count() as n",
+  "notes": "The detector (per-page FAILED_TO_RUN_ENGINES with URL) exists and is cheap, but the locator-page failure wasn't found in budget. The background is noisy (100+/day on Salesforce profile pages), so D2 needs the URL plus the engine error text (e.g. CircularEvValueError, timeout) to separate engine crash from page-load issues."
+ },
+ {
+  "ticket": "#2751 (+#2752 #2755 #2760 #2764)",
+  "sub_id": "E1",
+  "property_hint": "platform-wide (Bell, Progressive, StorageVault, Verizon, …) June 2026 incident",
+  "window": "2026-06-24..06-30, per-day volume by subsystem",
+  "evidence_found": "yes",
+  "signals": [
+   "scan-worker volume collapses: 395k (06-24) -> 5.3k (06-26) and 5.2k (06-28); crawl-worker 644k -> 71k on 06-26",
+   "scan-worker ERROR burst on 06-27: 26,324 errors of 272k lines (vs 861 on 06-24)",
+   "scrape-server keeps logging normally (112k-253k/day, 0 errors) while workers starve: the dispatcher is alive, the k8s worker jobs aren't running",
+   "06-29 catch-up surge: crawl-worker 2.23M, scan-worker 1.06M lines",
+   "no admin-server 'state changed from' lines and no METRIC_EVENT *Summary records exist in June (that instrumentation is newer)"
+  ],
+  "agrees_with_root_cause": "yes",
+  "detecting_query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors",
+  "notes": "E1 shows up as a volume anomaly, not a message: worker log volume drops ~75x while scrape-server is steady, then a backlog surge. Detect with a per-hour volume ratio scan-worker/scrape-server (alert when it collapses). One query covers all 5 outage tickets."
+ }
+]

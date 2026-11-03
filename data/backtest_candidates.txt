@@ -1,0 +1,50 @@
+#2185|2026-05-05|4|NatWest Group (NatWest / RBS / Ulster Bank)|rate_limit_429_link_discovery_loss
+#2192|2026-05-06|1|NatWest|concurrent_scan_limit_exceeded
+#2222|2026-05-07|4|Capital One|stale_crawl_comparison_site_changed
+#2234|2026-05-11|4|Bell Canada (businessmail.mts.ca)|js_navigation_no_href_links
+#2235|2026-05-11|5|State of Connecticut|wfa_extension_bug
+#2239|2026-05-12|2|Bell Canada (my-rewards.ca, via Quantrics)|login_flow_failed
+#2244|2026-05-13|3|Diners Club (cheers.dinersclub.com)|engine_error_circular_visibility_amp
+#2274|2026-05-18|5|Myers and Stauffer|export_row_limit
+#2288|2026-05-19|4|Bell Canada (community.environicsanalytics.com)|bot_protection_cloudflare_challenge
+#2371|2026-06-01|2|Bell Canada (bell.jasperwireless.com)|login_selector_wrong
+#2374|2026-06-01|3|Ulta Beauty|bot_protection_soft_block_200
+#2400|2026-06-05|3|POC customer (staging site, name not given)|static_ip_not_enabled_for_property
+#2450|2026-06-09|4|Bell Canada (community.environicsanalytics.com, Zendesk-hosted)|bot_protection_cloudflare_challenge
+#2757|2026-06-29|1|Bell Canada (auth.mtsmail.ca)|seed_domain_config_spa_or_login
+#2751|2026-06-29|1|Bell Canada|platform_outage_june2026
+#2755|2026-06-29|1|Progressive|platform_outage_june2026
+#2760|2026-06-29|1|StorageVault Canada (depotium.com)|platform_outage_june2026
+#2752|2026-06-29|1|Verizon|platform_outage_june2026
+#2764|2026-06-29|1|unknown (Stacey)|platform_outage_june2026
+#2780|2026-06-30|5|HCA Healthcare|export_csv_not_delivered
+#2783|2026-07-01|2|Bell Canada (multiple onboarding properties)|domain_whitelist_mismatch
+#2794|2026-07-01|5|Bell Canada|login_multistep_session_loss
+#2813|2026-07-07|4|Bell Canada|meeting_request_umbrella
+#2812|2026-07-07|5|Superbet|ip_whitelist_geo_block
+#2851|2026-07-14|2|Optum (VitalPoint QA)|ip_not_whitelisted_internal_site
+#2881|2026-07-20|2|Lufthansa (LHG B2B DE-de staging)|redirect_loop_too_many_redirects
+#2889|2026-07-21|4|Verizon|include_regex_scope_misconfigured
+#2895|2026-07-22|4|Verizon|seed_scope_change_soft404_and_relative_link
+#2903|2026-07-24|5|Bell Canada|bot_protection_403_whitelist
+#2915|2026-07-27|4|Bell Media (Astral out-of-home)|query_param_pages_not_discovered
+#2914|2026-07-27|4|NatWest Group (natwest.com, rbs.co.uk)|rate_limit_429_link_discovery_loss
+#2946|2026-07-30|5|Bell Canada|mfa_2fa_blocks_login
+#2962|2026-08-04|4|Bell Media (ctv.ca / crave.ca)|site_migrated_login_reconfig_abandoned
+#3052|2026-08-17|5|HCA Healthcare|ip_whitelist_request
+#3083|2026-08-24|3|Ulta Beauty (Marketing property)|static_ip_not_enabled_for_property
+#3169|2026-08-31|3|Optum / WellMed (wellmedhealthcare.com)|bot_protection_waf_block
+#3198|2026-09-03|2|Chick-fil-A|interaction_selector_stale
+#3206|2026-09-07|1|Bell Media / Bell (tsn.ca, ctvnews.ca, bell.m2m.com)|ip_block_403_firewall
+#3228|2026-09-09|1|Salesforce (all salesforce.com)|crawl_dispatch_connection_refused_scrape_server_pool_exhaustion
+#3232|2026-09-10|4|Bell Canada (entreprise.bell.ca MCORP)|js_navigation_no_href_links
+#3241|2026-09-11|4|Bell Canada (eordering.bell.ca)|mfa_login_blocked
+#3248|2026-09-14|3|Ulta Beauty (www.ulta.com)|page_ready_timeout_heavy_pages
+#3293|2026-09-24|3|Chick-fil-A (shop.chick-fil-a.com)|engine_limit_huge_dom
+#3301|2026-09-25|5|Bell Canada|bot_protection_whitelist_refused
+#3315|2026-09-28|3|Deloitte Canada (DU North SharePoint)|unknown_engineering_fix
+#3317|2026-09-29|4|NatWest / Adobe|egress_encrypted_followup_unreadable
+#3340|2026-10-02|2|Capital One (investor.capitalone.com)|bot_protection_akamai_old_user_agent
+#3369|2026-10-08|3|Sky Germany (sky.de)|bot_protection_waf_block
+#3420|2026-10-19|2|Bell Canada (community.environicsanalytics.com Zendesk)|bot_protection_cloudflare_challenge
+#3425|2026-10-19|5|Bell Canada|fast_tier_non_static_ips

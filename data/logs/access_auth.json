@@ -1,0 +1,411 @@
+[
+ {
+  "sig_id": "http_status_doc_non200",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation",
+  "message_pattern": "http status code is: <NNN>  (main-document status of each visited page; Info)",
+  "templateid": [
+   "33948266-9cb5-11f1-92dd-be037f26c345",
+   "30b9ff5c-aaad-11f1-af66-ea6a85ee653a",
+   "f8cdaba4-9af1-11f1-a148-2267a7afc7c0",
+   "b9b9265a-9cf4-11f1-9545-4a96456cf580"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'http status code is: ' && !($d.message ~ 'is: 200') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+  "key_fields": [
+   "$d.message (code)",
+   "$d.context.url",
+   "$d.context.request_id",
+   "$d.resource.attributes['k8s.job.name'] (crawl/scan id)"
+  ],
+  "volume": "7d (10-27..11-03) production non-200: crawl-worker 403=34,256 (68 jobs), 429=18,506 (28 jobs), 404=4,991, 202=6,540, 405=17, 401=1, 302/301/307 ~15; scan-worker 404=15,319, 403=2,885 (60 jobs), 429=883 (18 jobs), 405=25, 401=33",
+  "noise": "Sporadic 404/403 are normal. Signal = share of non-200 within one job: a job where most visits are 403/405 => A1, many 429 => A5; 202 often = bot-manager interstitial (Akamai/Cloudflare 'please wait') => A2. 30x rarely appear here because redirects are followed (see final_url line).",
+  "maps_to_sub_issues": [
+   "A1",
+   "A2",
+   "A5",
+   "A8",
+   "B5",
+   "C4"
+  ],
+  "discriminative": "high",
+  "notes": "Primary access signal. 403/405 -> A1, 429 -> A5, 202 -> A2 candidate, 401 -> B5/B3, 404 on seed -> C4. Join with job id to see whether it hits all pages."
+ },
+ {
+  "sig_id": "browser_resource_status",
+  "where": "scan-worker (f8cca772-...), crawl-worker (d2ccaefa-...)",
+  "stage": "crawl-navigation",
+  "message_pattern": "[browser] [error] Failed to load resource: the server responded with a status of <NNN> (<text>)",
+  "templateid": [
+   "f8cca772-9af1-11f1-a148-2267a7afc7c0",
+   "d2ccaefa-9c4f-11f1-8905-329537c5ee79"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'Failed to load resource: the server responded with a status of' | extract $d.message into $d.sc using regexp(e=/status of (?<code>[0-9]{3})/) | groupby $l.subsystemname, $d.sc.code aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+  "key_fields": [
+   "status code in message",
+   "$d.context.url"
+  ],
+  "volume": "6h 11-02 00-06: scan-worker 401=6,467, 404=3,344, 503=306, 403=171; crawl-worker 404=390, 429=45, 401=41",
+  "noise": "Mostly sub-resource (JS/XHR/images) failures \u2014 noisy; NOT the page status. Template f8cca772 is shared with any [browser] [error] console line.",
+  "maps_to_sub_issues": [
+   "A1",
+   "A5",
+   "B5"
+  ],
+  "discriminative": "low",
+  "notes": "Only meaningful when it coincides with a non-200 'http status code is' for the document, or as a burst of 401 after login (B5)."
+ },
+ {
+  "sig_id": "not_included_whitelist",
+  "where": "crawl-worker",
+  "stage": "crawl-discovery",
+  "message_pattern": "not including url in result url set. reason: final url not included in whitelist",
+  "templateid": [
+   "30b9ff5c-aaad-11f1-af66-ea6a85ee653a",
+   "3396f2f8-9cb5-11f1-92dd-be037f26c345",
+   "f1a281ca-5437-11f1-81cb-367b02696c2b"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'final url not included in whitelist' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+  "key_fields": [
+   "$d.context.url (the requested URL, final URL not printed)",
+   "k8s.job.name"
+  ],
+  "volume": "4,819/7d (all envs, ~700/day)",
+  "noise": "Normal for external links when whitelist is the site domain. Signal = the SEED URL (or every URL of the job) rejected => 0-page crawl.",
+  "maps_to_sub_issues": [
+   "C2",
+   "C1"
+  ],
+  "discriminative": "high",
+  "notes": "Message does not show the final URL; pair with 'finished waiting for page to stabilize. final url after redirections' / 'successfully scraped url. final url:' for the same request_id, and the whitelist from scan-worker 'crawler config is:'."
+ },
+ {
+  "sig_id": "not_included_other_reasons",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-discovery",
+  "message_pattern": "not including url in result url set. reason: (final url is included in blacklist|final url was already visited. this is most likely due to a redirection|sanitized url was already visited|content type <x> is not allowed|max number of successful visits was reached|language is not included in whitelist|matching grouping rule <re> is full})",
+  "templateid": [
+   "3396f2f8-9cb5-11f1-92dd-be037f26c345",
+   "30b9ff5c-aaad-11f1-af66-ea6a85ee653a",
+   "f1a281ca-5437-11f1-81cb-367b02696c2b",
+   "504112cc-3f87-34ad-ae7f-98c12531cd93",
+   "309b8db6-d4eb-11f1-b35e-86881614271e",
+   "bf53e91a-b428-11f1-8c6c-8ea58dd96437"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.message ~ 'not including url in result url set' | extract $d.message into $d.rx using regexp(e=/reason: (?<reason>[a-zA-Z _.:-]{0,60})/) | groupby $l.subsystemname, $d.rx.reason aggregate count() as n | orderby n desc",
+  "key_fields": [
+   "reason text",
+   "$d.context.url",
+   "k8s.job.name"
+  ],
+  "volume": "7d: blacklist 129,745; already visited via redirect 57,791; sanitized dup 17,843; content-type ~20.6k; max visits 2,279; language 1,119; grouping full ~1.9k; text/HTML case 110",
+  "noise": "Mostly benign bookkeeping. Signals: 'language is not included in whitelist' on every URL of a job (C1 locale filter); 'final url was already visited ... redirection' burst (many URLs redirect to the same login/error/geo page => B5/C4/A7); 'content type text/HTML; charset=utf-8 is not allowed' (case-sensitive content-type bug => site loses all pages).",
+  "maps_to_sub_issues": [
+   "C1",
+   "C4",
+   "C5",
+   "B5",
+   "A7"
+  ],
+  "discriminative": "medium",
+  "notes": "Reason 'final url is included in ...' is truncated in the log line itself (blacklist)."
+ },
+ {
+  "sig_id": "page_failed_due_to_reason",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation",
+  "message_pattern": "(CRAWL|SCAN) with id <id> failed due to <REASON> - <json>",
+  "templateid": [
+   "121523ec-9fa9-11f1-94dc-5ee20c2e67e1"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.message ~ 'failed due to' | extract $d.message into $d.fr using regexp(e=/(?<kind>[A-Z]+) with id \\S+ failed due to (?<reason>[A-Z_0-9]+)/) | groupby $l.subsystemname, $d.fr.kind, $d.fr.reason aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | orderby n desc",
+  "key_fields": [
+   "REASON enum",
+   "json.error.message (selector)",
+   "json.error.url",
+   "$d.context.url"
+  ],
+  "volume": "7d: CRAWL OPEN_PAGE_TIMEOUT 30,788 (60 jobs); SCAN OPEN_PAGE_TIMEOUT 13,545 (34); CRAWL 'undefined' 4,435 (8); SCAN PAGE_INTERACTION_PLUGIN_ERROR 560 (6); SCAN PLUGIN_TIMEOUT 421; SCAN FAILED_TO_RUN_ENGINES 201; CRAWL INTERNAL_ERROR 170; DNS_ERROR_COULD_NOT_FIND_URL 25 crawl/24 scan; CRAWL PAGE_INTERACTION_PLUGIN_ERROR 18",
+  "noise": "One line per failed URL (Info severity!). OPEN_PAGE_TIMEOUT on nearly all URLs of a job => block/tarpit (A1/A5) or down site; scattered => slow pages.",
+  "maps_to_sub_issues": [
+   "A1",
+   "A5",
+   "B2",
+   "B4",
+   "C4"
+  ],
+  "discriminative": "medium",
+  "notes": "The enum has no HTTP/WAF-specific value (no BLOCKED/HTTP_403) \u2014 blocks surface as OPEN_PAGE_TIMEOUT or as successful pages with 403 status. PAGE_INTERACTION_PLUGIN_ERROR carries 'No element found for selector: <sel>' and the url the browser was on (B2; if url is an unexpected page => A7/B1/B4). DNS_ERROR_COULD_NOT_FIND_URL => C4."
+ },
+ {
+  "sig_id": "config_dump_user_agent",
+  "where": "scan-worker (per page), crawl-worker (per crawl)",
+  "stage": "dispatch",
+  "message_pattern": "crawler config is: {... \"whitelist\":[..],\"languageWhitelist\":[..],\"scraperConfig\":{\"puppeteerArgs\":[..\"--user-agent=<UA>\"],\"extraHeaders\":<null|{..}>, ...}, \"pubsubMessageMetadata\":{..tenancyName, propertyName, scanId..}}",
+  "templateid": [
+   "c49b4643-71cf-06eb-70bb-dbc7e92ed491",
+   "83edd5b6-843e-19b1-184f-239783bf17d8",
+   "d1042a4e-9c4f-11f1-8905-329537c5ee79",
+   "1b292592-9cb5-11f1-92dd-be037f26c345"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'config is: {' | extract $d.message into $d.ua using regexp(e=/--user-agent=(?<ua>[^\"]{0,160})/) | extract $d.message into $d.p using regexp(e=/\"propertyName\":\"(?<prop>[^\"]+)\"/) | groupby $d.p.prop, $d.ua.ua aggregate count() as n | orderby n desc",
+  "key_fields": [
+   "--user-agent",
+   "extraHeaders (presence only!)",
+   "whitelist",
+   "blacklist",
+   "languageWhitelist",
+   "allowedContentTypes",
+   "seedUrls",
+   "parallelNum",
+   "openPageTimeoutSec",
+   "propertyName",
+   "scanId"
+  ],
+  "volume": "~100k lines/7d scan-worker (one per page), ~400/7d crawl-worker",
+  "noise": "Configuration, not an error. Always present; use it as context for the property under investigation.",
+  "maps_to_sub_issues": [
+   "A6",
+   "A2",
+   "A1",
+   "C1",
+   "C2",
+   "B5"
+  ],
+  "discriminative": "high",
+  "notes": "UA 'HeadlessChrome/65...' or 'Chrome/65...' => A6 risk (~25% of pages in 7d). extraHeaders non-null => custom header configured. whitelist/languageWhitelist regexes to test against seed/final URL for C1/C2. parallelNum>1 with login => B5 risk. Never copy extraHeaders values or interaction credentials from this line."
+ },
+ {
+  "sig_id": "browser_version",
+  "where": "crawl-worker",
+  "stage": "crawl-navigation",
+  "message_pattern": "browser was opened successfully. version: Chrome/<ver>",
+  "templateid": [
+   "d1d6dbd8-9c4f-11f1-8905-329537c5ee79"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $m.templateid == 'd1d6dbd8-9c4f-11f1-8905-329537c5ee79' | groupby $d.message aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+  "key_fields": [
+   "version in message"
+  ],
+  "volume": "340k/7d (one per page open), single value Chrome/126.0.6478.126",
+  "noise": "Pure background; constant across fleet.",
+  "maps_to_sub_issues": [
+   "A6"
+  ],
+  "discriminative": "low",
+  "notes": "Shows the engine, not the UA header sent. A6 must be judged from the --user-agent in the config dump."
+ },
+ {
+  "sig_id": "final_url_login_or_error_landing",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation",
+  "message_pattern": "finished waiting for page to stabilize. final url after redirections: <url> | successfully scraped url. final url: <url> | current page url: <url>",
+  "templateid": [
+   "3cef50ea-9bb9-11f1-a182-06d4ecb7c06e",
+   "e64ae094-a926-11f1-a56c-46e5f8be24c8",
+   "1d7318a4-c266-11f1-9dcd-7aec34e59e18",
+   "7fbfe1c2-a2fe-11f1-bf8c-e60b6925021c",
+   "3d008a68-9bb9-11f1-a182-06d4ecb7c06e",
+   "349392ac-a425-11f1-9be2-82b781e81d95",
+   "357e1a06-9cb5-11f1-92dd-be037f26c345"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'final url after redirections' | extract $d.message into $d.fu using regexp(e=/redirections: (?<u>\\S+)/) | create landing from if($d.fu.u:string.matches(/(?i)\\/(u\\/)?(login|signin|sign-in|logon|authenticate|sso|mfa|otp|challenge)|out-of-country|\\/404|\\/500|not-found|error/), 'login/error/geo', 'normal') | groupby $d.resource.attributes['k8s.job.name'] as job, landing aggregate count() as n, any_value($d.fu.u) as sample | orderby n desc",
+  "key_fields": [
+   "final URL",
+   "$d.context.url (requested)",
+   "k8s.job.name"
+  ],
+  "volume": "one per visited page (tens of thousands/day); login-like landings ~600/12h (e.g. ulta.com /u/login 82+488 lines in 3 jobs)",
+  "noise": "Normal pages dominate. Signal = high share of landings on login/mfa/out-of-country/404/500 within one job, or seed final URL on another host.",
+  "maps_to_sub_issues": [
+   "B5",
+   "B3",
+   "B1",
+   "A7",
+   "C4",
+   "C2"
+  ],
+  "discriminative": "high",
+  "notes": "Path decides: /login after successful login => B5 (B3 if login never succeeded); /mfa|/otp => B1; out-of-country/geo => A7 (sky.de example); /404|/500 => C4; other host => C2."
+ },
+ {
+  "sig_id": "interaction_selector_missing",
+  "where": "crawl-worker, scan-worker",
+  "stage": "login",
+  "message_pattern": "got error while scraping No element found for selector: <sel> | element: <sel>, exists: false, in an iframe: <bool> | (CRAWL|SCAN) with id .. failed due to PAGE_INTERACTION_PLUGIN_ERROR - {..\"message\":\"No element found for selector: <sel>\"}",
+  "templateid": [
+   "08e48cee-9b45-11f1-a536-52ef7929d954",
+   "e7d97f46-d37a-11f1-a774-0ebaa524c9d0",
+   "def45d3e-9fa8-11f1-94dc-5ee20c2e67e1",
+   "2cb02f12-9b0d-11f1-90cd-469e155b207f",
+   "121523ec-9fa9-11f1-94dc-5ee20c2e67e1",
+   "12591faa-c995-11f1-a9ee-d6d342554398"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'No element found for selector' || $d.message ~ 'exists: false') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value(substr($d.message:string,0,250)) as sample | orderby n desc",
+  "key_fields": [
+   "selector",
+   "error.url (page the browser was on)",
+   "k8s.job.name"
+  ],
+  "volume": "7d: 'got error while scraping No element found' 1,683 scan (4 jobs) + 97 crawl (8 jobs); PAGE_INTERACTION_PLUGIN_ERROR 560 scan + 18 crawl",
+  "noise": "Always a real failure of a configured interaction; repeats per page in scan (each page re-logs-in?).",
+  "maps_to_sub_issues": [
+   "B2",
+   "B4",
+   "A7",
+   "B1"
+  ],
+  "discriminative": "high",
+  "notes": "If error.url is the expected login page => B2 (selector drift). If error.url is an unexpected page (out-of-country, /authenticate SSO hop, MFA) => A7/B4/B1. 'in an iframe: true' hints at modal/SSO (B4)."
+ },
+ {
+  "sig_id": "interaction_steps",
+  "where": "crawl-worker, scan-worker",
+  "stage": "login",
+  "message_pattern": "starting page interaction plugin | typing text in element: <sel> | clicking element: <sel>",
+  "templateid": [
+   "2caf0754-9b0d-11f1-90cd-469e155b207f",
+   "d0d71a86-9c4f-11f1-8905-329537c5ee79",
+   "d7acbbc2-a50f-11f1-a1dc-7ea94cb20793",
+   "1811f848-b015-11f1-a58e-e23eb70a2b10",
+   "1813d168-b015-11f1-a58e-e23eb70a2b10",
+   "505fe544-9c1e-11f1-b6f1-1e73d54c49b3"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'starting page interaction plugin') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n | orderby job",
+  "key_fields": [
+   "selector",
+   "order of steps",
+   "k8s.job.name"
+  ],
+  "volume": "2026-11-01: typing 1,323 scan (19 jobs) / 341 crawl (10 jobs)",
+  "noise": "Background for authenticated properties; use as the trace of which step ran last before a failure.",
+  "maps_to_sub_issues": [
+   "B2",
+   "B3",
+   "B4",
+   "B5"
+  ],
+  "discriminative": "low",
+  "notes": "Typed values are not logged (good). Config dumps (TYPE_TEXT/CLICK_ELEMENT, loginConfiguration) may contain credentials: never copy. No 'bound handleRequest execution took more than 300000' seen in sample day."
+ },
+ {
+  "sig_id": "scrape_net_error_inline",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation",
+  "message_pattern": "got error while scraping net::ERR_<X> at <url>",
+  "templateid": [
+   "08e48cee-9b45-11f1-a536-52ef7929d954"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'got error while scraping net::' | extract $d.message into $d.e using regexp(e=/(?<err>net::[A-Z_0-9]+)/) | groupby $l.subsystemname, $d.e.err, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+  "key_fields": [
+   "net error code",
+   "url",
+   "k8s.job.name"
+  ],
+  "volume": "7d: ERR_CONNECTION_RESET 417, ERR_TOO_MANY_REDIRECTS 39, ERR_HTTP2_PROTOCOL_ERROR 27, ERR_CONNECTION_REFUSED 34, ERR_TIMED_OUT 4",
+  "noise": "Low volume, each is meaningful when concentrated in one job/host.",
+  "maps_to_sub_issues": [
+   "A8",
+   "A1",
+   "A5"
+  ],
+  "discriminative": "high",
+  "notes": "ERR_TOO_MANY_REDIRECTS => A8; ERR_CONNECTION_RESET/REFUSED concentrated on one host => A1 (WAF/IP deny); ERR_HTTP2_PROTOCOL_ERROR => A1/A5. Most 'got error while scraping' lines (~123k/7d) have no detail \u2014 those are timeouts, see page_failed_due_to_reason."
+ },
+ {
+  "sig_id": "crawl_visited_counter",
+  "where": "crawl-worker",
+  "stage": "crawl-discovery",
+  "message_pattern": "successfully visited <N> pages so far",
+  "templateid": [
+   "1212cbf6-9fa9-11f1-94dc-5ee20c2e67e1"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $m.templateid == '1212cbf6-9fa9-11f1-94dc-5ee20c2e67e1' | extract $d.message into $d.v using regexp(e=/visited (?<n>\\d+) pages/) | groupby $d.resource.attributes['k8s.job.name'] as job aggregate max($d.v.n:number) as maxv | filter maxv <= 1",
+  "key_fields": [
+   "N",
+   "k8s.job.name (= crawl id)"
+  ],
+  "volume": "~14k/day; 7d: 389 crawl jobs, 49 with max<=1, 31 with 2-5",
+  "noise": "Counter itself is benign; the per-job max is the signal.",
+  "maps_to_sub_issues": [
+   "A2",
+   "A3",
+   "C1",
+   "C2",
+   "C4",
+   "C6",
+   "B1",
+   "B2"
+  ],
+  "discriminative": "low",
+  "notes": "Finds 0/1-page crawls; then apply the decision recipe (status codes, whitelist reasons, interaction errors, 'filtered out: N urls'). Jobs that visit 0 pages may never print it \u2014 cross-check with scan-worker/scrape-server scanTotalUrls."
+ },
+ {
+  "sig_id": "filtered_out_links",
+  "where": "crawl-worker",
+  "stage": "crawl-discovery",
+  "message_pattern": "filtered out: <N> urls",
+  "templateid": [
+   "d1042a4e-9c4f-11f1-8905-329537c5ee79",
+   "1b292592-9cb5-11f1-92dd-be037f26c345"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'filtered out: ' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.message) as sample",
+  "key_fields": [
+   "N",
+   "k8s.job.name"
+  ],
+  "volume": "~100/12h",
+  "noise": "benign per page",
+  "maps_to_sub_issues": [
+   "C6",
+   "C1",
+   "C2"
+  ],
+  "discriminative": "medium",
+  "notes": "1-page crawl with 'filtered out: 0 urls' => no links found (C6 / challenge page); high N => links found but out of scope (C1/C2)."
+ },
+ {
+  "sig_id": "scan_total_urls",
+  "where": "scrape-server",
+  "stage": "scan-page",
+  "message_pattern": "page <url> in scan <id> completed. <k> scan pages finished - waiting for <M> to be completed | METRIC_EVENT {..\"eventType\":\"scan.page.complete\",..\"scanTotalUrls\":\"<M>\"..}",
+  "templateid": [
+   "81c746f6-aa4a-11f1-ba0a-6686f8ca4618",
+   "fd1575d4-c328-11f1-8921-82f195532998"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scrape-server' && $m.templateid == '81c746f6-aa4a-11f1-ba0a-6686f8ca4618' | extract $d.message into $d.s using regexp(e=/in scan (?<scan>\\S+) completed\\. \\d+ scan pages finished - waiting for (?<m>\\d+)/) | groupby $d.s.scan aggregate max($d.s.m:number) as total | filter total <= 1",
+  "key_fields": [
+   "scanId",
+   "M (total pages)"
+  ],
+  "volume": "one per scanned page",
+  "noise": "benign progress",
+  "maps_to_sub_issues": [
+   "A2",
+   "A3",
+   "C1",
+   "C2",
+   "C6"
+  ],
+  "discriminative": "low",
+  "notes": "Gives scan size per scanId, linking a ticket's scan to a 1-page crawl."
+ },
+ {
+  "sig_id": "node_pool_static",
+  "where": "crawl-worker, scan-worker (resource attrs)",
+  "stage": "dispatch",
+  "message_pattern": "(any line) $d.resource.attributes['k8s.node.name'] = gke-prod-mon-cluster-(crawls|scans)-pool-stat*",
+  "templateid": [],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') | groupby $l.subsystemname, $d.resource.attributes['k8s.node.name'] as node aggregate approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+  "key_fields": [
+   "k8s.node.name",
+   "k8s.job.name"
+  ],
+  "volume": "n/a",
+  "noise": "All prod jobs sampled ran on '*-pool-stat*' pools",
+  "maps_to_sub_issues": [
+   "A4"
+  ],
+  "discriminative": "low",
+  "notes": "No egress IP is logged. A crawl that has no crawl-worker k8s job at all may have run on the fast tier (Cloud Function production_crawl_link_extractor \u2014 not present in Coralogix gcp/logs over 7d). Confirm A4 from Retool flags, not logs."
+ }
+]

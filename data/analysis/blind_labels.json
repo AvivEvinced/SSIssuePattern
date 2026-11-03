@@ -1,0 +1,422 @@
+[
+ {
+  "ticket": "#2131",
+  "sub_id": "D3",
+  "confidence": "high",
+  "reason": "Dynamic JS sets alt after scanner analyses page; spurious image-alt findings"
+ },
+ {
+  "ticket": "#1192",
+  "sub_id": "A4",
+  "confidence": "medium",
+  "reason": "Access denied persists after IP allowlist; Evinced-side Jira fix implies static IP config"
+ },
+ {
+  "ticket": "#2584",
+  "sub_id": "H5",
+  "confidence": "high",
+  "reason": "WFA session page count bug, not Site Scanner"
+ },
+ {
+  "ticket": "#571",
+  "sub_id": "B4",
+  "confidence": "high",
+  "reason": "Two-step email/password login needed backend multiple-interactions setup"
+ },
+ {
+  "ticket": "#730",
+  "sub_id": "G3",
+  "confidence": "high",
+  "reason": "Score of zero explained by score formula"
+ },
+ {
+  "ticket": "#3370",
+  "sub_id": "F2",
+  "confidence": "high",
+  "reason": "Export rows per component/selector differ from UI counts"
+ },
+ {
+  "ticket": "#869",
+  "sub_id": "B4",
+  "confidence": "medium",
+  "reason": "Post-login failures fixed via login script wait time and browser flag; blocking also present"
+ },
+ {
+  "ticket": "#2245",
+  "sub_id": "F3",
+  "confidence": "high",
+  "reason": "Show Full URL toggle front-end bug, fixed"
+ },
+ {
+  "ticket": "#646",
+  "sub_id": "H4",
+  "confidence": "high",
+  "reason": "Request to name components by data attribute; feature request"
+ },
+ {
+  "ticket": "#3232",
+  "sub_id": "C6",
+  "confidence": "high",
+  "reason": "Links use onclick navigation; resolved with explicit seed list"
+ },
+ {
+  "ticket": "#1597",
+  "sub_id": "A1",
+  "confidence": "medium",
+  "reason": "Akamai intermittent 403 blocking; needs allowlist, concurrency lowered meanwhile"
+ },
+ {
+  "ticket": "#501",
+  "sub_id": "H4",
+  "confidence": "high",
+  "reason": "UI feature request: show property/view name as heading"
+ },
+ {
+  "ticket": "#827",
+  "sub_id": "F3",
+  "confidence": "low",
+  "reason": "Odd screenshots from sticky menu, screenshot mechanism limitation"
+ },
+ {
+  "ticket": "#2884",
+  "sub_id": "H5",
+  "confidence": "high",
+  "reason": "Empty form submission, no request detail"
+ },
+ {
+  "ticket": "#2800",
+  "sub_id": "F4",
+  "confidence": "high",
+  "reason": "Jira integration fails: on-prem Jira unsupported"
+ },
+ {
+  "ticket": "#710",
+  "sub_id": "G3",
+  "confidence": "medium",
+  "reason": "Best Practice rule shown in SS but needs WFA setting; semantics explanation"
+ },
+ {
+  "ticket": "#1665",
+  "sub_id": "A4",
+  "confidence": "medium",
+  "reason": "Page drop with timeouts; resolved after enabling static IP configs"
+ },
+ {
+  "ticket": "#863",
+  "sub_id": "F3",
+  "confidence": "high",
+  "reason": "Compare scans is deprecated feature"
+ },
+ {
+  "ticket": "#2813",
+  "sub_id": "H5",
+  "confidence": "medium",
+  "reason": "Meeting request umbrella over several other tickets"
+ },
+ {
+  "ticket": "#649",
+  "sub_id": "E3",
+  "confidence": "low",
+  "reason": "Crawl returned no pages for months; fixed by engineering, cause unstated"
+ },
+ {
+  "ticket": "#1019",
+  "sub_id": "E5",
+  "confidence": "medium",
+  "reason": "502 server error when viewing scan"
+ },
+ {
+  "ticket": "#1612",
+  "sub_id": "C3",
+  "confidence": "medium",
+  "reason": "Site rewrite rules exposed es-US locale URLs that got crawled"
+ },
+ {
+  "ticket": "#676",
+  "sub_id": "F2",
+  "confidence": "high",
+  "reason": "Duplicate IDs in export explained by per-selector rows"
+ },
+ {
+  "ticket": "#2751",
+  "sub_id": "E1",
+  "confidence": "high",
+  "reason": "Broad incident: scans failing across tenants, fixed and rerun"
+ },
+ {
+  "ticket": "#583",
+  "sub_id": "H5",
+  "confidence": "medium",
+  "reason": "Property broken for months; resolved in Slack, cause unknown"
+ },
+ {
+  "ticket": "#1607",
+  "sub_id": "B4",
+  "confidence": "high",
+  "reason": "Expiring session URL in login required backend advanced login"
+ },
+ {
+  "ticket": "#561",
+  "sub_id": "C3",
+  "confidence": "medium",
+  "reason": "Crawler discovered deprecated URLs via hidden link list"
+ },
+ {
+  "ticket": "#1056",
+  "sub_id": "F1",
+  "confidence": "high",
+  "reason": "Export emails quarantined by customer mail gateway"
+ },
+ {
+  "ticket": "#1994",
+  "sub_id": "F3",
+  "confidence": "high",
+  "reason": "Compare scans ignores view; deprecated unsupported feature"
+ },
+ {
+  "ticket": "#1119",
+  "sub_id": "B1",
+  "confidence": "medium",
+  "reason": "Login hits 2FA access-token challenge; 0 pages"
+ },
+ {
+  "ticket": "#3420",
+  "sub_id": "A2",
+  "confidence": "high",
+  "reason": "Cloudflare bot challenge, fixed with custom user agent"
+ },
+ {
+  "ticket": "#997",
+  "sub_id": "H5",
+  "confidence": "low",
+  "reason": "Post-login crawl failing; closed in favor of separate email thread"
+ },
+ {
+  "ticket": "#2072",
+  "sub_id": "H3",
+  "confidence": "high",
+  "reason": "Configure properties with custom viewport widths"
+ },
+ {
+  "ticket": "#1387",
+  "sub_id": "C2",
+  "confidence": "medium",
+  "reason": "Locale redirect en-us to en outside include scope; fixed by adding locale"
+ },
+ {
+  "ticket": "#917",
+  "sub_id": "H1",
+  "confidence": "medium",
+  "reason": "Dashboard not loading due to user tenant migration problem"
+ },
+ {
+  "ticket": "#1399",
+  "sub_id": "E2",
+  "confidence": "high",
+  "reason": "Scheduler next-run timezone bug prevented crawls"
+ },
+ {
+  "ticket": "#2288",
+  "sub_id": "A2",
+  "confidence": "high",
+  "reason": "Crawler stuck on Cloudflare challenge page, 1 page found"
+ },
+ {
+  "ticket": "#891",
+  "sub_id": "F3",
+  "confidence": "high",
+  "reason": "Compare scans beta feature broken/deprecated"
+ },
+ {
+  "ticket": "#685",
+  "sub_id": "H5",
+  "confidence": "low",
+  "reason": "Five failed pages, no diagnosis recorded"
+ },
+ {
+  "ticket": "#1554",
+  "sub_id": "F4",
+  "confidence": "high",
+  "reason": "Azure DevOps integration permissions (bypass rules, scopes)"
+ },
+ {
+  "ticket": "#3198",
+  "sub_id": "B2",
+  "confidence": "medium",
+  "reason": "Interaction click selector used hashed styled-components classes; broke after deploy"
+ },
+ {
+  "ticket": "#3340",
+  "sub_id": "A6",
+  "confidence": "high",
+  "reason": "Akamai blocked old Chrome UA; fixed by updating user agent"
+ },
+ {
+  "ticket": "#2824",
+  "sub_id": "H2",
+  "confidence": "high",
+  "reason": "Security questions about scanner IPs for allowlisting"
+ },
+ {
+  "ticket": "#2095",
+  "sub_id": "F4",
+  "confidence": "medium",
+  "reason": "Cannot push issues to Jira from Site Scanner"
+ },
+ {
+  "ticket": "#3051",
+  "sub_id": "H1",
+  "confidence": "high",
+  "reason": "Access renewal; customer SSO group controls login"
+ },
+ {
+  "ticket": "#2960",
+  "sub_id": "C3",
+  "confidence": "medium",
+  "reason": "Every language version crawled, duplicating issues across locales"
+ },
+ {
+  "ticket": "#2241",
+  "sub_id": "H5",
+  "confidence": "high",
+  "reason": "Pricing/subscription sales question"
+ },
+ {
+  "ticket": "#2059",
+  "sub_id": "H4",
+  "confidence": "medium",
+  "reason": "Reporting working session and feature request"
+ },
+ {
+  "ticket": "#1722",
+  "sub_id": "C7",
+  "confidence": "high",
+  "reason": "List mode with single URL; switch to crawl mode"
+ },
+ {
+  "ticket": "#1682",
+  "sub_id": "G2",
+  "confidence": "high",
+  "reason": "Contrast finding valid; customer used wrong color"
+ },
+ {
+  "ticket": "#750",
+  "sub_id": "G2",
+  "confidence": "high",
+  "reason": "Reported img issue is real hidden img without alt"
+ },
+ {
+  "ticket": "#3301",
+  "sub_id": "B1",
+  "confidence": "medium",
+  "reason": "2FA bypass via IP allowlist refused by site owner"
+ },
+ {
+  "ticket": "#3195",
+  "sub_id": "G1",
+  "confidence": "medium",
+  "reason": "Disputed findings; engine server-side fix deployed for FPs"
+ },
+ {
+  "ticket": "#2168",
+  "sub_id": "H5",
+  "confidence": "low",
+  "reason": "Many failed pages; deferred to training, cause not identified"
+ },
+ {
+  "ticket": "#2946",
+  "sub_id": "B1",
+  "confidence": "high",
+  "reason": "Two-step login triggers MFA; needs test/pilot user"
+ },
+ {
+  "ticket": "#1993",
+  "sub_id": "F3",
+  "confidence": "high",
+  "reason": "Cannot save property: front-end bug when time zone missing"
+ },
+ {
+  "ticket": "#3248",
+  "sub_id": "D1",
+  "confidence": "high",
+  "reason": "Heavy pages exceed 20s ready wait, recorded as failed"
+ },
+ {
+  "ticket": "#1340",
+  "sub_id": "E5",
+  "confidence": "low",
+  "reason": "Error Loading Scan on Needs Review click; works in Edge"
+ },
+ {
+  "ticket": "#3169",
+  "sub_id": "A1",
+  "confidence": "medium",
+  "reason": "403 Forbidden from bot detection; allowlist IPs requested"
+ },
+ {
+  "ticket": "#2801",
+  "sub_id": "H4",
+  "confidence": "medium",
+  "reason": "How to remove URL from completed scan; use a View"
+ },
+ {
+  "ticket": "#515",
+  "sub_id": "H2",
+  "confidence": "high",
+  "reason": "Onboarding question about custom headers vs IP allowlist"
+ },
+ {
+  "ticket": "#732",
+  "sub_id": "G2",
+  "confidence": "low",
+  "reason": "Missing fieldset not flagged by design; not a WCAG requirement"
+ },
+ {
+  "ticket": "#2167",
+  "sub_id": "B1",
+  "confidence": "medium",
+  "reason": "2FA inconsistently triggered after login blocks crawl"
+ },
+ {
+  "ticket": "#2185",
+  "sub_id": "A5",
+  "confidence": "medium",
+  "reason": "429 rate limiting plus seed drift cause page count swings"
+ },
+ {
+  "ticket": "#2962",
+  "sub_id": "B4",
+  "confidence": "low",
+  "reason": "Request backend login script change; closed as site decommissioned"
+ },
+ {
+  "ticket": "#867",
+  "sub_id": "F3",
+  "confidence": "high",
+  "reason": "Add to collection fails: undefined collection id front-end bug"
+ },
+ {
+  "ticket": "#1869",
+  "sub_id": "E5",
+  "confidence": "medium",
+  "reason": "Sporadic Error loading scan, fixed backend"
+ },
+ {
+  "ticket": "#3068",
+  "sub_id": "G3",
+  "confidence": "high",
+  "reason": "Revert WCAG version scoping to 2.1"
+ },
+ {
+  "ticket": "#694",
+  "sub_id": "G1",
+  "confidence": "low",
+  "reason": "Wrong selector for highlighted element; later not reproducible"
+ },
+ {
+  "ticket": "#2077",
+  "sub_id": "H3",
+  "confidence": "medium",
+  "reason": "Batch onboarding of properties with per-site setup needs"
+ }
+]

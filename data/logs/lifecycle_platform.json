@@ -1,0 +1,371 @@
+[
+ {
+  "sig_id": "job_timeline_by_property",
+  "where": "admin-server, front-server, admin-webapp, front-webapp, scrape-server",
+  "stage": "schedule",
+  "message_pattern": "Scan with ID=<id> state changed from <A> to <B> | URL set with ID=<id> state changed from <A> to <B> | job with id: <id>, changed state to: <S> and phase <P> | Changed scan <id> state from <A> to <B> (scrape-server)",
+  "templateid": [],
+  "dataprime": "source logs | filter $d.context.property_id == '<LAST12_OF_PROPERTY_ID>' | filter $d.logger_name ~ 'ScanService|JobService|JobPoller|JobScheduler|UrlSetService|JobMessageListener|AppCommunicatorUtils|Export|Email' || $m.severity == WARNING || $m.severity == ERROR | choose $m.timestamp, $l.subsystemname, $d.logger_name, $d.context.scan_id, $d.context.job_id, $d.error.message, substr($d.message:string,0,250) as msg | orderby $m.timestamp asc",
+  "key_fields": [
+   "$d.context.property_id (last 12 hex)",
+   "$d.context.scan_id",
+   "$d.context.job_id",
+   "$d.context.url_set_id",
+   "$d.context.tenant_name",
+   "$d.context.client",
+   "$d.context.job_time",
+   "$d.logger_name",
+   "$d.error.message"
+  ],
+  "volume": "~20-40 lines per scan job; window = ticket date +-1 day",
+  "noise": "Info lifecycle lines; not an error signature itself. Use to see where the chain stopped.",
+  "maps_to_sub_issues": [
+   "E1",
+   "E2",
+   "E3",
+   "E5"
+  ],
+  "discriminative": "medium",
+  "notes": "IDs in $d.context are truncated to last 12 hex chars of the UUID. Context propagates into scrape-server (dispatch, k8s job creation, polling). templateid unstable for these services; use logger_name+regex."
+ },
+ {
+  "sig_id": "scheduler_next_run",
+  "where": "admin-server, front-server, admin-webapp, front-webapp",
+  "stage": "schedule",
+  "message_pattern": "for property: <propertyId>, the next schedule job time is: <yyyy-MM-ddTHH:mm>",
+  "templateid": [
+   "4f7d1c2c-9f08-11f1-b398-de4cc0071d9b",
+   "349ac97c-9e36-11f1-a781-0208ccc400c0"
+  ],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'the next schedule job time is' && $d.message ~ '<PROPERTY_UUID>' | choose $m.timestamp, $l.subsystemname, $d.message | orderby $m.timestamp asc",
+  "key_fields": [
+   "propertyId (in text)",
+   "next run time (in text, no timezone)"
+  ],
+  "volume": "one per scheduled run (dozens/hour)",
+  "noise": "Info. Signal when next time is wrong vs customer's configured schedule/timezone or not logged at all.",
+  "maps_to_sub_issues": [
+   "E2"
+  ],
+  "discriminative": "high",
+  "notes": "Compare to property schedule settings; times appear local-naive (no zone) - a timezone bug shows as an offset."
+ },
+ {
+  "sig_id": "scheduler_failed_to_create_entity",
+  "where": "admin-server, front-server, admin-webapp, front-webapp",
+  "stage": "schedule",
+  "message_pattern": "failed to create entity for property with id: <propertyId>. continuing to the next property",
+  "templateid": [
+   "df295d36-9afd-11f1-a627-c22aa48257ed",
+   "42be3cde-9af6-11f1-a847-02e8a3b35476",
+   "1a59517e-95a7-11f1-aa39-6e6ebf84f5c8",
+   "7dfef9ee-95bc-11f1-a2e1-5ac21e177d27"
+  ],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'failed to create entity for property' | groupby $d.error.type, substr($d.error.message:string,0,120) as emsg aggregate count() as n, distinct_count($d.context.property_id) as props | orderby n desc",
+  "key_fields": [
+   "$d.error.type",
+   "$d.error.message",
+   "$d.context.property_id",
+   "$d.context.tenant_name"
+  ],
+  "volume": "~24k/day total (2026-11-02), repeats every scheduler cycle per property",
+  "noise": "Mostly chronic background (expired licences, empty URL sets). Signal only when the ticket's property appears; the error.message gives the reason.",
+  "maps_to_sub_issues": [
+   "E4",
+   "E2",
+   "B1"
+  ],
+  "discriminative": "high",
+  "notes": "error.message values: 'The license has expired...' (LimitExceededException ~15k/day, E4); 'No URLs were supplied' / 'Property URL set is not defined' / 'Scan must have at least one URL' (config/0 URLs); 'The time the runner waits before it starts must be less than 30 seconds' (settings validation); 'property not found for propertyId' (orphan schedule)."
+ },
+ {
+  "sig_id": "limit_exceeded_license",
+  "where": "admin-server, front-server, *-webapp",
+  "stage": "schedule",
+  "message_pattern": "$d.error.type == com.evinced.common.exception.LimitExceededException; messages 'The license has expired...' / 'No license exists. Please create a trial license...'",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.error.type ~ 'LimitExceededException' | groupby $d.context.tenant_name, substr($d.error.message:string,0,100) as emsg aggregate count() as n, distinct_count($d.context.property_id) as props | orderby n desc",
+  "key_fields": [
+   "$d.error.message",
+   "$d.context.tenant_name",
+   "$d.context.property_id"
+  ],
+  "volume": "~15k/day (2026-11-02)",
+  "noise": "Chronic for expired tenants. Signal = ticket's tenant appears / a new tenant starts appearing.",
+  "maps_to_sub_issues": [
+   "E4"
+  ],
+  "discriminative": "high",
+  "notes": "Concurrent-scan limit messages not observed in sample day; group by emsg to spot other limit types."
+ },
+ {
+  "sig_id": "crawl_dispatch_failed",
+  "where": "admin-server, front-server, *-webapp (UrlSetService)",
+  "stage": "dispatch",
+  "message_pattern": "Failed running create crawl request for URL set with ID=<urlSetId>",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'Failed running create crawl request' | choose $m.timestamp, $l.subsystemname, $d.context.tenant_name, $d.context.property_id, $d.context.client, $d.context.job_time, $d.error.type, $d.error.message",
+  "key_fields": [
+   "$d.error.type",
+   "$d.error.message",
+   "$d.context.url_set_id",
+   "$d.context.job_time"
+  ],
+  "volume": "~5/day",
+  "noise": "Low volume -> each one is meaningful. error.message 'Job failed due to timeout/failure' (JobPoller.onTimedOut) = job timed out after ~24h, vs connection/HTTP errors = real dispatch refusal.",
+  "maps_to_sub_issues": [
+   "E3",
+   "E1"
+  ],
+  "discriminative": "medium",
+  "notes": "Followed by JobService 'job with id: X, changed state to: FAILED and phase FAILED'."
+ },
+ {
+  "sig_id": "job_state_failed",
+  "where": "admin-server, front-server, *-webapp",
+  "stage": "dispatch",
+  "message_pattern": "job with id: <id>, changed state to: FAILED and phase FAILED | Scan with ID=<id> state changed from RUNNING to FAILED",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && ($d.message ~ 'changed state to: FAILED' || $d.message ~ 'state changed from \\\\w+ to FAILED') | groupby $d.context.tenant_name, $l.subsystemname aggregate count() as n, any_value($d.message:string) as sample | orderby n desc",
+  "key_fields": [
+   "$d.context.*",
+   "preceding ERROR in same job_id"
+  ],
+  "volume": "~10/12h",
+  "noise": "Low volume; every hit is a failed run. Look at ERRORs with same $d.context.job_id just before.",
+  "maps_to_sub_issues": [
+   "E3",
+   "E1"
+  ],
+  "discriminative": "low",
+  "notes": "Outcome marker, not cause."
+ },
+ {
+  "sig_id": "scheduler_duplicate_jobentity",
+  "where": "admin-server, front-server, admin-webapp, front-webapp (SqlExceptionHelper, client=JobScheduler)",
+  "stage": "schedule",
+  "message_pattern": "ERROR: duplicate key ... violates unique constraint \"key_type_constraint\" Detail: Key ...=(<propertyId><jobId><yyyy-MM-ddTHH:mm>, JobEntity) already exists.",
+  "templateid": [
+   "7d19c54a-95bc-11f1-a2e1-5ac21e177d27",
+   "19cce91e-95a7-11f1-aa39-6e6ebf84f5c8",
+   "e03a53d8-9afd-11f1-a627-c22aa48257ed",
+   "102fd4ee-9af6-11f1-a847-02e8a3b35476"
+  ],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'JobEntity\\\\) already exists' | extract $d.message into $d.dk using regexp(e=/=\\((?<ids>[0-9a-f-]{72})(?<runat>\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d), JobEntity/) | groupby $l.subsystemname, $d.dk.ids, $d.dk.runat aggregate count() as n, min($m.timestamp) as first | orderby n desc",
+  "key_fields": [
+   "propertyId+jobId+runAt in the key",
+   "$d.context.client=JobScheduler"
+  ],
+  "volume": "~2.6k/day (2026-11-02): 164/day per server (race) + 1164/day per webapp (stuck)",
+  "noise": "runAt == current slot -> benign race between admin-server and front-server schedulers. runAt in the past and repeating every 7.5 min -> STUCK schedule (property never runs again).",
+  "maps_to_sub_issues": [
+   "E2"
+  ],
+  "discriminative": "high",
+  "notes": "Accompanied by 'SQL Error: 0, SQLState: 23505' and 'Application exception overridden by commit exception' (JsonMappingException on UrlSetDiscoveryConfigurationEntity). Stuck keys seen: runAt 2025-07-21..2026-02-15 on site-scanner webapps."
+ },
+ {
+  "sig_id": "api_slow_controller_call",
+  "where": "front-server, front-webapp (FunctionLogger)",
+  "stage": "ui-api",
+  "message_pattern": "invocation of function (<Controller>.<method>) took <N> millis.  (WARNING when > ~10s)",
+  "templateid": [
+   "bfc20614-9b48-11f1-92c7-96308be8f4d0"
+  ],
+  "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.c.l.f.FunctionLogger' && ($d.message ~ 'ViewsController' || $d.message ~ 'ScanController' || $d.message ~ 'ScanPagesController' || $d.message ~ 'ScanIssuesController' || $d.message ~ 'PropertyOverview') | extract $d.message into $d.fx using regexp(e=/\\((?<fn>[A-Za-z]+\\.[A-Za-z]+)\\) (?<what>took|failed)/) | extract $d.message into $d.fm using regexp(e=/(?<ms>[0-9]+) millis/) | groupby $d.fx.fn, $d.fx.what, $m.severity, $d.context.tenant_name aggregate count() as n, avg($d.fm.ms:number) as avgms, max($d.fm.ms:number) as mx | orderby mx desc",
+  "key_fields": [
+   "function name",
+   "millis",
+   "$d.context.tenant_name",
+   "$d.context.scan_id",
+   "$m.severity"
+  ],
+  "volume": "6h: ScanController.list 5.5k calls (23 WARN, max 50s); ScanPages/ScanIssues.overview ~16 WARN each (max ~20s)",
+  "noise": "Info lines are normal traffic; WARNING (>10s) rows for the ticket's tenant/scan are the 'Error loading scan' backend-timeout signal.",
+  "maps_to_sub_issues": [
+   "E5",
+   "E1"
+  ],
+  "discriminative": "high",
+  "notes": "If many tenants show WARN in the same hour -> E1. Also ProductExportService.checkReportExists ~16-32s (export page)."
+ },
+ {
+  "sig_id": "api_controller_failed",
+  "where": "front-server, front-webapp (FunctionLogger + RestExceptionHandler)",
+  "stage": "ui-api",
+  "message_pattern": "invocation of function (X.y) failed (<Exception>:<msg>) after N millis | controller rejected request with client error | controller request failed with server error | An internal error occurred and the response is altered to the default error message",
+  "templateid": [
+   "89ca8e62-b79c-11f1-8217-ea9ec8078fc6",
+   "9f6cdfd6-b79c-11f1-8217-ea9ec8078fc6"
+  ],
+  "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.c.web.api.RestExceptionHandler' | groupby $d.message as kind, $d.error.type, substr($d.context.request_uri:string,0,40) as uri aggregate count() as n, distinct_count($d.context.tenant_id) as tenants, any_value(substr($d.error.message:string,0,100)) as emsg | orderby n desc",
+  "key_fields": [
+   "$d.context.request_uri",
+   "$d.error.type",
+   "$d.error.message",
+   "$d.error.stack_trace",
+   "$d.context.tenant_name"
+  ],
+  "volume": "2026-11-02: ~35 5xx, ~400 4xx",
+  "noise": "4xx 'Service account not found' on /api/service-accounts is chronic (2 SAs). 5xx are rare and meaningful.",
+  "maps_to_sub_issues": [
+   "E5",
+   "F3",
+   "F4"
+  ],
+  "discriminative": "high",
+  "notes": "Seen: NPE in PagesEnricherStrategy on /api/property-overview (one tenant, dashboard fails); NotFound 'Scan could not be found' / 'could not find view' / 'Property could not be found' (deleted scan/view/property -> E5 scan_deleted_not_found)."
+ },
+ {
+  "sig_id": "export_generation_failed",
+  "where": "admin-webapp, front-webapp, admin-server, front-server (ScanResultExportService / ScanResultExportPoller / PollTaskRunnerService)",
+  "stage": "export",
+  "message_pattern": "failed to generate (CSV|XLSX) for scan <scanId> for owner <ownerId> \\((poller timeout|poll request failed)\\) | Failed handling sample failure of SCAN_RESULT_EXPORT task with ID=<id> - this reflects a ScanResultExportPoller.onFailed() bug | poll request failed - will retry at next poll interval",
+  "templateid": [
+   "1aa5d242-95a7-11f1-aa39-6e6ebf84f5c8",
+   "19f69728-95a7-11f1-aa39-6e6ebf84f5c8",
+   "7d7a361e-95bc-11f1-a2e1-5ac21e177d27",
+   "fd6154ee-959d-11f1-ac72-1220de2b6ea3"
+  ],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && matches($d.message:string, /failed to generate (CSV|XLSX)|SCAN_RESULT_EXPORT|ExportIssues|exportIssues/) | extract $d.message into $d.ex using regexp(e=/generate (?<fmt>CSV|XLSX) for scan (?<scan>[0-9a-f-]{36}).*\\((?<why>[^)]+)\\)/) | groupby $d.ex.fmt, $d.ex.scan, $d.ex.why, $d.error.message aggregate count() as n | orderby n desc",
+  "key_fields": [
+   "scanId",
+   "format",
+   "reason (poller timeout|poll request failed)",
+   "$d.error.message (e.g. 'Scan X not found')"
+  ],
+  "volume": "~85/day + 1.8k/day poll-retry NPEs (single owner, webapps)",
+  "noise": "One stuck owner/scan can loop for days. Signal = ticket's scanId. ConflictException 'Export for this scan and filter already running' = user double-click.",
+  "maps_to_sub_issues": [
+   "F1"
+  ],
+  "discriminative": "high",
+  "notes": "Error 'Scan <id> not found' -> export of deleted scan. ScanResultExportPoller.onFailed() bug -> failure never surfaced to user."
+ },
+ {
+  "sig_id": "csv_queue_publish_failed",
+  "where": "front-server, front-webapp (CsvGenerationRabbitCommunicator)",
+  "stage": "export",
+  "message_pattern": "publish to queue <id>-csv failed (attempt N): Connection refused. retrying in Nms | Could not publish message to queue: <id>-csv after 12 attempts / 120000ms",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.p.c.s.c.CsvGenerationRabbitCommunicator' | groupby $l.subsystemname, roundTime($m.timestamp, 1h) as hour aggregate count() as n, any_value(substr($d.message:string,0,160)) as sample",
+  "key_fields": [
+   "queue name",
+   "attempt",
+   "$d.context.tenant_name"
+  ],
+  "volume": "~34 in 14 days",
+  "noise": "Any occurrence = RabbitMQ unreachable; exports during that window not generated.",
+  "maps_to_sub_issues": [
+   "F1",
+   "E1"
+  ],
+  "discriminative": "high",
+  "notes": ""
+ },
+ {
+  "sig_id": "completion_email_failed",
+  "where": "admin-webapp, front-webapp, admin/front-server (CrawlCompletionEmailListener, ScanCompletionEmailListener)",
+  "stage": "post-processing",
+  "message_pattern": "Failed to send (crawl|scan) completion email for (urlSetId|scanId)=<id> | CrawlCompletionEmailListener failed processing URL set state changed (RUNNING -> DONE) event",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && matches($d.message:string, /Failed to send (crawl|scan) completion email|CompletionEmailListener.*failed processing/) | groupby $d.logger_name, $d.error.type, substr($d.error.message:string,0,120) as emsg aggregate count() as n, distinct_count($d.context.tenant_id) as tenants",
+  "key_fields": [
+   "$d.error.type",
+   "$d.error.message",
+   "urlSetId/scanId",
+   "$d.context.tenant_name"
+  ],
+  "volume": "~10/day",
+  "noise": "NotFoundException \"Didn't find property P for mail to user U\" = deleted property (benign). NoHttpResponseException 'api.sendgrid.com:443 failed to respond' = SendGrid outage (real).",
+  "maps_to_sub_issues": [
+   "F1"
+  ],
+  "discriminative": "high",
+  "notes": "Absence of these lines + customer says no email -> spam/quarantine on customer side."
+ },
+ {
+  "sig_id": "mcp_invalid_caller_id",
+  "where": "front-server, front-webapp (c.e.f.context.OperationContextFilter)",
+  "stage": "ui-api",
+  "message_pattern": "An invalid request caller ID was received: MCP",
+  "templateid": [
+   "0b8621c6-d1cb-11f1-95e0-927b9d7e424e"
+  ],
+  "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && ($d.message ~ 'invalid request caller ID' || $d.message ~ 'TokenController.generateAccessToken') | groupby $d.message, $d.error.type aggregate count() as n",
+  "key_fields": [
+   "caller id",
+   "$d.error.message on token generation"
+  ],
+  "volume": "~57/day",
+  "noise": "Warning on every MCP request using that header; signal when correlated with MCP auth complaints. Token generation failures: 'Service account not found', LimitExceededException 'No license exists'.",
+  "maps_to_sub_issues": [
+   "F4",
+   "E4"
+  ],
+  "discriminative": "medium",
+  "notes": "Jira/ADO have NO server-side log lines in scope."
+ },
+ {
+  "sig_id": "k8s_job_failed",
+  "where": "scrape-server (c.e.c.k.t.KubernetesJobStateTransformer)",
+  "stage": "dispatch",
+  "message_pattern": "kubernetes job failed - see job for more details Job(... name=<scanId> ... reason=BackoffLimitExceeded ...) | kubernetes job is in an unknown state Job(...)",
+  "templateid": [
+   "75bbd05b-5cf2-bbf0-6737-82881e09cec5"
+  ],
+  "dataprime": "source logs | filter ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scrape-webapp') && $d.logger_name == 'c.e.c.k.t.KubernetesJobStateTransformer' | extract $d.message into $d.k using regexp(e=/name=(?<jobname>[0-9a-f-]{36}).*?reason=(?<reason>[A-Za-z]+)/) | groupby $m.severity, $d.k.reason, $d.context.tenant_name aggregate count() as n, any_value($d.k.jobname) as scan",
+  "key_fields": [
+   "k8s job name == scanId",
+   "reason (BackoffLimitExceeded/CompletionsReached)",
+   "$d.context.*"
+  ],
+  "volume": "~10 failed + ~30 unknown-state in 14 days",
+  "noise": "Rare; each is a real worker-pool failure. Many in one hour across tenants -> E1.",
+  "maps_to_sub_issues": [
+   "E3",
+   "E1"
+  ],
+  "discriminative": "medium",
+  "notes": "Also check scrape-server 'polling scan with id S. Kubernetes job state: {... failedPodsCount: N}'."
+ },
+ {
+  "sig_id": "scan_status_timeout_failed",
+  "where": "admin-server, front-server, *-webapp (c.e.p.service.scan.ScanService)",
+  "stage": "dispatch",
+  "message_pattern": "Sampling scan with ID=<scanId> for its status passed its timeout, marking it as FAILED",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'passed its timeout, marking it as FAILED' | choose $m.timestamp, $l.subsystemname, $d.context.tenant_name, $d.context.property_id, $d.message",
+  "key_fields": [
+   "scanId",
+   "$d.context.tenant_name"
+  ],
+  "volume": "~5 in 14 days",
+  "noise": "Every hit is a stuck scan that was force-failed.",
+  "maps_to_sub_issues": [
+   "E3",
+   "E1"
+  ],
+  "discriminative": "medium",
+  "notes": "Look back for k8s_job_failed / 'Scan ingesting state for S not found' for the same scan."
+ },
+ {
+  "sig_id": "platform_incident_tenant_spread",
+  "where": "admin-server, front-server, scrape-server",
+  "stage": "dispatch",
+  "message_pattern": "(aggregate) distinct tenants with ERROR per hour, chronic noise excluded",
+  "templateid": [],
+  "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'scrape-server') && ($m.severity == ERROR || $m.severity == CRITICAL) | create $d.txt from firstNonNull($d.message:string, $d.body:string) | filter !($d.txt ~ 'failed to create entity for property') && !($d.txt ~ 'duplicate key') && !($d.txt ~ 'SQLState') && !($d.txt ~ 'overridden by commit') && !($d.txt ~ 'service-accounts') | extract $d.txt into $d.mdc using regexp(e=/tenancyName=(?<tenant>[^\\]]+)\\]/) | groupby roundTime($m.timestamp, 1h) as hour aggregate count() as errors, distinct_count(firstNonNull($d.context.tenant_name:string, $d.mdc.tenant:string)) as tenants, any_value(substr($d.txt,0,200)) as sample | orderby hour asc",
+  "key_fields": [
+   "tenants per hour",
+   "sample"
+  ],
+  "volume": "baseline 0-5 tenants/h; 2026-06-29 outage: 14 at 10:00Z, 32 at 18:00Z",
+  "noise": "Raw error count is flat (chronic noise); use distinct tenants. Threshold ~3x 24h median and >=8.",
+  "maps_to_sub_issues": [
+   "E1"
+  ],
+  "discriminative": "high",
+  "notes": "Works on both old ($d.body text MDC, June 2026) and new ($d.message + $d.context) schemas."
+ }
+]

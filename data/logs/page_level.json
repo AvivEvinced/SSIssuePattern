@@ -1,0 +1,437 @@
+[
+ {
+  "sig_id": "scrape_final_failure_by_type",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation|scan-page",
+  "message_pattern": "all attempts to scrape url had failed",
+  "templateid": [
+   "9b5222f0-9b48-11f1-bb8a-4206745c74cb (crawl)",
+   "0d569b2a-9b5c-11f1-a137-c2fc7991ad86 (scan)"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message == 'all attempts to scrape url had failed' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $l.subsystemname, $d.u.host:string as host, $d.ej.type:string as etype aggregate count() as n | orderby n desc",
+  "key_fields": [
+   "$d.error.message (JSON: type, additionalInfo.stackTrace)",
+   "$d.context.url",
+   "$d.context.request_id"
+  ],
+  "volume": "2026-11-02 24h: crawl 5,488, scan 59. Types: OPEN_PAGE_TIMEOUT 5,502; FAILED_TO_RUN_ENGINES 20; DNS_ERROR_COULD_NOT_FIND_URL 13; INTERNAL_ERROR 10; PAGE_INTERACTION_PLUGIN_ERROR 4",
+  "noise": "This is the one record per URL that really failed (not a retry). Volume is dominated by a few hosts (www.aa.com 82% of OPEN_PAGE_TIMEOUT). Signal = failure share for the ticket's property/host.",
+  "maps_to_sub_issues": [
+   "D1",
+   "A1",
+   "A2",
+   "A5",
+   "D2",
+   "B2",
+   "B4",
+   "C4"
+  ],
+  "discriminative": "medium",
+  "notes": "Route by .type: OPEN_PAGE_TIMEOUT -> D1 if few URLs on a healthy host, A1/A2 if most of the host fails; FAILED_TO_RUN_ENGINES -> D2; DNS_ERROR_COULD_NOT_FIND_URL -> C4 (bad host); PAGE_INTERACTION_PLUGIN_ERROR -> B2/B4; INTERNAL_ERROR -> product bug."
+ },
+ {
+  "sig_id": "open_page_timeout",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation|scan-page",
+  "message_pattern": "all attempts to scrape url had failed + $d.error.message {\"type\":\"OPEN_PAGE_TIMEOUT\"}",
+  "templateid": [
+   "9b5222f0-9b48-11f1-bb8a-4206745c74cb",
+   "0d569b2a-9b5c-11f1-a137-c2fc7991ad86"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message == 'all attempts to scrape url had failed' && $d.error.message:string ~ 'OPEN_PAGE_TIMEOUT' | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host aggregate count() as n",
+  "key_fields": [
+   "$d.context.url",
+   "$d.context.request_id"
+  ],
+  "volume": "2026-11-02 24h: crawl 5,475, scan 27 (www.aa.com 4,513, www.pearson.com 488, www.vrbo.com 231, www.ynet.co.il 211)",
+  "noise": "Chronic background on a few big sites. Signal when the ticket's host is >~20% of its URLs, or new compared with earlier runs.",
+  "maps_to_sub_issues": [
+   "D1",
+   "A1",
+   "A2",
+   "A5"
+  ],
+  "discriminative": "low",
+  "notes": "Disambiguate with http status lines (403/429 -> A1/A5), host-wide vs few URLs (A vs D1), and the page title/'Just a moment'."
+ },
+ {
+  "sig_id": "goto_url_timeout",
+  "where": "crawl-worker (60 s), scan-worker (40 s)",
+  "stage": "crawl-navigation|scan-page",
+  "message_pattern": "encountered error while running a function with timeout. retry count: N + $d.error.message errorDescription 'Error. Function: gotoURL execution took more than (60000|40000) miliseconds'",
+  "templateid": [
+   "9b5233c6-9b48-11f1-bb8a-4206745c74cb (crawl)",
+   "23a24bcc-b0f1-11f1-8b5b-aedcf7151837 (crawl)",
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06 (scan)",
+   "39c41d74-a19a-11f1-bb7e-fe51798b3aa3 (scan)",
+   "cc617b84-aca0-11f1-bdf3-7e52220ca26c (scan)"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'encountered error while running a function with timeout' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $l.subsystemname, $d.ej.errorDescription:string as d aggregate count() as n, approx_count_distinct($d.context.request_id) as urls",
+  "key_fields": [
+   "$d.error.message.errorDescription",
+   "$d.context.request_id",
+   "$d.context.url"
+  ],
+  "volume": "2026-11-02 24h: crawl gotoURL>60000 17,263 attempts / 6,126 URLs; scan gotoURL>40000 157 / 104 URLs",
+  "noise": "Per-ATTEMPT record (~2.8 per URL). Do not count it as failures; a URL that recovers on retry emits this but no all-attempts record. Use all-attempts for failures.",
+  "maps_to_sub_issues": [
+   "D1",
+   "A1",
+   "A2",
+   "A5"
+  ],
+  "discriminative": "low",
+  "notes": "Zendesk 'gotoURL ... 40000' is the scan-worker limit; crawl uses 60000."
+ },
+ {
+  "sig_id": "plugin_run_timeout",
+  "where": "scan-worker",
+  "stage": "engine",
+  "message_pattern": "encountered error while running a function with timeout + errorDescription 'Function: bound run execution took more than (20000|30000|60000|90000|120000) miliseconds'",
+  "templateid": [
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.message ~ 'encountered error while running a function with timeout' && $d.error.message:string ~ 'bound run execution' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $d.ej.errorDescription:string aggregate count() as n",
+  "key_fields": [
+   "$d.error.message.errorDescription",
+   "$d.context.url"
+  ],
+  "volume": "2026-11-02 24h: 21",
+  "noise": "Rare; each one is a real page whose engine/plugin step hung",
+  "maps_to_sub_issues": [
+   "D2",
+   "D1",
+   "B2"
+  ],
+  "discriminative": "medium",
+  "notes": "Timeout value names the plugin step (20 s and 30 s are probably interaction/stabilise, 90/120 s the engines). Pair with 'got error while running plugin'."
+ },
+ {
+  "sig_id": "handle_request_hard_cap",
+  "where": "scan-worker (crawl too)",
+  "stage": "scan-page|login",
+  "message_pattern": "errorDescription 'Function: bound handleRequest execution took more than 300000 miliseconds'",
+  "templateid": [
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') && $d.error.message:string ~ 'bound handleRequest execution took more than'",
+  "key_fields": [
+   "$d.error.message",
+   "$d.context.url"
+  ],
+  "volume": "2026-11-02 24h: 2",
+  "noise": "Rare, always signal",
+  "maps_to_sub_issues": [
+   "B4",
+   "D1"
+  ],
+  "discriminative": "medium",
+  "notes": "5-minute whole-page cap; on a login URL it points to a multi-step login (B4)."
+ },
+ {
+  "sig_id": "http_status_non200",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation|scan-page",
+  "message_pattern": "http status code is: <N>  (Info severity)",
+  "templateid": [
+   "33948266-9cb5-11f1-92dd-be037f26c345 (crawl)",
+   "f8cdaba4-9af1-11f1-a148-2267a7afc7c0 (scan)",
+   "b9b9265a-9cf4-11f1-9545-4a96456cf580 (scan)"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host, $d.x.code:string as code aggregate count() as n | orderby n desc",
+  "key_fields": [
+   "status code in $d.message",
+   "$d.context.url",
+   "$d.context.request_id"
+  ],
+  "volume": "6h 2026-11-02 06-12Z: 200 ~9.6k; 403 668; 404 333; 429 157; 504 35; 400 11; 502 4. 12h: 403 www.huntington.com 642; 429 collegeboard.org ~135",
+  "noise": "Info level, the page is NOT failed: the error/block page is scanned. Scattered 404s are normal; the signal is a high non-200 ratio for one host.",
+  "maps_to_sub_issues": [
+   "A1",
+   "A5",
+   "C4",
+   "B5",
+   "E1"
+  ],
+  "discriminative": "high",
+  "notes": "403/405 -> A1; 429 -> A5; 404 on seeds -> C4; 401 -> B5; 5xx on customer host -> customer outage (C4-ish). Filter with != '200' on the extracted code (character classes inside ~ did not match)."
+ },
+ {
+  "sig_id": "browser_subresource_net_err",
+  "where": "crawl-worker, scan-worker",
+  "stage": "scan-page",
+  "message_pattern": "[browser] [error] Failed to load resource: net::ERR_<X>",
+  "templateid": [],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'Failed to load resource: net::ERR_' | extract $d.message:string into $d.x using regexp(e=/(?<code>net::ERR_[A-Z0-9_]+)/) | groupby $l.subsystemname, $d.x.code:string aggregate count() as n",
+  "key_fields": [
+   "net::ERR code in message",
+   "$d.context.url"
+  ],
+  "volume": "6h: ERR_FAILED ~16.7k, ERR_HTTP2_PROTOCOL_ERROR 309, ERR_NAME_NOT_RESOLVED 54, ERR_CONNECTION_RESET 47, ERR_CONNECTION_CLOSED 10",
+  "noise": "BENIGN background: page sub-resources (trackers, blocked third parties). Ignore unless ERR_HTTP2_SERVER_REFUSED_STREAM / ERR_CERT_* or nearly every request for one host fails.",
+  "maps_to_sub_issues": [
+   "D3",
+   "A5"
+  ],
+  "discriminative": "low",
+  "notes": "ERR_HTTP2_SERVER_REFUSED_STREAM -> A5; not seen in this window."
+ },
+ {
+  "sig_id": "interaction_selector_not_found",
+  "where": "crawl-worker, scan-worker",
+  "stage": "login|scan-page",
+  "message_pattern": "encountered error while running a function with timeout + $d.error.message {\"url\":\"<page url>\",\"message\":\"No element found for selector: <sel>\"}",
+  "templateid": [
+   "9b5233c6-9b48-11f1-bb8a-4206745c74cb",
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06",
+   "23a24bcc-b0f1-11f1-8b5b-aedcf7151837"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ 'No element found for selector' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $l.subsystemname, $d.ej.message:string as msg, $d.ej.url:string as final_url aggregate count() as n, approx_count_distinct($d.context.url) as urls | orderby n desc",
+  "key_fields": [
+   "$d.error.message.url (where the browser actually was)",
+   "$d.error.message.message (selector)",
+   "$d.context.url"
+  ],
+  "volume": "7d 2026-10-27..11-02: .truste-close-button-img 4,615 (goldmansachs, 524 URLs); #username 299 (61 URLs); login-form button 172; #name 44",
+  "noise": "Always signal for the property. The final-type rollup is PAGE_INTERACTION_PLUGIN_ERROR (509 on 10-28).",
+  "maps_to_sub_issues": [
+   "B2",
+   "B5",
+   "B4",
+   "A7"
+  ],
+  "discriminative": "high",
+  "notes": "url=about:blank or same page -> B2 selector mismatch; url=/login|/guest|SSO host mid-crawl -> B5 session lost or B4 flow; url=out-of-country page -> A7."
+ },
+ {
+  "sig_id": "interaction_landed_on_login_or_geo",
+  "where": "crawl-worker, scan-worker",
+  "stage": "login|crawl-navigation",
+  "message_pattern": "$d.error.message {\"url\":\"https://.../(login|guest|authenticate|out-of-country)...\",\"message\":...}",
+  "templateid": [
+   "9b5233c6-9b48-11f1-bb8a-4206745c74cb",
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ '\"url\":' | extract $d.error.message:string into $d.ej using jsonobject() | filter $d.ej.url:string ~ 'login' || $d.ej.url:string ~ 'guest' || $d.ej.url:string ~ 'authenti' || $d.ej.url:string ~ 'out-of-country' | groupby $d.ej.url:string aggregate count() as n, any_value($d.context.url) as page",
+  "key_fields": [
+   "$d.error.message.url",
+   "$d.context.url"
+  ],
+  "volume": "7d: cigna /web/public/guest ~200, accounts.zalando.com/authenticate ~250, sky.de/out-of-country.htm 44",
+  "noise": "signal",
+  "maps_to_sub_issues": [
+   "B5",
+   "B3",
+   "B4",
+   "A7"
+  ],
+  "discriminative": "high",
+  "notes": "Mid-crawl redirect to login/guest = session lost (B5) or bad credentials (B3); out-of-country = geo block A7."
+ },
+ {
+  "sig_id": "engine_crash_failed_to_run_engines",
+  "where": "scan-worker",
+  "stage": "engine",
+  "message_pattern": "{\"type\":\"FAILED_TO_RUN_ENGINES\",\"additionalInfo\":{\"stackTrace\":\"TypeError: Cannot read properties of (undefined|null) (reading ...)\"}}",
+  "templateid": [
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06",
+   "0d569b2a-9b5c-11f1-a137-c2fc7991ad86"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.error.message:string ~ 'FAILED_TO_RUN_ENGINES' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host, substr($d.ej.additionalInfo.stackTrace:string,0,80) as st aggregate count() as n",
+  "key_fields": [
+   "$d.error.message.additionalInfo.stackTrace",
+   "$d.context.url"
+  ],
+  "volume": "final: 2026-11-02 20/day (pearson); 11-01 172 (salesforce.com 144). per-attempt 649/7d",
+  "noise": "Signal, low volume",
+  "maps_to_sub_issues": [
+   "D2"
+  ],
+  "discriminative": "high",
+  "notes": "The stackTrace tells which engine/DOM property broke ('checked', 'value')."
+ },
+ {
+  "sig_id": "engines_plugin_error_worker_fs",
+  "where": "scan-worker",
+  "stage": "engine",
+  "message_pattern": "{\"type\":\"ENGINES_PLUGIN_ERROR\",\"additionalInfo\":{\"details\":\"Error: ENOENT|ENOTEMPTY ... | ZlibError | SyntaxError: Unexpected end of input\"}}",
+  "templateid": [
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.error.message:string ~ 'ENGINES_PLUGIN_ERROR' | extract $d.error.message:string into $d.ej using jsonobject() | groupby substr($d.ej.additionalInfo.details:string,0,60) as d aggregate count() as n, any_value($d.context.url) as url",
+  "key_fields": [
+   "$d.error.message.additionalInfo.details"
+  ],
+  "volume": "7d: 1,084 (24h 2026-11-02: ~22, collegeboard, websteronline)",
+  "noise": "Not caused by the customer page: engine bundle download/extract race on the worker filesystem.",
+  "maps_to_sub_issues": [
+   "E3",
+   "D2"
+  ],
+  "discriminative": "medium",
+  "notes": "Candidate new sub-issue: 'engine package load failure on worker' (Evinced-side). Looks like D2 to the customer (pages missing)."
+ },
+ {
+  "sig_id": "final_type_misc",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation|engine",
+  "message_pattern": "final .type in PLUGIN_TIMEOUT | INTERNAL_ERROR | DNS_ERROR_COULD_NOT_FIND_URL | SCREENSHOT_PLUGIN_ERROR | LINK_EXTRACTION_PLUGIN_ERROR",
+  "templateid": [
+   "9b5222f0-9b48-11f1-bb8a-4206745c74cb",
+   "0d569b2a-9b5c-11f1-a137-c2fc7991ad86",
+   "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5222f0-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '0d569b2a-9b5c-11f1-a137-c2fc7991ad86') | extract $d.error.message:string into $d.ej using jsonobject() | groupby formatTimestamp($m.timestamp, '%Y-%m-%d') as day, $d.ej.type:string as etype aggregate count() as n",
+  "key_fields": [
+   "$d.error.message.type",
+   "additionalInfo.stackTrace"
+  ],
+  "volume": "7d: PLUGIN_TIMEOUT 420 (tsn.ca, noovo.info), INTERNAL_ERROR 180, DNS_ERROR 44 final (132 per-attempt; capitalone, smartpaylease int host)",
+  "noise": "low volume, signal",
+  "maps_to_sub_issues": [
+   "D1",
+   "C4",
+   "E3"
+  ],
+  "discriminative": "medium",
+  "notes": "DNS_ERROR -> C4 (host does not resolve publicly, e.g. internal QA hosts -> needs a private agent / wrong seed). INTERNAL_ERROR (Scraper.ts:139) -> product bug. PLUGIN_TIMEOUT -> D1."
+ },
+ {
+  "sig_id": "page_level_net_error_inline",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-navigation|scan-page",
+  "message_pattern": "got error while scraping net::ERR_(CONNECTION_REFUSED|CONNECTION_RESET|TOO_MANY_REDIRECTS|HTTP2_PROTOCOL_ERROR) at <url>  (also as plain text in $d.error.message)",
+  "templateid": [
+   "1f6c9f7a-c8b7-11f1-9690-06bc843f009c (scan)"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ 'net::ERR_' | extract $d.error.message:string into $d.x using regexp(e=/(?<code>net::ERR_[A-Z0-9_]+) at https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.x.code:string, $d.x.host:string aggregate count() as n",
+  "key_fields": [
+   "net::ERR code + url in $d.error.message / $d.message"
+  ],
+  "volume": "7d: ERR_CONNECTION_RESET telebec.com ~390; ERR_TOO_MANY_REDIRECTS moo.com/denverbariatrics ~40; ERR_HTTP2_PROTOCOL_ERROR discover.com 18; ERR_CONNECTION_REFUSED HCA hospital sites ~8/day",
+  "noise": "Signal (it is the page itself, unlike the [browser] lines)",
+  "maps_to_sub_issues": [
+   "A1",
+   "A8",
+   "A5",
+   "C4"
+  ],
+  "discriminative": "high",
+  "notes": "RESET/HTTP2_PROTOCOL host-wide -> A1 WAF; TOO_MANY_REDIRECTS -> A8; CONNECTION_REFUSED -> host down / C4. No ERR_CERT_* seen (A9)."
+ },
+ {
+  "sig_id": "nav_instability_context_destroyed",
+  "where": "crawl-worker, scan-worker",
+  "stage": "scan-page",
+  "message_pattern": "Execution context was destroyed, most likely because of a navigation | Navigating frame was detached | Attempted to use detached Frame",
+  "templateid": [
+   "9b5233c6-9b48-11f1-bb8a-4206745c74cb",
+   "3de42108-9b49-11f1-af7b-ee1ec87eaa5c"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && ($d.error.message:string ~ 'Execution context was destroyed' || $d.error.message:string ~ 'detached') | groupby $d.context.url aggregate count() as n",
+  "key_fields": [
+   "$d.error.message",
+   "$d.context.url"
+  ],
+  "volume": "7d: ~290 (booking.com 271)",
+  "noise": "Signal for that page, low volume",
+  "maps_to_sub_issues": [
+   "D3",
+   "A2"
+  ],
+  "discriminative": "low",
+  "notes": "The page navigates or reloads itself (redirect script, consent reload, bot challenge reload)."
+ },
+ {
+  "sig_id": "scrape_server_scan_page_failed",
+  "where": "scrape-server",
+  "stage": "post-processing",
+  "message_pattern": "scan page <url> failed, scan id is <scanId>. last successful result file prod-mon/tasks/<scanId>/results/joiner-results/<id>.json",
+  "templateid": [
+   "5096d944-aaf3-11f1-b0c8-66b556bfe55a",
+   "f3384b28-a658-11f1-928d-6af2599809e5",
+   "260b4872-a46d-11f1-a54b-e2b111e1b995"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scrape-server' && $d.message ~ ' failed, scan id is ' | extract $d.message:string into $d.x using regexp(e=/scan page (?<url>[^ ]+) failed, scan id is (?<sid>[0-9a-f-]+)/) | groupby $d.x.sid:string aggregate count() as pages, any_value($d.x.url) as sample",
+  "key_fields": [
+   "url and scanId in the message"
+  ],
+  "volume": "2026-11-02: ~330/day (~56 are pdf/zip/doc URLs)",
+  "noise": "Roll-up with no reason; documents (pdf/zip) are expected. Use it to list a scan's dropped pages, then join to scan-worker by URL for the reason.",
+  "maps_to_sub_issues": [
+   "D1",
+   "D2",
+   "A1",
+   "C4"
+  ],
+  "discriminative": "low",
+  "notes": "The scanId in the message lets the investigator go from a ticket's scanId to the failed pages."
+ },
+ {
+  "sig_id": "content_type_mismatch",
+  "where": "crawl-worker, scan-worker",
+  "stage": "crawl-discovery",
+  "message_pattern": "content type: <ct> doesn't match the: text/html,text/plain",
+  "templateid": [
+   "a92c1eca-a74c-11f1-9144-fab0241da207 (crawl)",
+   "e7b5fc88-aaf8-11f1-b655-422d8edb1526 (scan)"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == 'a92c1eca-a74c-11f1-9144-fab0241da207' || $m.templateid == 'e7b5fc88-aaf8-11f1-b655-422d8edb1526') | extract $d.message:string into $d.x using regexp(e=/content type: (?<ct>[^ ]+) /) | groupby $d.x.ct:string aggregate count() as n",
+  "key_fields": [
+   "content type in message",
+   "$d.context.url"
+  ],
+  "volume": "2026-11-02: crawl ~2.5k (pdf 862, png 180), scan ~114",
+  "noise": "BENIGN: non-HTML links are skipped by design",
+  "maps_to_sub_issues": [
+   "H4",
+   "C4"
+  ],
+  "discriminative": "low",
+  "notes": "Relevant only if a customer asks why PDFs aren't scanned, or the seed itself is a document."
+ },
+ {
+  "sig_id": "gcs_upload_rate_limited",
+  "where": "scan-worker",
+  "stage": "post-processing",
+  "message_pattern": "got error while trying to upload file to cloud. retry count: N, local path: ..., bucket: prod-mon-production, bucket path: prod-mon/tasks/<scanId>/results/crawl.json | error uploading file to bucket",
+  "templateid": [
+   "f7d37ce4-9da6-11f1-ae80-52ba2897bbec",
+   "0bc2dd8c-9b5c-11f1-a137-c2fc7991ad86"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && ($d.message ~ 'upload file to cloud' || $d.message ~ 'error uploading file to bucket') | extract $d.message:string into $d.x using regexp(e=/tasks\\/(?<sid>[0-9a-f-]+)\\//) | groupby $d.x.sid:string, substr($d.error.message:string,0,60) as e aggregate count() as n",
+  "key_fields": [
+   "$d.error.message (Retry limit exceeded - {error:{code:429 ...object mutation rate}})",
+   "scanId in bucket path"
+  ],
+  "volume": "2026-11-02: 388 + 62/day, from only 2 scans",
+  "noise": "Evinced-side; usually harmless if a later write succeeds. Signal if the same scan ends FAILED/incomplete.",
+  "maps_to_sub_issues": [
+   "E3",
+   "E1"
+  ],
+  "discriminative": "medium",
+  "notes": "GCS per-object mutation rate limit: crawl.json rewritten too often on big scans."
+ },
+ {
+  "sig_id": "benign_crawl_cap_grouping_full",
+  "where": "crawl-worker",
+  "stage": "crawl-discovery",
+  "message_pattern": "not handling request after reading it from the queue. reason: matching grouping <regex> is full | max number of successful visits was reached",
+  "templateid": [
+   "08e4a5d0-9b45-11f1-a536-52ef7929d954"
+  ],
+  "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $m.templateid == '08e4a5d0-9b45-11f1-a536-52ef7929d954' | groupby $d.context.url aggregate count() as n",
+  "key_fields": [
+   "grouping regex in message"
+  ],
+  "volume": "2026-11-02: 79.6k/day",
+  "noise": "BENIGN: the configured page/grouping cap working as intended",
+  "maps_to_sub_issues": [
+   "C3",
+   "C5"
+  ],
+  "discriminative": "low",
+  "notes": "Relevant only for 'why did the crawl stop at N pages' (grouping limits, C5)."
+ }
+]

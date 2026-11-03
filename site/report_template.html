@@ -1,0 +1,273 @@
+<title>Site Scanner Log Patterns</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600&display=swap">
+<style>
+/* Layout: one reading column with a sticky section nav; trees use connector rails; tables scroll inside their own box. */
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --fg:#1b2230; --muted:#5d6779; --line:#d5dae3; --accent:#1f5fbf; --accent-soft:#e6eefb;
+  --yes:#1d7a4d; --yes-bg:#e3f4ea; --maybe:#9a6a00; --maybe-bg:#fbf0d6; --no:#6b7280; --no-bg:#eceef2; --bad:#b42318; --bad-bg:#fde8e6;
+  --c1:#c2410c; --c2:#b91c1c; --c3:#7c3aed; --c4:#0e7490; --c5:#64748b;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11151c; --surface:#181d26; --fg:#e4e8ef; --muted:#97a1b3; --line:#2c3442; --accent:#7aa7ef; --accent-soft:#1d2b44;
+  --yes:#5fcf95; --yes-bg:#163126; --maybe:#e7b54a; --maybe-bg:#33290f; --no:#a3aab8; --no-bg:#262c37; --bad:#f28b82; --bad-bg:#3a1d1b;
+  --c1:#fb8a4f; --c2:#f87171; --c3:#b49af7; --c4:#4cc3dc; --c5:#a0aec0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151c; --surface:#181d26; --fg:#e4e8ef; --muted:#97a1b3; --line:#2c3442; --accent:#7aa7ef; --accent-soft:#1d2b44;
+  --yes:#5fcf95; --yes-bg:#163126; --maybe:#e7b54a; --maybe-bg:#33290f; --no:#a3aab8; --no-bg:#262c37; --bad:#f28b82; --bad-bg:#3a1d1b;
+  --c1:#fb8a4f; --c2:#f87171; --c3:#b49af7; --c4:#4cc3dc; --c5:#a0aec0; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1060px;margin:0 auto;padding-block:28px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--f-display);font-size:30px;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:23px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:16px;margin:18px 0 6px}
+p,li{max-width:74ch} .muted{color:var(--muted)} .small{font-size:13px}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin:18px 0 8px;display:flex;gap:2px;overflow-x:auto}
+nav.toc a{font-size:13.5px;font-weight:500;color:var(--muted);text-decoration:none;padding:9px 10px;white-space:nowrap;border-bottom:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--fg);border-bottom-color:var(--accent);outline:none}
+section{padding-top:30px;scroll-margin-top:52px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kpi b{display:block;font-family:var(--f-mono);font-size:22px;font-weight:500;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12.5px;color:var(--muted)}
+.callout{background:var(--accent-soft);border-radius:8px;padding:12px 14px;margin:12px 0;max-width:80ch}
+.chip{display:inline-flex;align-items:center;font-size:11.5px;font-weight:500;padding:1px 7px;border-radius:999px;white-space:nowrap}
+.ok{background:var(--yes-bg);color:var(--yes)} .part{background:var(--maybe-bg);color:var(--maybe)} .none{background:var(--no-bg);color:var(--no)} .bad{background:var(--bad-bg);color:var(--bad)}
+.gt{font-family:var(--f-mono);font-size:11px;padding:0 5px;border-radius:4px;border:1px solid currentColor}
+.gt1{color:var(--c1)} .gt2{color:var(--c2)} .gt3{color:var(--c3)} .gt4{color:var(--c4)} .gt5{color:var(--c5)}
+.sid{font-family:var(--f-mono);font-size:12px;color:var(--accent)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface);margin:10px 0}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 9px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;background:var(--bg)}
+td.num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.heat td.cell{text-align:center;font-family:var(--f-mono);font-variant-numeric:tabular-nums;min-width:44px}
+code,.mono{font-family:var(--f-mono);font-size:12px}
+.q{font-family:var(--f-mono);font-size:11.5px;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 8px;white-space:pre-wrap;word-break:break-word;margin:4px 0}
+.score{display:grid;grid-template-columns:minmax(150px,220px) 90px 1fr;gap:8px 14px;align-items:start;font-size:14px}
+.score>div{min-width:0}
+@media (max-width:600px){.score{grid-template-columns:1fr}}
+/* log tree */
+.lt details{background:var(--surface);border:1px solid var(--line);border-radius:8px;margin:8px 0}
+.lt summary{list-style:none;cursor:pointer;padding:10px 14px}
+.lt summary::-webkit-details-marker{display:none}
+.lt summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.l1t{font-weight:600;font-size:16px} .l1d{color:var(--muted);font-size:13.5px;display:block}
+.l2{margin:0 12px 12px 22px;border-left:2px solid var(--line);padding-left:14px}
+.l2 h4{margin:12px 0 2px;font-size:14.5px} .l2 .d{font-size:13px;color:var(--muted);margin:0 0 6px}
+.leaf{border-top:1px dashed var(--line);padding:8px 0;display:grid;grid-template-columns:62px 1fr;gap:2px 10px;font-size:13.5px}
+.leaf .t{font-weight:500} .leaf>div{min-width:0}
+.pat{font-family:var(--f-mono);font-size:11.5px;color:var(--fg);background:var(--bg);border-radius:4px;padding:3px 6px;margin:3px 0;word-break:break-word}
+.tag{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-right:3px;color:var(--muted);display:inline-block;max-width:100%;overflow-wrap:anywhere}
+.next{font-size:13px;color:var(--muted)}
+.cat details{border-bottom:1px solid var(--line)} .cat summary{cursor:pointer;padding:7px 0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13.5px}
+.cat .body{padding:2px 0 12px 12px;font-size:13px}
+button.copy{font:inherit;font-size:11.5px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:4px;padding:1px 8px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Site Scanner Log Patterns</h1>
+  <p class="muted">How the two issue trees relate, how far the root-cause tree can be called data-driven, and a third tree that classifies issues by how they show up in Coralogix — built from live log research and back-tested on real tickets. Written to be reviewed later; every number links back to files in the repo.</p>
+  <div class="kpis" id="kpis"></div>
+</header>
+<nav class="toc" aria-label="Sections">
+  <a href="#compare">Two views compared</a><a href="#data">Is it data-driven?</a><a href="#logtree">Log tree</a>
+  <a href="#crosswalk">Crosswalk</a><a href="#backtest">Back-test</a><a href="#catalog">Signature catalog</a><a href="#gaps">Gaps &amp; next steps</a><a href="#method">Method</a>
+</nav>
+
+<section id="compare">
+  <h2>Root-cause tree vs GT symptom classes</h2>
+  <p>The two views answer different questions. The <b>GT class</b> records <i>what the customer saw</i> (a failed scan, 0 pages, failed pages, odd page counts, anything else). The <b>root-cause tree</b> records <i>why it happened and who fixes it</i>. Each ticket has one of each, so they can be cross-tabulated.</p>
+  <div class="tbl"><table class="heat" id="heat"></table></div>
+  <p class="small muted">Cell = number of tickets. Shading = share of the GT class (row). Normalized mutual information between the views: <b id="nmi"></b> (0 = unrelated, 1 = the same partition).</p>
+  <h3>Where they look alike</h3>
+  <ul>
+    <li><b>GT 1 “scan/crawl failure” ≈ family E (platform).</b> 17 of 28 class-1 tickets (61%) are Evinced-side: outages, scheduler bugs, dispatch failures, limits. This is the strongest one-to-one link.</li>
+    <li><b>GT 2 “0 pages” ≈ B + C.</b> 18 of 25 (72%) are login (12) or crawl-scope (6) problems. Zero pages almost always means the crawler never got past the first page.</li>
+    <li><b>GT 3 “failed pages” ≈ A + D.</b> 10 of 14 (71%) are blocked pages or heavy/crashing pages.</li>
+    <li><b>GT 4 “crawl irregularities” ≈ A + C.</b> 22 of 29 (76%) are blocking/rate-limiting or scope configuration.</li>
+    <li><b>Families F, G, H ≈ subdivisions of GT 5.</b> 98%, 100% and 86% of them are class 5. For non-incident tickets the root-cause tree is simply a finer split of “Other”.</li>
+  </ul>
+  <h3>Where they differ</h3>
+  <ul>
+    <li><b>The same cause produces different symptoms.</b> Families A, B and H each appear in all five GT classes; 21 of the 42 sub-issues span more than one class. A WAF block (A1) shows up as “0 pages”, “failed pages”, “page count low” or “Other” depending on how much of the site it blocked.</li>
+    <li><b>“Other” hides incidents.</b> 53 of the 183 class-5 tickets (29%) are real crawl/scan/platform incidents (families A–E): logins that broke, blocks raised as configuration questions, outages reported as “Error loading”.</li>
+    <li><b>The GT classes are not exclusive at the edges.</b> Readers flagged <span id="doubts"></span> tickets whose GT class looks wrong or mixed (e.g. 1 page crawled filed as “0 pages”, a WFA bug filed under Site Scanner).</li>
+    <li><b>Different use.</b> GT classes are good for triage dashboards (what is the customer experiencing). They cannot drive a fix: “0 pages” spans 11 different sub-issues with different fixes. The root-cause tree is the right key for the investigator’s recommendation; the GT class is a useful prior.</li>
+  </ul>
+  <div class="callout"><b>Practical reading:</b> use the GT class as the entry point (symptom → shortlist of sub-issues, see the “By GT symptom class” tab of the taxonomy page), then use logs to pick the sub-issue. That is exactly the role of the log tree below.</div>
+</section>
+
+<section id="data">
+  <h2>Can the root-cause tree be called data-driven?</h2>
+  <p><b>Partly.</b> The labels are grounded in data; the structure is expert judgment checked against data. The honest description is <i>evidence-based, expert-structured, partially validated</i>. Scorecard:</p>
+  <div class="score" id="score"></div>
+  <h3>What would make it fully data-driven</h3>
+  <ol>
+    <li>Have a support engineer adjudicate the <span id="ndis"></span> disagreements of the blind re-label (listed below) and adjust definitions where both readings are defensible (A1 vs A4, B4 vs B1, E1 vs E5).</li>
+    <li>Label the next 50–100 tickets prospectively with the tree (support picks the sub-issue at close). Agreement and the share landing in H5 tell you whether the tree holds up.</li>
+    <li>Use the log tree as an independent signal: for tickets inside log retention, the log leaf that fires should agree with the sub-issue. The back-test is the first, small version of that.</li>
+    <li>Merge thin sub-issues (A6, A8, A9, C7 have one ticket each) or keep them only where they have a distinct fix and a distinct log signal.</li>
+  </ol>
+  <details class="small"><summary style="cursor:pointer">Blind re-label: all <span id="npairs"></span> pairs</summary><div class="tbl"><table id="pairs"></table></div></details>
+</section>
+
+<section id="logtree">
+  <h2>Log tree: how issues appear in the logs</h2>
+  <p>Three layers, written so a support engineer can walk it without knowing the code: <b>1 · Stage</b> — where in the run it went wrong; <b>2 · Symptom</b> — what the logs say, in plain words; <b>3 · Pattern</b> — the concrete log pattern, the root-cause sub-issues it points to, and what to check next. Signature ids link to the catalog with the ready-to-run DataPrime query.</p>
+  <div class="callout small"><b>Four rules before you search:</b> (1) Anchor on the time of the failing run, not the ticket date. (2) HTTP status lines are logged at <b>INFO</b> — never filter by ERROR when looking for blocks. (3) Match message text, not template ids (they change every release); in DataPrime <code>~ 'a|b'</code> is a literal substring — use separate <code>~</code> terms with <code>||</code>. (4) Judge by share within one job or host (e.g. 403 on most URLs), not by global counts: a few big sites dominate every error volume.</div>
+  <div class="lt" id="lt"></div>
+</section>
+
+<section id="crosswalk">
+  <h2>Crosswalk: root-cause sub-issue → log visibility</h2>
+  <p>For each sub-issue of the root-cause tree: which log-tree patterns point to it, and how well logs can identify it. <b>Pinpointed</b> = at least one pattern points only to this sub-issue. <b>Shared</b> = visible, but every pattern also points elsewhere (needs a second check). <b>Silent</b> = no log pattern today.</p>
+  <div class="tbl"><table id="cw"></table></div>
+</section>
+
+<section id="backtest">
+  <h2>Back-test on real tickets</h2>
+  <p>Tickets from inside log retention (May–Oct 2026) were looked up in Coralogix around the failing run. This is a small sample; it shows that the families are visible, and where sub-issues blur.</p>
+  <div class="kpis" id="btk"></div>
+  <div class="tbl"><table id="bt"></table></div>
+</section>
+
+<section id="catalog">
+  <h2>Signature catalog</h2>
+  <p>Every log signature found, with where it lives, its volume, how to tell signal from noise, and the DataPrime query. <b>Validated</b> shows whether the query was re-run and returned rows.</p>
+  <div class="cat" id="cat"></div>
+</section>
+
+<section id="gaps">
+  <h2>Gaps and next steps</h2>
+  <h3>Sub-issues the logs cannot see today, and the log line that would fix it</h3>
+  <div class="tbl"><table>
+    <tr><th>Sub-issue</th><th>Why it is invisible</th><th>Suggested logging change</th></tr>
+    <tr><td><span class="sid">A3</span> soft block, <span class="sid">A2</span> challenge page</td><td>Block pages return 200; page title and DOM size are not logged.</td><td>Log page title, DOM element count and a content hash per visited page; flag known challenge titles.</td></tr>
+    <tr><td><span class="sid">A4</span> static IP not enabled</td><td>Egress IP / use-static-ip flag not logged.</td><td>Log the resolved use-static-ip value and egress pool at job start.</td></tr>
+    <tr><td><span class="sid">A6</span> old user agent</td><td>Logged browser version (Chrome/126) is not the UA sent; the UA is only inside the config dump.</td><td>Log the effective user agent at job start as its own line.</td></tr>
+    <tr><td><span class="sid">A1/A5</span> blocks</td><td>Status lines are INFO and per page; a blocked page is treated as success.</td><td>Emit one WARN per job with counts by document status; mark pages with 4xx/5xx document status as failed.</td></tr>
+    <tr><td><span class="sid">B3</span> stale credentials vs <span class="sid">B5</span> session loss</td><td>No explicit login outcome line.</td><td>Log LOGIN_OK / LOGIN_FAILED(reason, final URL) after the interaction plugin.</td></tr>
+    <tr><td><span class="sid">A9</span> TLS errors</td><td>Browser ignores certificate errors.</td><td>Log certificate errors as warnings even when ignored.</td></tr>
+    <tr><td><span class="sid">E2</span> timezone bug</td><td>Next-run line has no time zone.</td><td>Include the property time zone in the next-run line.</td></tr>
+    <tr><td><span class="sid">F4</span> Jira/ADO</td><td>Integration calls are not logged in these services.</td><td>Log integration call outcome with tenant and target.</td></tr>
+  </table></div>
+  <h3>Suggested taxonomy changes from the log research</h3>
+  <ul>
+    <li><b>Add a sub-issue for worker-side engine package failures</b> (ENGINES_PLUGIN_ERROR with ENOENT/ENOTEMPTY/zlib, ~1,000/week): Evinced-side, currently mixed into D2 “engine crash”.</li>
+    <li><b>Add the content-type case bug</b> (“text/HTML; charset=utf-8 is not allowed”) as a product bug under C.</li>
+    <li><b>Rule for B2:</b> when a login selector fails, check the same job for 403/405 first — in #3301 the “missing selector” was really a blocked login page (A1).</li>
+  </ul>
+  <h3>Next steps</h3>
+  <ol>
+    <li>Turn the high-discrimination patterns (S1.1a, S1.2a, S1.3a, S2.1a, S3.1a/b, S3.2, S4.1, S4.2, S5.1a, S6.1a, S7.2) into saved Coralogix views or alerts keyed by property.</li>
+    <li>Give the investigator a per-property “run report” query: status-code histogram, final failure types, visited-page max, interaction errors and scope rejections for one job — most leaves are decided from those five numbers.</li>
+    <li>Extend the back-test to 40+ tickets once the run-time anchoring is scripted (most misses were runs outside the searched window).</li>
+  </ol>
+</section>
+
+<section id="method">
+  <h2>Method and caveats</h2>
+  <ul>
+    <li><b>Tickets:</b> 279 tickets from the “Site Scanner Ticket Classification” sheet; full Zendesk threads including internal notes. Labelled by 9 parallel readers into <span id="nraw"></span> free-text labels, then consolidated by hand into 42 sub-issues / 8 families (<code>scripts/taxonomy.py</code>).</li>
+    <li><b>Reproducibility:</b> a separate reader labelled 70 random tickets using only the definitions (no access to the first labels). Both readers are AI models, so agreement measures consistency of the definitions, not correctness.</li>
+    <li><b>Logs:</b> Coralogix (us2), applications site-scanner, admin, front. Four research passes (page-level, access & login, lifecycle & platform, back-test), ~150 queries, windows mostly 2026-10-27 → 11-03; back-test windows May–Oct 2026. Logs before ~June 2026 have a different format and are too thin for back-testing. A fifth pass re-ran every signature query.</li>
+    <li><b>Counts</b> reflect ticket volume (what customers reported), not incident frequency in production.</li>
+    <li><b>Files:</b> <code>data/ticket_labels.csv</code>, <code>data/taxonomy.json</code>, <code>data/analysis/agreement.json</code>, <code>data/logs/*.md|json</code>, <code>data/logtree.json</code>, <code>scripts/logtree.py</code>. Raw Zendesk threads are not committed (they contain credentials).</li>
+  </ul>
+</section>
+</div>
+
+<script id="payload" type="application/json">__DATA__</script>
+<script>
+const D=JSON.parse(document.getElementById("payload").textContent);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+const fams=D.tax.families, cls=['1','2','3','4','5'], CL=D.tax.gt_classes;
+const subs=fams.flatMap(f=>f.subs.map(s=>({...s,fam:f.id,famName:f.name})));
+const SUBN=Object.fromEntries(subs.map(s=>[s.id,s.name]));
+const sigs=Object.fromEntries(D.lt.signatures.map(s=>[s.sig_id,s]));
+const val=Object.fromEntries(D.lt.validated.map(v=>[v.sig_id,v]));
+const leaves=D.lt.tree.flatMap(a=>a.children.flatMap(b=>b.children.map(c=>({...c,l1:a,l2:b}))));
+const bt=D.lt.backtest;
+const vstat=id=>{const v=val[id]; if(!v) return '<span class="chip none">not re-run</span>';
+  const m={ok:'ok',fixed:'ok',ok_empty:'part',needs_param:'part',broken:'bad'}; return `<span class="chip ${m[v.status]||'none'}">${esc(v.status)}</span>`;};
+const subTag=s=>`<span class="tag" title="${esc(SUBN[s]||'')}">${s}</span>`;
+
+// KPIs
+const btYes=bt.filter(b=>b.evidence_found==='yes').length, btPart=bt.filter(b=>b.evidence_found==='partial').length;
+$('kpis').innerHTML=[
+ [279,'tickets analysed'],[D.nmi_f.toFixed(2),'NMI GT class ↔ family'],[`κ ${D.agr.sub[1].toFixed(2)}`,'blind re-label agreement (sub-issue)'],
+ [D.lt.signatures.length,'log signatures catalogued'],[`${leaves.length}`,'log-tree patterns (layer 3)'],[`${btYes+btPart}/${bt.length}`,'back-test cases with log evidence']
+].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('');
+
+// heat
+$('nmi').textContent=`${D.nmi_f.toFixed(2)} for families, ${D.nmi_s.toFixed(2)} for sub-issues`; $('doubts').textContent=D.doubts;
+let h='<tr><th>GT class</th>'+fams.map(f=>`<th title="${esc(f.name)}">${f.id}</th>`).join('')+'<th>Total</th></tr>';
+for(const c of cls){const tot=fams.reduce((a,f)=>a+(D.crosstab[c+'|'+f.id]||0),0);
+  h+=`<tr><td><span class="gt gt${c}">${c}</span> ${esc(CL[c])}</td>`+fams.map(f=>{const n=D.crosstab[c+'|'+f.id]||0;const p=n/tot;
+   return `<td class="cell" style="background:color-mix(in srgb, var(--accent) ${Math.round(p*70)}%, transparent);${p>.45?'color:var(--surface)':''}">${n||'·'}</td>`}).join('')+`<td class="num">${tot}</td></tr>`;}
+h+='<tr><td class="muted">Family</td>'+fams.map(f=>`<td class="small muted" style="min-width:70px">${esc(f.name)}</td>`).join('')+'<td></td></tr>';
+$('heat').innerHTML=h;
+
+// scorecard
+const S=[
+ ['Evidence per ticket','strong','ok',`Every one of the 279 tickets was labelled from its full Zendesk thread, including internal engineer notes, log excerpts and Jira links. 16 tickets have no established mechanism and sit in H5.`],
+ ['How categories were formed','judgment','part',`Bottom-up: ${D.raw_labels} free-text mechanism labels (most used once) were merged by hand into 42 sub-issues and 8 families. Grouping used domain reasoning (same mechanism, same fix), not a clustering algorithm, so the boundaries are a design choice.`],
+ ['Reproducibility','moderate–good','part',`A blind second reader agreed on ${Math.round(D.agr.sub[0]*100)}% of sub-issues (κ ${D.agr.sub[1].toFixed(2)}) and ${Math.round(D.agr.fam[0]*100)}% of families (κ ${D.agr.fam[1].toFixed(2)}) over ${D.agr.n} tickets. On the incident subset (A–E) agreement drops to 56% (κ 0.53); high-confidence labels agreed 94%, low-confidence 33%.`],
+ ['External validation (logs)','early','part',`Back-test: ${btYes+btPart} of ${bt.length} cases had log evidence; logs pointed at the same sub-issue in ${bt.filter(b=>b.agrees_with_root_cause==='yes').length}. Families are visible; several sub-issues inside A blur together.`],
+ ['Coverage and balance','uneven','part',`14 sub-issues have ≤3 tickets; H (account/noise) is the largest family. Counts reflect what customers reported over two years, not production incident rates.`],
+];
+$('score').innerHTML=S.map(([a,b,c,d])=>`<div><b>${a}</b></div><div><span class="chip ${c}">${b}</span></div><div class="muted">${d}</div>`).join('');
+const dis=D.agr.pairs.filter(p=>p[1]!==p[2]); $('ndis').textContent=dis.length; $('npairs').textContent=D.agr.pairs.length;
+$('pairs').innerHTML='<tr><th>Ticket</th><th>First label</th><th>Blind label</th><th>Blind confidence</th></tr>'+D.agr.pairs.sort((a,b)=>(a[1]===a[2])-(b[1]===b[2])).map(p=>
+ `<tr><td class="mono">${p[0]}</td><td>${subTag(p[1])} ${esc(SUBN[p[1]])}</td><td>${p[1]===p[2]?'<span class="chip ok">same</span>':subTag(p[2])+' '+esc(SUBN[p[2]])}</td><td>${p[3]}</td></tr>`).join('');
+
+// log tree
+$('lt').innerHTML=D.lt.tree.map(a=>`<details ${a.id!=='S8'?'open':''}><summary><span class="sid">${a.id}</span> <span class="l1t">${esc(a.title)}</span><span class="l1d">${esc(a.desc)}</span></summary>
+ <div class="l2">${a.children.map(b=>`<h4><span class="sid">${b.id}</span> ${esc(b.title)}</h4><p class="d">${esc(b.desc)}</p>
+  ${b.children.map(c=>`<div class="leaf"><div class="sid">${c.id}</div><div><div class="t">${esc(c.title)}</div>
+    <div class="pat">${esc(c.pattern)}</div>
+    <div>→ ${c.subs.map(subTag).join('')} ${c.sigs.map(s=>`<a class="tag" href="#sig-${s}">${s}</a>`).join('')}</div>
+    <div class="next">Next: ${esc(c.next)}</div></div></div>`).join('')}`).join('')}</div></details>`).join('');
+
+// crosswalk
+const inc=subs.filter(s=>s.count>0||true);
+const famOrder='ABCDEFGH';
+let cw='<tr><th>Sub-issue</th><th>Tickets</th><th>Log visibility</th><th>Log-tree patterns</th></tr>';
+for(const s of subs){
+  const L=leaves.filter(l=>l.subs.includes(s.id)); const real=L.filter(l=>l.l1.id!=='S8');
+  const pin=real.some(l=>l.subs.length===1);
+  const vis=real.length===0?'<span class="chip none">silent</span>':pin?'<span class="chip ok">pinpointed</span>':'<span class="chip part">shared</span>';
+  cw+=`<tr><td>${subTag(s.id)} ${esc(s.name)}</td><td class="num">${s.count}</td><td>${vis}</td><td class="small">${real.map(l=>`<span class="tag" title="${esc(l.title)}">${l.id}</span>`).join('')||'<span class="muted">—</span>'}</td></tr>`;}
+$('cw').innerHTML=cw;
+
+// backtest
+$('btk').innerHTML=[[bt.length,'cases (16 tickets)'],[btYes,'clear evidence'],[btPart,'partial evidence'],[bt.filter(b=>b.agrees_with_root_cause==='yes').length,'logs agree with sub-issue']].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('');
+const ev={yes:'ok',partial:'part',no:'none'};
+$('bt').innerHTML='<tr><th>Ticket</th><th>Sub-issue</th><th>Evidence</th><th>Agrees</th><th>What the logs showed</th></tr>'+bt.map(b=>
+ `<tr><td class="mono">${esc(b.ticket)}<div class="small muted">${esc(b.property_hint)}</div></td><td>${subTag(b.sub_id)}</td><td><span class="chip ${ev[b.evidence_found]||'none'}">${esc(b.evidence_found)}</span></td><td>${esc(b.agrees_with_root_cause)}</td>
+  <td class="small">${(b.signals||[]).slice(0,5).map(x=>`<div>• ${esc(x)}</div>`).join('')}<div class="muted">${esc(b.notes||'')}</div></td></tr>`).join('');
+
+// catalog
+const areas={page_level:'Page-level failures',access_auth:'Access, login & scope',lifecycle_platform:'Job lifecycle, platform & product'};
+const used=new Set(leaves.flatMap(l=>l.sigs));
+$('cat').innerHTML=Object.entries(areas).map(([k,n])=>`<h3>${n}</h3>`+D.lt.signatures.filter(s=>s.file===k).map(s=>{
+  const q=(val[s.sig_id]&&val[s.sig_id].query_final)||s.dataprime;
+  return `<details id="sig-${s.sig_id}"><summary><span class="mono">${esc(s.sig_id)}</span>${vstat(s.sig_id)}<span class="chip ${s.discriminative==='high'?'ok':s.discriminative==='medium'?'part':'none'}">${esc(s.discriminative)} discrimination</span>${used.has(s.sig_id)?'':'<span class="chip none">helper</span>'}<span>${(s.maps_to_sub_issues||[]).map(subTag).join('')}</span></summary>
+  <div class="body"><div><b>Where:</b> ${esc(s.where)} · <b>stage:</b> ${esc(s.stage)}</div>
+   <div class="pat">${esc(s.message_pattern)}</div>
+   <div><b>Key fields:</b> ${esc((s.key_fields||[]).join(', '))}</div>
+   <div><b>Volume:</b> ${esc(s.volume)}</div><div><b>Signal vs noise:</b> ${esc(s.noise)}</div>
+   ${s.notes?`<div><b>Notes:</b> ${esc(s.notes)}</div>`:''}
+   ${val[s.sig_id]&&val[s.sig_id].note?`<div><b>Validation:</b> ${esc(val[s.sig_id].note)}</div>`:''}
+   <div style="display:flex;gap:8px;align-items:center;margin-top:4px"><b>DataPrime</b><button class="copy" type="button" data-q="${esc(q)}">Copy</button></div><div class="q">${esc(q)}</div></div></details>`}).join('')).join('');
+document.addEventListener('click',e=>{const b=e.target.closest('button.copy'); if(!b) return;
+  navigator.clipboard.writeText(b.dataset.q).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1500)}).catch(()=>{const q=b.parentElement.nextElementSibling;const r=document.createRange();r.selectNodeContents(q);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);});});
+document.querySelectorAll('a[href^="#sig-"]').forEach(a=>a.addEventListener('click',()=>{const d=document.getElementById(a.getAttribute('href').slice(1)); if(d) d.open=true;}));
+$('nraw').textContent=D.raw_labels;
+</script>

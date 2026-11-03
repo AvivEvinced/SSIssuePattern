@@ -1,0 +1,2877 @@
+{
+ "tree": [
+  {
+   "id": "S1",
+   "title": "The run never started",
+   "desc": "No crawl or scan job appears at the scheduled time, or the property shows no new run.",
+   "children": [
+    {
+     "id": "S1.1",
+     "title": "Scheduler refused to create the run",
+     "desc": "admin/front log 'failed to create entity for property' with a reason in error.message.",
+     "children": [
+      {
+       "id": "S1.1a",
+       "title": "Licence expired or limit reached",
+       "pattern": "failed to create entity \u2026 + error.type LimitExceededException ('The license has expired')",
+       "sigs": [
+        "scheduler_failed_to_create_entity",
+        "limit_exceeded_license"
+       ],
+       "subs": [
+        "E4"
+       ],
+       "next": "Check the tenant licence / limit.running-scans-count in Retool.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S1.1b",
+       "title": "Property setup incomplete",
+       "pattern": "failed to create entity \u2026 + 'No URLs were supplied' / 'URL set not defined' / 'runner wait < 30s'",
+       "sigs": [
+        "scheduler_failed_to_create_entity"
+       ],
+       "subs": [
+        "C7",
+        "H3"
+       ],
+       "next": "Fix the property settings (seed list, runner wait).",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S1.1c",
+       "title": "Schedule points at a deleted property",
+       "pattern": "failed to create entity \u2026 + 'property not found'",
+       "sigs": [
+        "scheduler_failed_to_create_entity"
+       ],
+       "subs": [
+        "H5"
+       ],
+       "next": "Clean up the orphan schedule; usually harmless.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S1.2",
+     "title": "Schedule stuck or skipped",
+     "desc": "The next-run time is in the past or repeats; a duplicate-job error repeats every ~7.5 min.",
+     "children": [
+      {
+       "id": "S1.2a",
+       "title": "Same past slot keeps colliding",
+       "pattern": "duplicate key \u2026 key_type_constraint \u2026 JobEntity already exists \u2014 with a run time in the past, repeating",
+       "sigs": [
+        "scheduler_duplicate_jobentity"
+       ],
+       "subs": [
+        "E2"
+       ],
+       "next": "Current-slot duplicates are a harmless race between two schedulers; a past slot that repeats = stuck schedule.",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S1.2b",
+       "title": "Next run time looks wrong",
+       "pattern": "for property: <id>, the next schedule job time is: <time> \u2014 compare with the UI schedule",
+       "sigs": [
+        "scheduler_next_run"
+       ],
+       "subs": [
+        "E2"
+       ],
+       "next": "No time zone in the line: compare with the property's configured time zone.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S1.3",
+     "title": "Crawl request never reached the crawler",
+     "desc": "admin/front 'Failed running create crawl request'; scrape-server DB pool errors.",
+     "children": [
+      {
+       "id": "S1.3a",
+       "title": "Dispatch refused or timed out",
+       "pattern": "Failed running create crawl request for URL set \u2026 (+ scrape-server HikariPool Connection is not available)",
+       "sigs": [
+        "crawl_dispatch_failed"
+       ],
+       "subs": [
+        "E3"
+       ],
+       "next": "Evinced-side. Re-run; escalate if several properties are affected.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S2",
+   "title": "The run started but the job died",
+   "desc": "The job moved to FAILED, or stayed RUNNING until a timeout.",
+   "children": [
+    {
+     "id": "S2.1",
+     "title": "Many customers failing at the same time",
+     "desc": "Distinct tenants with errors per hour jumps far above the 0\u20135 baseline; worker log volume drops.",
+     "children": [
+      {
+       "id": "S2.1a",
+       "title": "Platform incident",
+       "pattern": "aggregate: distinct tenants with ERROR per hour (chronic noise excluded); scan-worker volume drop",
+       "sigs": [
+        "platform_incident_tenant_spread"
+       ],
+       "subs": [
+        "E1"
+       ],
+       "next": "Check status channel; tell the customer it is Evinced-side and re-run after the fix.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S2.2",
+     "title": "Job failed on Evinced infrastructure",
+     "desc": "Kubernetes job failure, job marked FAILED by the poller, or upload errors.",
+     "children": [
+      {
+       "id": "S2.2a",
+       "title": "Worker pod failed",
+       "pattern": "kubernetes job failed \u2026 reason=BackoffLimitExceeded (name = scanId)",
+       "sigs": [
+        "k8s_job_failed"
+       ],
+       "subs": [
+        "E3",
+        "E1"
+       ],
+       "next": "Often out-of-memory on huge sites; check page count / heavy pages (D1).",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S2.2b",
+       "title": "Job timed out and was marked FAILED",
+       "pattern": "Sampling scan with ID=\u2026 passed its timeout, marking it as FAILED / job \u2026 changed state to: FAILED",
+       "sigs": [
+        "scan_status_timeout_failed",
+        "job_state_failed"
+       ],
+       "subs": [
+        "E3",
+        "E1"
+       ],
+       "next": "Look at the same job's crawl/scan logs: was it stuck on blocked pages (S3) or idle?",
+       "validated": [
+        "ok",
+        "fixed"
+       ]
+      },
+      {
+       "id": "S2.2c",
+       "title": "Engine package failed to load on the worker",
+       "pattern": "ENGINES_PLUGIN_ERROR \u2026 ENOENT / ENOTEMPTY / zlib",
+       "sigs": [
+        "engines_plugin_error_worker_fs"
+       ],
+       "subs": [
+        "E3"
+       ],
+       "next": "Evinced-side race on the worker; not the customer's page. New sub-issue candidate.",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S2.2d",
+       "title": "Result upload throttled",
+       "pattern": "got error while trying to upload file to cloud \u2026 (GCS 429)",
+       "sigs": [
+        "gcs_upload_rate_limited"
+       ],
+       "subs": [
+        "E3"
+       ],
+       "next": "Harmless if a later write succeeds; signal only when the scan ends incomplete.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S3",
+   "title": "The site did not serve the pages",
+   "desc": "Pages came back with an error status, a network error, or never finished loading.",
+   "children": [
+    {
+     "id": "S3.1",
+     "title": "The site answered with an error status",
+     "desc": "'http status code is: N' \u2014 logged at INFO, so error-level filters miss it. Look at the share per job/host.",
+     "children": [
+      {
+       "id": "S3.1a",
+       "title": "Mostly 403 / 405",
+       "pattern": "http status code is: 403|405 on most URLs of the job (often 1 page visited)",
+       "sigs": [
+        "http_status_non200",
+        "http_status_doc_non200"
+       ],
+       "subs": [
+        "A1",
+        "A4",
+        "A2",
+        "A6"
+       ],
+       "next": "Blocked. Check: is static IP on for the property? Is a custom header set (extraHeaders)? Which user agent is sent (config dump)?",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.1b",
+       "title": "Many 429",
+       "pattern": "http status code is: 429 across many URLs",
+       "sigs": [
+        "http_status_non200",
+        "http_status_doc_non200"
+       ],
+       "subs": [
+        "A5"
+       ],
+       "next": "Rate limited: move to speed-tier slow, check sibling properties scheduled at the same time.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.1c",
+       "title": "202 bursts",
+       "pattern": "http status code is: 202 on many URLs",
+       "sigs": [
+        "http_status_doc_non200"
+       ],
+       "subs": [
+        "A2"
+       ],
+       "next": "Likely a bot-manager 'please wait' interstitial (unconfirmed).",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.1d",
+       "title": "401 on pages after login",
+       "pattern": "http status code is: 401 / browser 401 errors after a successful login step",
+       "sigs": [
+        "http_status_doc_non200",
+        "browser_resource_status"
+       ],
+       "subs": [
+        "B5"
+       ],
+       "next": "Session lost: check parallelism and whether logout URLs are crawled.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.1e",
+       "title": "Many 404 / redirect to an error page",
+       "pattern": "http status code is: 404, or final url \u2026 /404 /500",
+       "sigs": [
+        "http_status_doc_non200",
+        "final_url_login_or_error_landing"
+       ],
+       "subs": [
+        "C4"
+       ],
+       "next": "Seed or listed URLs are dead or redirect to an error page.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S3.2",
+     "title": "Network-level error on the page itself",
+     "desc": "'got error while scraping net::ERR_\u2026' (not the [browser] sub-resource lines, which are background noise).",
+     "children": [
+      {
+       "id": "S3.2a",
+       "title": "Connection reset / refused",
+       "pattern": "net::ERR_CONNECTION_RESET | ERR_CONNECTION_REFUSED at <url>",
+       "sigs": [
+        "page_level_net_error_inline",
+        "scrape_net_error_inline"
+       ],
+       "subs": [
+        "A1"
+       ],
+       "next": "Firewall dropping scanner traffic; allowlist the static IPs.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.2b",
+       "title": "Redirect loop",
+       "pattern": "net::ERR_TOO_MANY_REDIRECTS",
+       "sigs": [
+        "page_level_net_error_inline",
+        "scrape_net_error_inline"
+       ],
+       "subs": [
+        "A8"
+       ],
+       "next": "Customer-side redirect rule (often staging/auth gateways).",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.2c",
+       "title": "Host does not resolve",
+       "pattern": "failed due to DNS_ERROR_COULD_NOT_FIND_URL",
+       "sigs": [
+        "final_type_misc",
+        "page_failed_due_to_reason"
+       ],
+       "subs": [
+        "C4"
+       ],
+       "next": "Internal or mistyped host in the seed list.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S3.3",
+     "title": "Pages never finished loading",
+     "desc": "'all attempts to scrape url had failed' with type OPEN_PAGE_TIMEOUT (one line per failed URL).",
+     "children": [
+      {
+       "id": "S3.3a",
+       "title": "Almost every URL of the host times out",
+       "pattern": "OPEN_PAGE_TIMEOUT on most URLs of one job",
+       "sigs": [
+        "scrape_final_failure_by_type",
+        "open_page_timeout",
+        "page_failed_due_to_reason"
+       ],
+       "subs": [
+        "A1",
+        "A5",
+        "A2"
+       ],
+       "next": "Behaves like a tarpit/block: treat as S3.1a \u2014 check static IP and allowlisting.",
+       "validated": [
+        "ok",
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S3.3b",
+       "title": "A few heavy URLs time out",
+       "pattern": "OPEN_PAGE_TIMEOUT or gotoURL > 40000/60000 ms on a handful of URLs",
+       "sigs": [
+        "open_page_timeout",
+        "goto_url_timeout"
+       ],
+       "subs": [
+        "D1"
+       ],
+       "next": "Exclude those URLs or raise timeouts. gotoURL lines are per attempt (~2.8/URL) \u2014 don't count them as failures.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S3.4",
+     "title": "The browser landed somewhere unexpected",
+     "desc": "'final url after redirections' or the interaction error url is another country/site page.",
+     "children": [
+      {
+       "id": "S3.4a",
+       "title": "Geo redirect",
+       "pattern": "final url / error.url contains out-of-country (or a different country site)",
+       "sigs": [
+        "interaction_landed_on_login_or_geo",
+        "final_url_login_or_error_landing"
+       ],
+       "subs": [
+        "A7"
+       ],
+       "next": "Geo-blocking of US egress; customer must allowlist.",
+       "validated": [
+        "fixed",
+        "ok"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S4",
+   "title": "The scanner could not log in or stay logged in",
+   "desc": "The property has a login; failures show in the page-interaction plugin.",
+   "children": [
+    {
+     "id": "S4.1",
+     "title": "A login element was not found",
+     "desc": "'No element found for selector: <sel>' with the url the browser was on.",
+     "children": [
+      {
+       "id": "S4.1a",
+       "title": "Selector missing on the expected login page",
+       "pattern": "No element found for selector \u2026 + error.url = the login page; PAGE_INTERACTION_PLUGIN_ERROR",
+       "sigs": [
+        "interaction_selector_not_found",
+        "interaction_selector_missing"
+       ],
+       "subs": [
+        "B2"
+       ],
+       "next": "First check the same job for 403/405 (S3.1a) \u2014 a blocked login page also 'loses' the selector. Otherwise update the selector.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S4.1b",
+       "title": "Selector missing because the browser is on an MFA page",
+       "pattern": "No element found \u2026 + error.url / final url matches mfa|otp|challenge",
+       "sigs": [
+        "interaction_selector_missing",
+        "final_url_login_or_error_landing"
+       ],
+       "subs": [
+        "B1"
+       ],
+       "next": "MFA cannot be automated: test user without MFA or IP-based bypass.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S4.1c",
+       "title": "Invalid selector syntax",
+       "pattern": "'<sel>' is not a valid selector",
+       "sigs": [
+        "interaction_selector_missing"
+       ],
+       "subs": [
+        "B2"
+       ],
+       "next": "Fix the selector syntax in the login config.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S4.2",
+     "title": "The login step ran too long",
+     "desc": "'bound handleRequest execution took more than 300000 ms'.",
+     "children": [
+      {
+       "id": "S4.2a",
+       "title": "Multi-step login hit the hard cap",
+       "pattern": "Function: bound handleRequest execution took more than 300000 milliseconds",
+       "sigs": [
+        "handle_request_hard_cap"
+       ],
+       "subs": [
+        "B4",
+        "D1"
+       ],
+       "next": "Needs a backend Multiple Interactions script, or longer waits per step.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S4.3",
+     "title": "Pages bounce back to the login page",
+     "desc": "Visited pages' final URL is /login, /guest, /authenticate after login succeeded.",
+     "children": [
+      {
+       "id": "S4.3a",
+       "title": "Session dropped mid-crawl",
+       "pattern": "final url after redirections: \u2026/login|guest|authenticate (high share in one job)",
+       "sigs": [
+        "final_url_login_or_error_landing",
+        "interaction_landed_on_login_or_geo"
+       ],
+       "subs": [
+        "B5",
+        "B3"
+       ],
+       "next": "Logs can't tell expired password (B3) from session loss (B5): ask whether the password changed; else parallelism=1 and exclude logout URLs.",
+       "validated": [
+        "ok",
+        "fixed"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S5",
+   "title": "The crawl kept the wrong set of URLs",
+   "desc": "Pages loaded fine, but the crawl ended with too few, too many, or the wrong URLs.",
+   "children": [
+    {
+     "id": "S5.1",
+     "title": "URLs were rejected by the scope rules",
+     "desc": "'not including url in result url set. reason: \u2026' \u2014 most reasons are normal bookkeeping.",
+     "children": [
+      {
+       "id": "S5.1a",
+       "title": "Seed rejected: final URL outside the whitelist",
+       "pattern": "reason: final url not included in whitelist \u2014 on the seed or on every URL of the job",
+       "sigs": [
+        "not_included_whitelist"
+       ],
+       "subs": [
+        "C2",
+        "C1"
+       ],
+       "next": "Seed redirects to another host/path: add it to the whitelist or use the final URL as seed.",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S5.1b",
+       "title": "Every URL rejected by the language filter",
+       "pattern": "reason: language is not included in whitelist \u2014 on every URL",
+       "sigs": [
+        "not_included_other_reasons"
+       ],
+       "subs": [
+        "C1"
+       ],
+       "next": "Locale filter doesn't match the site's language tags.",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S5.1c",
+       "title": "Content type rejected (case bug)",
+       "pattern": "content type text/HTML; charset=utf-8 is not allowed",
+       "sigs": [
+        "not_included_other_reasons"
+       ],
+       "subs": [
+        "C4"
+       ],
+       "next": "Likely a case-sensitivity bug in the content-type check \u2014 escalate.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S5.2",
+     "title": "The crawl ended almost empty",
+     "desc": "The highest 'successfully visited N pages so far' for the job is 0\u20131.",
+     "children": [
+      {
+       "id": "S5.2a",
+       "title": "1 page and nothing filtered out",
+       "pattern": "max visited \u2264 1 and 'filtered out: 0 urls', no errors",
+       "sigs": [
+        "crawl_visited_counter",
+        "filtered_out_links"
+       ],
+       "subs": [
+        "C6",
+        "A2",
+        "A3"
+       ],
+       "next": "Either the page has no real links (JS navigation \u2192 List mode) or it is a challenge/block page served as 200.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S5.2b",
+       "title": "1 page with blocks or rejections",
+       "pattern": "max visited \u2264 1 plus S3.1a or S5.1a lines in the same job",
+       "sigs": [
+        "crawl_visited_counter"
+       ],
+       "subs": [
+        "A1",
+        "C2"
+       ],
+       "next": "Follow the branch the companion lines point to.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S5.3",
+     "title": "The crawl hit a configured cap",
+     "desc": "'matching grouping \u2026 is full' / 'max number of successful visits was reached' \u2014 background, by design.",
+     "children": [
+      {
+       "id": "S5.3a",
+       "title": "Page or grouping cap reached",
+       "pattern": "not handling request \u2026 reason: max number of successful visits was reached | matching grouping \u2026 is full",
+       "sigs": [
+        "benign_crawl_cap_grouping_full"
+       ],
+       "subs": [
+        "C5",
+        "C3"
+       ],
+       "next": "Explains 'fewer pages than expected': raise maxPagesCount or loosen grouping rules.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S5.4",
+     "title": "The property configuration itself is the clue",
+     "desc": "The crawler logs its full config once per job ('crawler config is: {\u2026}').",
+     "children": [
+      {
+       "id": "S5.4a",
+       "title": "Old user agent / no custom header / wrong scope",
+       "pattern": "config is: { \u2026 --user-agent=\u2026Chrome/65 \u2026 extraHeaders: null \u2026 whitelist \u2026 }",
+       "sigs": [
+        "config_dump_user_agent"
+       ],
+       "subs": [
+        "A6",
+        "A1",
+        "C1",
+        "C2"
+       ],
+       "next": "Context, not an error. Contains credentials \u2014 read only the fields you need, never paste it into a ticket.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S6",
+   "title": "Pages loaded but the analysis failed",
+   "desc": "The page opened, but the accessibility engines or plugins errored.",
+   "children": [
+    {
+     "id": "S6.1",
+     "title": "The engine crashed on the page",
+     "desc": "'failed due to FAILED_TO_RUN_ENGINES' with a stack trace.",
+     "children": [
+      {
+       "id": "S6.1a",
+       "title": "Engine error on specific DOMs",
+       "pattern": "{\"type\":\"FAILED_TO_RUN_ENGINES\", \u2026 stackTrace \u2026}",
+       "sigs": [
+        "engine_crash_failed_to_run_engines"
+       ],
+       "subs": [
+        "D2"
+       ],
+       "next": "Exclude the page as a workaround; open an engine bug with the URL and stack trace.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S6.2",
+     "title": "A plugin step hung",
+     "desc": "PLUGIN_TIMEOUT / 'bound run execution took more than'.",
+     "children": [
+      {
+       "id": "S6.2a",
+       "title": "Plugin timeout on heavy pages",
+       "pattern": "failed due to PLUGIN_TIMEOUT | Function: bound run execution took more than N ms",
+       "sigs": [
+        "plugin_run_timeout",
+        "final_type_misc"
+       ],
+       "subs": [
+        "D1",
+        "D2"
+       ],
+       "next": "Heavy page; same handling as S3.3b.",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S6.3",
+     "title": "The page changed while being analysed",
+     "desc": "'Execution context was destroyed' / 'frame was detached'.",
+     "children": [
+      {
+       "id": "S6.3a",
+       "title": "Navigation during analysis",
+       "pattern": "Execution context was destroyed, most likely because of a navigation",
+       "sigs": [
+        "nav_instability_context_destroyed"
+       ],
+       "subs": [
+        "D3"
+       ],
+       "next": "Pop-ups or late redirects; findings may vary between runs.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S7",
+   "title": "Problems after the scan",
+   "desc": "The scan finished, but results, exports, emails or the UI fail.",
+   "children": [
+    {
+     "id": "S7.1",
+     "title": "The UI is slow or errors ('Error loading scan')",
+     "desc": "Controller calls logged with durations; failures with the request URI.",
+     "children": [
+      {
+       "id": "S7.1a",
+       "title": "Slow API call",
+       "pattern": "invocation of function (<Controller>.<method>) took N millis (WARNING > ~10 s)",
+       "sigs": [
+        "api_slow_controller_call"
+       ],
+       "subs": [
+        "E5"
+       ],
+       "next": "Heavy View / huge property; simplify the View.",
+       "validated": [
+        "ok"
+       ]
+      },
+      {
+       "id": "S7.1b",
+       "title": "API call failed",
+       "pattern": "invocation of function (\u2026) failed (<Exception>: \u2026) \u2014 NotFound (deleted scan/view), NPE, 5xx",
+       "sigs": [
+        "api_controller_failed"
+       ],
+       "subs": [
+        "E5",
+        "F3"
+       ],
+       "next": "NotFound = deleted object or stale link; other exceptions = product bug.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S7.2",
+     "title": "Export or email not delivered",
+     "desc": "Export poller and email sender log their failures.",
+     "children": [
+      {
+       "id": "S7.2a",
+       "title": "Export generation failed",
+       "pattern": "failed to generate CSV|XLSX for scan \u2026 (poller timeout | poll request failed) / publish to queue \u2026-csv failed",
+       "sigs": [
+        "export_generation_failed",
+        "csv_queue_publish_failed"
+       ],
+       "subs": [
+        "F1"
+       ],
+       "next": "Scan deleted or queue down; note the onFailed() bug hides the failure from the user.",
+       "validated": [
+        "ok",
+        "ok_empty"
+       ]
+      },
+      {
+       "id": "S7.2b",
+       "title": "Completion email failed",
+       "pattern": "Failed to send (crawl|scan) completion email for \u2026",
+       "sigs": [
+        "completion_email_failed"
+       ],
+       "subs": [
+        "F1"
+       ],
+       "next": "Property deleted or SendGrid unavailable.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    },
+    {
+     "id": "S7.3",
+     "title": "Integration or MCP errors",
+     "desc": "Only MCP leaves a trace in these services.",
+     "children": [
+      {
+       "id": "S7.3a",
+       "title": "MCP caller rejected",
+       "pattern": "An invalid request caller ID was received: MCP",
+       "sigs": [
+        "mcp_invalid_caller_id"
+       ],
+       "subs": [
+        "F4"
+       ],
+       "next": "Jira/ADO calls are not logged here at all.",
+       "validated": [
+        "ok"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "S8",
+   "title": "No trace in the logs",
+   "desc": "These problems are real but leave no distinctive log line today; diagnose them another way.",
+   "children": [
+    {
+     "id": "S8.1",
+     "title": "Looks normal in the logs",
+     "desc": "Status 200, no errors \u2014 the problem is in the page content or the UI.",
+     "children": [
+      {
+       "id": "S8.1a",
+       "title": "Soft block (block page with 200)",
+       "pattern": "nothing: page title / DOM size are not logged",
+       "sigs": [],
+       "subs": [
+        "A3"
+       ],
+       "next": "Look at the scan's screenshots / issue spike on landmark & H1 rules.",
+       "validated": []
+      },
+      {
+       "id": "S8.1b",
+       "title": "Static IP not used",
+       "pattern": "nothing: the egress IP is not logged",
+       "sigs": [],
+       "subs": [
+        "A4"
+       ],
+       "next": "Check the property's use-static-ip flag in Retool.",
+       "validated": []
+      },
+      {
+       "id": "S8.1c",
+       "title": "TLS certificate error",
+       "pattern": "nothing: the browser ignores certificate errors",
+       "sigs": [],
+       "subs": [
+        "A9"
+       ],
+       "next": "Open the site in a browser and check the certificate.",
+       "validated": []
+      },
+      {
+       "id": "S8.1d",
+       "title": "Grouping merges or splits pages",
+       "pattern": "nothing beyond page counts",
+       "sigs": [],
+       "subs": [
+        "C5"
+       ],
+       "next": "Review grouping rules against the URL list.",
+       "validated": []
+      },
+      {
+       "id": "S8.1e",
+       "title": "UI, export semantics, findings, account questions",
+       "pattern": "nothing in server logs",
+       "sigs": [],
+       "subs": [
+        "F2",
+        "F3",
+        "G1",
+        "G2",
+        "G3",
+        "G4",
+        "H1",
+        "H2",
+        "H3",
+        "H4"
+       ],
+       "next": "Handle from the product and the ticket text.",
+       "validated": []
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "signatures": [
+  {
+   "sig_id": "scrape_final_failure_by_type",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation|scan-page",
+   "message_pattern": "all attempts to scrape url had failed",
+   "templateid": [
+    "9b5222f0-9b48-11f1-bb8a-4206745c74cb (crawl)",
+    "0d569b2a-9b5c-11f1-a137-c2fc7991ad86 (scan)"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message == 'all attempts to scrape url had failed' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $l.subsystemname, $d.u.host:string as host, $d.ej.type:string as etype aggregate count() as n | orderby n desc",
+   "key_fields": [
+    "$d.error.message (JSON: type, additionalInfo.stackTrace)",
+    "$d.context.url",
+    "$d.context.request_id"
+   ],
+   "volume": "2026-11-02 24h: crawl 5,488, scan 59. Types: OPEN_PAGE_TIMEOUT 5,502; FAILED_TO_RUN_ENGINES 20; DNS_ERROR_COULD_NOT_FIND_URL 13; INTERNAL_ERROR 10; PAGE_INTERACTION_PLUGIN_ERROR 4",
+   "noise": "This is the one record per URL that really failed (not a retry). Volume is dominated by a few hosts (www.aa.com 82% of OPEN_PAGE_TIMEOUT). Signal = failure share for the ticket's property/host.",
+   "maps_to_sub_issues": [
+    "D1",
+    "A1",
+    "A2",
+    "A5",
+    "D2",
+    "B2",
+    "B4",
+    "C4"
+   ],
+   "discriminative": "medium",
+   "notes": "Route by .type: OPEN_PAGE_TIMEOUT -> D1 if few URLs on a healthy host, A1/A2 if most of the host fails; FAILED_TO_RUN_ENGINES -> D2; DNS_ERROR_COULD_NOT_FIND_URL -> C4 (bad host); PAGE_INTERACTION_PLUGIN_ERROR -> B2/B4; INTERNAL_ERROR -> product bug.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "open_page_timeout",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation|scan-page",
+   "message_pattern": "all attempts to scrape url had failed + $d.error.message {\"type\":\"OPEN_PAGE_TIMEOUT\"}",
+   "templateid": [
+    "9b5222f0-9b48-11f1-bb8a-4206745c74cb",
+    "0d569b2a-9b5c-11f1-a137-c2fc7991ad86"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message == 'all attempts to scrape url had failed' && $d.error.message:string ~ 'OPEN_PAGE_TIMEOUT' | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host aggregate count() as n",
+   "key_fields": [
+    "$d.context.url",
+    "$d.context.request_id"
+   ],
+   "volume": "2026-11-02 24h: crawl 5,475, scan 27 (www.aa.com 4,513, www.pearson.com 488, www.vrbo.com 231, www.ynet.co.il 211)",
+   "noise": "Chronic background on a few big sites. Signal when the ticket's host is >~20% of its URLs, or new compared with earlier runs.",
+   "maps_to_sub_issues": [
+    "D1",
+    "A1",
+    "A2",
+    "A5"
+   ],
+   "discriminative": "low",
+   "notes": "Disambiguate with http status lines (403/429 -> A1/A5), host-wide vs few URLs (A vs D1), and the page title/'Just a moment'.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "goto_url_timeout",
+   "where": "crawl-worker (60 s), scan-worker (40 s)",
+   "stage": "crawl-navigation|scan-page",
+   "message_pattern": "encountered error while running a function with timeout. retry count: N + $d.error.message errorDescription 'Error. Function: gotoURL execution took more than (60000|40000) miliseconds'",
+   "templateid": [
+    "9b5233c6-9b48-11f1-bb8a-4206745c74cb (crawl)",
+    "23a24bcc-b0f1-11f1-8b5b-aedcf7151837 (crawl)",
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06 (scan)",
+    "39c41d74-a19a-11f1-bb7e-fe51798b3aa3 (scan)",
+    "cc617b84-aca0-11f1-bdf3-7e52220ca26c (scan)"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'encountered error while running a function with timeout' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $l.subsystemname, $d.ej.errorDescription:string as d aggregate count() as n, approx_count_distinct($d.context.request_id) as urls",
+   "key_fields": [
+    "$d.error.message.errorDescription",
+    "$d.context.request_id",
+    "$d.context.url"
+   ],
+   "volume": "2026-11-02 24h: crawl gotoURL>60000 17,263 attempts / 6,126 URLs; scan gotoURL>40000 157 / 104 URLs",
+   "noise": "Per-ATTEMPT record (~2.8 per URL). Do not count it as failures; a URL that recovers on retry emits this but no all-attempts record. Use all-attempts for failures.",
+   "maps_to_sub_issues": [
+    "D1",
+    "A1",
+    "A2",
+    "A5"
+   ],
+   "discriminative": "low",
+   "notes": "Zendesk 'gotoURL ... 40000' is the scan-worker limit; crawl uses 60000.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "plugin_run_timeout",
+   "where": "scan-worker",
+   "stage": "engine",
+   "message_pattern": "encountered error while running a function with timeout + errorDescription 'Function: bound run execution took more than (20000|30000|60000|90000|120000) miliseconds'",
+   "templateid": [
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.message ~ 'encountered error while running a function with timeout' && $d.error.message:string ~ 'bound run execution' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $d.ej.errorDescription:string aggregate count() as n",
+   "key_fields": [
+    "$d.error.message.errorDescription",
+    "$d.context.url"
+   ],
+   "volume": "2026-11-02 24h: 21",
+   "noise": "Rare; each one is a real page whose engine/plugin step hung",
+   "maps_to_sub_issues": [
+    "D2",
+    "D1",
+    "B2"
+   ],
+   "discriminative": "medium",
+   "notes": "Timeout value names the plugin step (20 s and 30 s are probably interaction/stabilise, 90/120 s the engines). Pair with 'got error while running plugin'.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "handle_request_hard_cap",
+   "where": "scan-worker (crawl too)",
+   "stage": "scan-page|login",
+   "message_pattern": "errorDescription 'Function: bound handleRequest execution took more than 300000 miliseconds'",
+   "templateid": [
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') && $d.error.message:string ~ 'bound handleRequest execution took more than'",
+   "key_fields": [
+    "$d.error.message",
+    "$d.context.url"
+   ],
+   "volume": "2026-11-02 24h: 2",
+   "noise": "Rare, always signal",
+   "maps_to_sub_issues": [
+    "B4",
+    "D1"
+   ],
+   "discriminative": "medium",
+   "notes": "5-minute whole-page cap; on a login URL it points to a multi-step login (B4).",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "http_status_non200",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation|scan-page",
+   "message_pattern": "http status code is: <N>  (Info severity)",
+   "templateid": [
+    "33948266-9cb5-11f1-92dd-be037f26c345 (crawl)",
+    "f8cdaba4-9af1-11f1-a148-2267a7afc7c0 (scan)",
+    "b9b9265a-9cf4-11f1-9545-4a96456cf580 (scan)"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host, $d.x.code:string as code aggregate count() as n | orderby n desc",
+   "key_fields": [
+    "status code in $d.message",
+    "$d.context.url",
+    "$d.context.request_id"
+   ],
+   "volume": "6h 2026-11-02 06-12Z: 200 ~9.6k; 403 668; 404 333; 429 157; 504 35; 400 11; 502 4. 12h: 403 www.huntington.com 642; 429 collegeboard.org ~135",
+   "noise": "Info level, the page is NOT failed: the error/block page is scanned. Scattered 404s are normal; the signal is a high non-200 ratio for one host.",
+   "maps_to_sub_issues": [
+    "A1",
+    "A5",
+    "C4",
+    "B5",
+    "E1"
+   ],
+   "discriminative": "high",
+   "notes": "403/405 -> A1; 429 -> A5; 404 on seeds -> C4; 401 -> B5; 5xx on customer host -> customer outage (C4-ish). Filter with != '200' on the extracted code (character classes inside ~ did not match).",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "browser_subresource_net_err",
+   "where": "crawl-worker, scan-worker",
+   "stage": "scan-page",
+   "message_pattern": "[browser] [error] Failed to load resource: net::ERR_<X>",
+   "templateid": [],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'Failed to load resource: net::ERR_' | extract $d.message:string into $d.x using regexp(e=/(?<code>net::ERR_[A-Z0-9_]+)/) | groupby $l.subsystemname, $d.x.code:string aggregate count() as n",
+   "key_fields": [
+    "net::ERR code in message",
+    "$d.context.url"
+   ],
+   "volume": "6h: ERR_FAILED ~16.7k, ERR_HTTP2_PROTOCOL_ERROR 309, ERR_NAME_NOT_RESOLVED 54, ERR_CONNECTION_RESET 47, ERR_CONNECTION_CLOSED 10",
+   "noise": "BENIGN background: page sub-resources (trackers, blocked third parties). Ignore unless ERR_HTTP2_SERVER_REFUSED_STREAM / ERR_CERT_* or nearly every request for one host fails.",
+   "maps_to_sub_issues": [
+    "D3",
+    "A5"
+   ],
+   "discriminative": "low",
+   "notes": "ERR_HTTP2_SERVER_REFUSED_STREAM -> A5; not seen in this window.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "interaction_selector_not_found",
+   "where": "crawl-worker, scan-worker",
+   "stage": "login|scan-page",
+   "message_pattern": "encountered error while running a function with timeout + $d.error.message {\"url\":\"<page url>\",\"message\":\"No element found for selector: <sel>\"}",
+   "templateid": [
+    "9b5233c6-9b48-11f1-bb8a-4206745c74cb",
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06",
+    "23a24bcc-b0f1-11f1-8b5b-aedcf7151837"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ 'No element found for selector' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $l.subsystemname, $d.ej.message:string as msg, $d.ej.url:string as final_url aggregate count() as n, approx_count_distinct($d.context.url) as urls | orderby n desc",
+   "key_fields": [
+    "$d.error.message.url (where the browser actually was)",
+    "$d.error.message.message (selector)",
+    "$d.context.url"
+   ],
+   "volume": "7d 2026-10-27..11-02: .truste-close-button-img 4,615 (goldmansachs, 524 URLs); #username 299 (61 URLs); login-form button 172; #name 44",
+   "noise": "Always signal for the property. The final-type rollup is PAGE_INTERACTION_PLUGIN_ERROR (509 on 10-28).",
+   "maps_to_sub_issues": [
+    "B2",
+    "B5",
+    "B4",
+    "A7"
+   ],
+   "discriminative": "high",
+   "notes": "url=about:blank or same page -> B2 selector mismatch; url=/login|/guest|SSO host mid-crawl -> B5 session lost or B4 flow; url=out-of-country page -> A7.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "interaction_landed_on_login_or_geo",
+   "where": "crawl-worker, scan-worker",
+   "stage": "login|crawl-navigation",
+   "message_pattern": "$d.error.message {\"url\":\"https://.../(login|guest|authenticate|out-of-country)...\",\"message\":...}",
+   "templateid": [
+    "9b5233c6-9b48-11f1-bb8a-4206745c74cb",
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ '\"url\":' | extract $d.error.message:string into $d.ej using jsonobject() | filter $d.ej.url:string ~ 'login' || $d.ej.url:string ~ 'guest' || $d.ej.url:string ~ 'authenti' || $d.ej.url:string ~ 'out-of-country' | groupby $d.ej.url:string aggregate count() as n, any_value($d.context.url) as page",
+   "key_fields": [
+    "$d.error.message.url",
+    "$d.context.url"
+   ],
+   "volume": "7d: cigna /web/public/guest ~200, accounts.zalando.com/authenticate ~250, sky.de/out-of-country.htm 44",
+   "noise": "signal",
+   "maps_to_sub_issues": [
+    "B5",
+    "B3",
+    "B4",
+    "A7"
+   ],
+   "discriminative": "high",
+   "notes": "Mid-crawl redirect to login/guest = session lost (B5) or bad credentials (B3); out-of-country = geo block A7.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "engine_crash_failed_to_run_engines",
+   "where": "scan-worker",
+   "stage": "engine",
+   "message_pattern": "{\"type\":\"FAILED_TO_RUN_ENGINES\",\"additionalInfo\":{\"stackTrace\":\"TypeError: Cannot read properties of (undefined|null) (reading ...)\"}}",
+   "templateid": [
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06",
+    "0d569b2a-9b5c-11f1-a137-c2fc7991ad86"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.error.message:string ~ 'FAILED_TO_RUN_ENGINES' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host, substr($d.ej.additionalInfo.stackTrace:string,0,80) as st aggregate count() as n",
+   "key_fields": [
+    "$d.error.message.additionalInfo.stackTrace",
+    "$d.context.url"
+   ],
+   "volume": "final: 2026-11-02 20/day (pearson); 11-01 172 (salesforce.com 144). per-attempt 649/7d",
+   "noise": "Signal, low volume",
+   "maps_to_sub_issues": [
+    "D2"
+   ],
+   "discriminative": "high",
+   "notes": "The stackTrace tells which engine/DOM property broke ('checked', 'value').",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "engines_plugin_error_worker_fs",
+   "where": "scan-worker",
+   "stage": "engine",
+   "message_pattern": "{\"type\":\"ENGINES_PLUGIN_ERROR\",\"additionalInfo\":{\"details\":\"Error: ENOENT|ENOTEMPTY ... | ZlibError | SyntaxError: Unexpected end of input\"}}",
+   "templateid": [
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.error.message:string ~ 'ENGINES_PLUGIN_ERROR' | extract $d.error.message:string into $d.ej using jsonobject() | groupby substr($d.ej.additionalInfo.details:string,0,60) as d aggregate count() as n, any_value($d.context.url) as url",
+   "key_fields": [
+    "$d.error.message.additionalInfo.details"
+   ],
+   "volume": "7d: 1,084 (24h 2026-11-02: ~22, collegeboard, websteronline)",
+   "noise": "Not caused by the customer page: engine bundle download/extract race on the worker filesystem.",
+   "maps_to_sub_issues": [
+    "E3",
+    "D2"
+   ],
+   "discriminative": "medium",
+   "notes": "Candidate new sub-issue: 'engine package load failure on worker' (Evinced-side). Looks like D2 to the customer (pages missing).",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "final_type_misc",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation|engine",
+   "message_pattern": "final .type in PLUGIN_TIMEOUT | INTERNAL_ERROR | DNS_ERROR_COULD_NOT_FIND_URL | SCREENSHOT_PLUGIN_ERROR | LINK_EXTRACTION_PLUGIN_ERROR",
+   "templateid": [
+    "9b5222f0-9b48-11f1-bb8a-4206745c74cb",
+    "0d569b2a-9b5c-11f1-a137-c2fc7991ad86",
+    "3f414be4-9c6f-11f1-a76b-3e8752cb6a06"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5222f0-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '0d569b2a-9b5c-11f1-a137-c2fc7991ad86') | extract $d.error.message:string into $d.ej using jsonobject() | groupby formatTimestamp($m.timestamp, '%Y-%m-%d') as day, $d.ej.type:string as etype aggregate count() as n",
+   "key_fields": [
+    "$d.error.message.type",
+    "additionalInfo.stackTrace"
+   ],
+   "volume": "7d: PLUGIN_TIMEOUT 420 (tsn.ca, noovo.info), INTERNAL_ERROR 180, DNS_ERROR 44 final (132 per-attempt; capitalone, smartpaylease int host)",
+   "noise": "low volume, signal",
+   "maps_to_sub_issues": [
+    "D1",
+    "C4",
+    "E3"
+   ],
+   "discriminative": "medium",
+   "notes": "DNS_ERROR -> C4 (host does not resolve publicly, e.g. internal QA hosts -> needs a private agent / wrong seed). INTERNAL_ERROR (Scraper.ts:139) -> product bug. PLUGIN_TIMEOUT -> D1.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "page_level_net_error_inline",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation|scan-page",
+   "message_pattern": "got error while scraping net::ERR_(CONNECTION_REFUSED|CONNECTION_RESET|TOO_MANY_REDIRECTS|HTTP2_PROTOCOL_ERROR) at <url>  (also as plain text in $d.error.message)",
+   "templateid": [
+    "1f6c9f7a-c8b7-11f1-9690-06bc843f009c (scan)"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ 'net::ERR_' | extract $d.error.message:string into $d.x using regexp(e=/(?<code>net::ERR_[A-Z0-9_]+) at https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.x.code:string, $d.x.host:string aggregate count() as n",
+   "key_fields": [
+    "net::ERR code + url in $d.error.message / $d.message"
+   ],
+   "volume": "7d: ERR_CONNECTION_RESET telebec.com ~390; ERR_TOO_MANY_REDIRECTS moo.com/denverbariatrics ~40; ERR_HTTP2_PROTOCOL_ERROR discover.com 18; ERR_CONNECTION_REFUSED HCA hospital sites ~8/day",
+   "noise": "Signal (it is the page itself, unlike the [browser] lines)",
+   "maps_to_sub_issues": [
+    "A1",
+    "A8",
+    "A5",
+    "C4"
+   ],
+   "discriminative": "high",
+   "notes": "RESET/HTTP2_PROTOCOL host-wide -> A1 WAF; TOO_MANY_REDIRECTS -> A8; CONNECTION_REFUSED -> host down / C4. No ERR_CERT_* seen (A9).",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "nav_instability_context_destroyed",
+   "where": "crawl-worker, scan-worker",
+   "stage": "scan-page",
+   "message_pattern": "Execution context was destroyed, most likely because of a navigation | Navigating frame was detached | Attempted to use detached Frame",
+   "templateid": [
+    "9b5233c6-9b48-11f1-bb8a-4206745c74cb",
+    "3de42108-9b49-11f1-af7b-ee1ec87eaa5c"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && ($d.error.message:string ~ 'Execution context was destroyed' || $d.error.message:string ~ 'detached') | groupby $d.context.url aggregate count() as n",
+   "key_fields": [
+    "$d.error.message",
+    "$d.context.url"
+   ],
+   "volume": "7d: ~290 (booking.com 271)",
+   "noise": "Signal for that page, low volume",
+   "maps_to_sub_issues": [
+    "D3",
+    "A2"
+   ],
+   "discriminative": "low",
+   "notes": "The page navigates or reloads itself (redirect script, consent reload, bot challenge reload).",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "scrape_server_scan_page_failed",
+   "where": "scrape-server",
+   "stage": "post-processing",
+   "message_pattern": "scan page <url> failed, scan id is <scanId>. last successful result file prod-mon/tasks/<scanId>/results/joiner-results/<id>.json",
+   "templateid": [
+    "5096d944-aaf3-11f1-b0c8-66b556bfe55a",
+    "f3384b28-a658-11f1-928d-6af2599809e5",
+    "260b4872-a46d-11f1-a54b-e2b111e1b995"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scrape-server' && $d.message ~ ' failed, scan id is ' | extract $d.message:string into $d.x using regexp(e=/scan page (?<url>[^ ]+) failed, scan id is (?<sid>[0-9a-f-]+)/) | groupby $d.x.sid:string aggregate count() as pages, any_value($d.x.url) as sample",
+   "key_fields": [
+    "url and scanId in the message"
+   ],
+   "volume": "2026-11-02: ~330/day (~56 are pdf/zip/doc URLs)",
+   "noise": "Roll-up with no reason; documents (pdf/zip) are expected. Use it to list a scan's dropped pages, then join to scan-worker by URL for the reason.",
+   "maps_to_sub_issues": [
+    "D1",
+    "D2",
+    "A1",
+    "C4"
+   ],
+   "discriminative": "low",
+   "notes": "The scanId in the message lets the investigator go from a ticket's scanId to the failed pages.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "content_type_mismatch",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-discovery",
+   "message_pattern": "content type: <ct> doesn't match the: text/html,text/plain",
+   "templateid": [
+    "a92c1eca-a74c-11f1-9144-fab0241da207 (crawl)",
+    "e7b5fc88-aaf8-11f1-b655-422d8edb1526 (scan)"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == 'a92c1eca-a74c-11f1-9144-fab0241da207' || $m.templateid == 'e7b5fc88-aaf8-11f1-b655-422d8edb1526') | extract $d.message:string into $d.x using regexp(e=/content type: (?<ct>[^ ]+) /) | groupby $d.x.ct:string aggregate count() as n",
+   "key_fields": [
+    "content type in message",
+    "$d.context.url"
+   ],
+   "volume": "2026-11-02: crawl ~2.5k (pdf 862, png 180), scan ~114",
+   "noise": "BENIGN: non-HTML links are skipped by design",
+   "maps_to_sub_issues": [
+    "H4",
+    "C4"
+   ],
+   "discriminative": "low",
+   "notes": "Relevant only if a customer asks why PDFs aren't scanned, or the seed itself is a document.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "gcs_upload_rate_limited",
+   "where": "scan-worker",
+   "stage": "post-processing",
+   "message_pattern": "got error while trying to upload file to cloud. retry count: N, local path: ..., bucket: prod-mon-production, bucket path: prod-mon/tasks/<scanId>/results/crawl.json | error uploading file to bucket",
+   "templateid": [
+    "f7d37ce4-9da6-11f1-ae80-52ba2897bbec",
+    "0bc2dd8c-9b5c-11f1-a137-c2fc7991ad86"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && ($d.message ~ 'upload file to cloud' || $d.message ~ 'error uploading file to bucket') | extract $d.message:string into $d.x using regexp(e=/tasks\\/(?<sid>[0-9a-f-]+)\\//) | groupby $d.x.sid:string, substr($d.error.message:string,0,60) as e aggregate count() as n",
+   "key_fields": [
+    "$d.error.message (Retry limit exceeded - {error:{code:429 ...object mutation rate}})",
+    "scanId in bucket path"
+   ],
+   "volume": "2026-11-02: 388 + 62/day, from only 2 scans",
+   "noise": "Evinced-side; usually harmless if a later write succeeds. Signal if the same scan ends FAILED/incomplete.",
+   "maps_to_sub_issues": [
+    "E3",
+    "E1"
+   ],
+   "discriminative": "medium",
+   "notes": "GCS per-object mutation rate limit: crawl.json rewritten too often on big scans.",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "benign_crawl_cap_grouping_full",
+   "where": "crawl-worker",
+   "stage": "crawl-discovery",
+   "message_pattern": "not handling request after reading it from the queue. reason: matching grouping <regex> is full | max number of successful visits was reached",
+   "templateid": [
+    "08e4a5d0-9b45-11f1-a536-52ef7929d954"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $m.templateid == '08e4a5d0-9b45-11f1-a536-52ef7929d954' | groupby $d.context.url aggregate count() as n",
+   "key_fields": [
+    "grouping regex in message"
+   ],
+   "volume": "2026-11-02: 79.6k/day",
+   "noise": "BENIGN: the configured page/grouping cap working as intended",
+   "maps_to_sub_issues": [
+    "C3",
+    "C5"
+   ],
+   "discriminative": "low",
+   "notes": "Relevant only for 'why did the crawl stop at N pages' (grouping limits, C5).",
+   "file": "page_level"
+  },
+  {
+   "sig_id": "http_status_doc_non200",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation",
+   "message_pattern": "http status code is: <NNN>  (main-document status of each visited page; Info)",
+   "templateid": [
+    "33948266-9cb5-11f1-92dd-be037f26c345",
+    "30b9ff5c-aaad-11f1-af66-ea6a85ee653a",
+    "f8cdaba4-9af1-11f1-a148-2267a7afc7c0",
+    "b9b9265a-9cf4-11f1-9545-4a96456cf580"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'http status code is: ' && !($d.message ~ 'is: 200') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+   "key_fields": [
+    "$d.message (code)",
+    "$d.context.url",
+    "$d.context.request_id",
+    "$d.resource.attributes['k8s.job.name'] (crawl/scan id)"
+   ],
+   "volume": "7d (10-27..11-03) production non-200: crawl-worker 403=34,256 (68 jobs), 429=18,506 (28 jobs), 404=4,991, 202=6,540, 405=17, 401=1, 302/301/307 ~15; scan-worker 404=15,319, 403=2,885 (60 jobs), 429=883 (18 jobs), 405=25, 401=33",
+   "noise": "Sporadic 404/403 are normal. Signal = share of non-200 within one job: a job where most visits are 403/405 => A1, many 429 => A5; 202 often = bot-manager interstitial (Akamai/Cloudflare 'please wait') => A2. 30x rarely appear here because redirects are followed (see final_url line).",
+   "maps_to_sub_issues": [
+    "A1",
+    "A2",
+    "A5",
+    "A8",
+    "B5",
+    "C4"
+   ],
+   "discriminative": "high",
+   "notes": "Primary access signal. 403/405 -> A1, 429 -> A5, 202 -> A2 candidate, 401 -> B5/B3, 404 on seed -> C4. Join with job id to see whether it hits all pages.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "browser_resource_status",
+   "where": "scan-worker (f8cca772-...), crawl-worker (d2ccaefa-...)",
+   "stage": "crawl-navigation",
+   "message_pattern": "[browser] [error] Failed to load resource: the server responded with a status of <NNN> (<text>)",
+   "templateid": [
+    "f8cca772-9af1-11f1-a148-2267a7afc7c0",
+    "d2ccaefa-9c4f-11f1-8905-329537c5ee79"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'Failed to load resource: the server responded with a status of' | extract $d.message into $d.sc using regexp(e=/status of (?<code>[0-9]{3})/) | groupby $l.subsystemname, $d.sc.code aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "key_fields": [
+    "status code in message",
+    "$d.context.url"
+   ],
+   "volume": "6h 11-02 00-06: scan-worker 401=6,467, 404=3,344, 503=306, 403=171; crawl-worker 404=390, 429=45, 401=41",
+   "noise": "Mostly sub-resource (JS/XHR/images) failures \u2014 noisy; NOT the page status. Template f8cca772 is shared with any [browser] [error] console line.",
+   "maps_to_sub_issues": [
+    "A1",
+    "A5",
+    "B5"
+   ],
+   "discriminative": "low",
+   "notes": "Only meaningful when it coincides with a non-200 'http status code is' for the document, or as a burst of 401 after login (B5).",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "not_included_whitelist",
+   "where": "crawl-worker",
+   "stage": "crawl-discovery",
+   "message_pattern": "not including url in result url set. reason: final url not included in whitelist",
+   "templateid": [
+    "30b9ff5c-aaad-11f1-af66-ea6a85ee653a",
+    "3396f2f8-9cb5-11f1-92dd-be037f26c345",
+    "f1a281ca-5437-11f1-81cb-367b02696c2b"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'final url not included in whitelist' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+   "key_fields": [
+    "$d.context.url (the requested URL, final URL not printed)",
+    "k8s.job.name"
+   ],
+   "volume": "4,819/7d (all envs, ~700/day)",
+   "noise": "Normal for external links when whitelist is the site domain. Signal = the SEED URL (or every URL of the job) rejected => 0-page crawl.",
+   "maps_to_sub_issues": [
+    "C2",
+    "C1"
+   ],
+   "discriminative": "high",
+   "notes": "Message does not show the final URL; pair with 'finished waiting for page to stabilize. final url after redirections' / 'successfully scraped url. final url:' for the same request_id, and the whitelist from scan-worker 'crawler config is:'.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "not_included_other_reasons",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-discovery",
+   "message_pattern": "not including url in result url set. reason: (final url is included in blacklist|final url was already visited. this is most likely due to a redirection|sanitized url was already visited|content type <x> is not allowed|max number of successful visits was reached|language is not included in whitelist|matching grouping rule <re> is full})",
+   "templateid": [
+    "3396f2f8-9cb5-11f1-92dd-be037f26c345",
+    "30b9ff5c-aaad-11f1-af66-ea6a85ee653a",
+    "f1a281ca-5437-11f1-81cb-367b02696c2b",
+    "504112cc-3f87-34ad-ae7f-98c12531cd93",
+    "309b8db6-d4eb-11f1-b35e-86881614271e",
+    "bf53e91a-b428-11f1-8c6c-8ea58dd96437"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.message ~ 'not including url in result url set' | extract $d.message into $d.rx using regexp(e=/reason: (?<reason>[a-zA-Z _.:-]{0,60})/) | groupby $l.subsystemname, $d.rx.reason aggregate count() as n | orderby n desc",
+   "key_fields": [
+    "reason text",
+    "$d.context.url",
+    "k8s.job.name"
+   ],
+   "volume": "7d: blacklist 129,745; already visited via redirect 57,791; sanitized dup 17,843; content-type ~20.6k; max visits 2,279; language 1,119; grouping full ~1.9k; text/HTML case 110",
+   "noise": "Mostly benign bookkeeping. Signals: 'language is not included in whitelist' on every URL of a job (C1 locale filter); 'final url was already visited ... redirection' burst (many URLs redirect to the same login/error/geo page => B5/C4/A7); 'content type text/HTML; charset=utf-8 is not allowed' (case-sensitive content-type bug => site loses all pages).",
+   "maps_to_sub_issues": [
+    "C1",
+    "C4",
+    "C5",
+    "B5",
+    "A7"
+   ],
+   "discriminative": "medium",
+   "notes": "Reason 'final url is included in ...' is truncated in the log line itself (blacklist).",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "page_failed_due_to_reason",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation",
+   "message_pattern": "(CRAWL|SCAN) with id <id> failed due to <REASON> - <json>",
+   "templateid": [
+    "121523ec-9fa9-11f1-94dc-5ee20c2e67e1"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.message ~ 'failed due to' | extract $d.message into $d.fr using regexp(e=/(?<kind>[A-Z]+) with id \\S+ failed due to (?<reason>[A-Z_0-9]+)/) | groupby $l.subsystemname, $d.fr.kind, $d.fr.reason aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | orderby n desc",
+   "key_fields": [
+    "REASON enum",
+    "json.error.message (selector)",
+    "json.error.url",
+    "$d.context.url"
+   ],
+   "volume": "7d: CRAWL OPEN_PAGE_TIMEOUT 30,788 (60 jobs); SCAN OPEN_PAGE_TIMEOUT 13,545 (34); CRAWL 'undefined' 4,435 (8); SCAN PAGE_INTERACTION_PLUGIN_ERROR 560 (6); SCAN PLUGIN_TIMEOUT 421; SCAN FAILED_TO_RUN_ENGINES 201; CRAWL INTERNAL_ERROR 170; DNS_ERROR_COULD_NOT_FIND_URL 25 crawl/24 scan; CRAWL PAGE_INTERACTION_PLUGIN_ERROR 18",
+   "noise": "One line per failed URL (Info severity!). OPEN_PAGE_TIMEOUT on nearly all URLs of a job => block/tarpit (A1/A5) or down site; scattered => slow pages.",
+   "maps_to_sub_issues": [
+    "A1",
+    "A5",
+    "B2",
+    "B4",
+    "C4"
+   ],
+   "discriminative": "medium",
+   "notes": "The enum has no HTTP/WAF-specific value (no BLOCKED/HTTP_403) \u2014 blocks surface as OPEN_PAGE_TIMEOUT or as successful pages with 403 status. PAGE_INTERACTION_PLUGIN_ERROR carries 'No element found for selector: <sel>' and the url the browser was on (B2; if url is an unexpected page => A7/B1/B4). DNS_ERROR_COULD_NOT_FIND_URL => C4.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "config_dump_user_agent",
+   "where": "scan-worker (per page), crawl-worker (per crawl)",
+   "stage": "dispatch",
+   "message_pattern": "crawler config is: {... \"whitelist\":[..],\"languageWhitelist\":[..],\"scraperConfig\":{\"puppeteerArgs\":[..\"--user-agent=<UA>\"],\"extraHeaders\":<null|{..}>, ...}, \"pubsubMessageMetadata\":{..tenancyName, propertyName, scanId..}}",
+   "templateid": [
+    "c49b4643-71cf-06eb-70bb-dbc7e92ed491",
+    "83edd5b6-843e-19b1-184f-239783bf17d8",
+    "d1042a4e-9c4f-11f1-8905-329537c5ee79",
+    "1b292592-9cb5-11f1-92dd-be037f26c345"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'config is: {' | extract $d.message into $d.ua using regexp(e=/--user-agent=(?<ua>[^\"]{0,160})/) | extract $d.message into $d.p using regexp(e=/\"propertyName\":\"(?<prop>[^\"]+)\"/) | groupby $d.p.prop, $d.ua.ua aggregate count() as n | orderby n desc",
+   "key_fields": [
+    "--user-agent",
+    "extraHeaders (presence only!)",
+    "whitelist",
+    "blacklist",
+    "languageWhitelist",
+    "allowedContentTypes",
+    "seedUrls",
+    "parallelNum",
+    "openPageTimeoutSec",
+    "propertyName",
+    "scanId"
+   ],
+   "volume": "~100k lines/7d scan-worker (one per page), ~400/7d crawl-worker",
+   "noise": "Configuration, not an error. Always present; use it as context for the property under investigation.",
+   "maps_to_sub_issues": [
+    "A6",
+    "A2",
+    "A1",
+    "C1",
+    "C2",
+    "B5"
+   ],
+   "discriminative": "high",
+   "notes": "UA 'HeadlessChrome/65...' or 'Chrome/65...' => A6 risk (~25% of pages in 7d). extraHeaders non-null => custom header configured. whitelist/languageWhitelist regexes to test against seed/final URL for C1/C2. parallelNum>1 with login => B5 risk. Never copy extraHeaders values or interaction credentials from this line.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "browser_version",
+   "where": "crawl-worker",
+   "stage": "crawl-navigation",
+   "message_pattern": "browser was opened successfully. version: Chrome/<ver>",
+   "templateid": [
+    "d1d6dbd8-9c4f-11f1-8905-329537c5ee79"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $m.templateid == 'd1d6dbd8-9c4f-11f1-8905-329537c5ee79' | groupby $d.message aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "key_fields": [
+    "version in message"
+   ],
+   "volume": "340k/7d (one per page open), single value Chrome/126.0.6478.126",
+   "noise": "Pure background; constant across fleet.",
+   "maps_to_sub_issues": [
+    "A6"
+   ],
+   "discriminative": "low",
+   "notes": "Shows the engine, not the UA header sent. A6 must be judged from the --user-agent in the config dump.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "final_url_login_or_error_landing",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation",
+   "message_pattern": "finished waiting for page to stabilize. final url after redirections: <url> | successfully scraped url. final url: <url> | current page url: <url>",
+   "templateid": [
+    "3cef50ea-9bb9-11f1-a182-06d4ecb7c06e",
+    "e64ae094-a926-11f1-a56c-46e5f8be24c8",
+    "1d7318a4-c266-11f1-9dcd-7aec34e59e18",
+    "7fbfe1c2-a2fe-11f1-bf8c-e60b6925021c",
+    "3d008a68-9bb9-11f1-a182-06d4ecb7c06e",
+    "349392ac-a425-11f1-9be2-82b781e81d95",
+    "357e1a06-9cb5-11f1-92dd-be037f26c345"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'final url after redirections' | extract $d.message into $d.fu using regexp(e=/redirections: (?<u>\\S+)/) | create landing from if($d.fu.u:string.matches(/(?i)\\/(u\\/)?(login|signin|sign-in|logon|authenticate|sso|mfa|otp|challenge)|out-of-country|\\/404|\\/500|not-found|error/), 'login/error/geo', 'normal') | groupby $d.resource.attributes['k8s.job.name'] as job, landing aggregate count() as n, any_value($d.fu.u) as sample | orderby n desc",
+   "key_fields": [
+    "final URL",
+    "$d.context.url (requested)",
+    "k8s.job.name"
+   ],
+   "volume": "one per visited page (tens of thousands/day); login-like landings ~600/12h (e.g. ulta.com /u/login 82+488 lines in 3 jobs)",
+   "noise": "Normal pages dominate. Signal = high share of landings on login/mfa/out-of-country/404/500 within one job, or seed final URL on another host.",
+   "maps_to_sub_issues": [
+    "B5",
+    "B3",
+    "B1",
+    "A7",
+    "C4",
+    "C2"
+   ],
+   "discriminative": "high",
+   "notes": "Path decides: /login after successful login => B5 (B3 if login never succeeded); /mfa|/otp => B1; out-of-country/geo => A7 (sky.de example); /404|/500 => C4; other host => C2.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "interaction_selector_missing",
+   "where": "crawl-worker, scan-worker",
+   "stage": "login",
+   "message_pattern": "got error while scraping No element found for selector: <sel> | element: <sel>, exists: false, in an iframe: <bool> | (CRAWL|SCAN) with id .. failed due to PAGE_INTERACTION_PLUGIN_ERROR - {..\"message\":\"No element found for selector: <sel>\"}",
+   "templateid": [
+    "08e48cee-9b45-11f1-a536-52ef7929d954",
+    "e7d97f46-d37a-11f1-a774-0ebaa524c9d0",
+    "def45d3e-9fa8-11f1-94dc-5ee20c2e67e1",
+    "2cb02f12-9b0d-11f1-90cd-469e155b207f",
+    "121523ec-9fa9-11f1-94dc-5ee20c2e67e1",
+    "12591faa-c995-11f1-a9ee-d6d342554398"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'No element found for selector' || $d.message ~ 'exists: false') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value(substr($d.message:string,0,250)) as sample | orderby n desc",
+   "key_fields": [
+    "selector",
+    "error.url (page the browser was on)",
+    "k8s.job.name"
+   ],
+   "volume": "7d: 'got error while scraping No element found' 1,683 scan (4 jobs) + 97 crawl (8 jobs); PAGE_INTERACTION_PLUGIN_ERROR 560 scan + 18 crawl",
+   "noise": "Always a real failure of a configured interaction; repeats per page in scan (each page re-logs-in?).",
+   "maps_to_sub_issues": [
+    "B2",
+    "B4",
+    "A7",
+    "B1"
+   ],
+   "discriminative": "high",
+   "notes": "If error.url is the expected login page => B2 (selector drift). If error.url is an unexpected page (out-of-country, /authenticate SSO hop, MFA) => A7/B4/B1. 'in an iframe: true' hints at modal/SSO (B4).",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "interaction_steps",
+   "where": "crawl-worker, scan-worker",
+   "stage": "login",
+   "message_pattern": "starting page interaction plugin | typing text in element: <sel> | clicking element: <sel>",
+   "templateid": [
+    "2caf0754-9b0d-11f1-90cd-469e155b207f",
+    "d0d71a86-9c4f-11f1-8905-329537c5ee79",
+    "d7acbbc2-a50f-11f1-a1dc-7ea94cb20793",
+    "1811f848-b015-11f1-a58e-e23eb70a2b10",
+    "1813d168-b015-11f1-a58e-e23eb70a2b10",
+    "505fe544-9c1e-11f1-b6f1-1e73d54c49b3"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'starting page interaction plugin') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n | orderby job",
+   "key_fields": [
+    "selector",
+    "order of steps",
+    "k8s.job.name"
+   ],
+   "volume": "2026-11-01: typing 1,323 scan (19 jobs) / 341 crawl (10 jobs)",
+   "noise": "Background for authenticated properties; use as the trace of which step ran last before a failure.",
+   "maps_to_sub_issues": [
+    "B2",
+    "B3",
+    "B4",
+    "B5"
+   ],
+   "discriminative": "low",
+   "notes": "Typed values are not logged (good). Config dumps (TYPE_TEXT/CLICK_ELEMENT, loginConfiguration) may contain credentials: never copy. No 'bound handleRequest execution took more than 300000' seen in sample day.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "scrape_net_error_inline",
+   "where": "crawl-worker, scan-worker",
+   "stage": "crawl-navigation",
+   "message_pattern": "got error while scraping net::ERR_<X> at <url>",
+   "templateid": [
+    "08e48cee-9b45-11f1-a536-52ef7929d954"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'got error while scraping net::' | extract $d.message into $d.e using regexp(e=/(?<err>net::[A-Z_0-9]+)/) | groupby $l.subsystemname, $d.e.err, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+   "key_fields": [
+    "net error code",
+    "url",
+    "k8s.job.name"
+   ],
+   "volume": "7d: ERR_CONNECTION_RESET 417, ERR_TOO_MANY_REDIRECTS 39, ERR_HTTP2_PROTOCOL_ERROR 27, ERR_CONNECTION_REFUSED 34, ERR_TIMED_OUT 4",
+   "noise": "Low volume, each is meaningful when concentrated in one job/host.",
+   "maps_to_sub_issues": [
+    "A8",
+    "A1",
+    "A5"
+   ],
+   "discriminative": "high",
+   "notes": "ERR_TOO_MANY_REDIRECTS => A8; ERR_CONNECTION_RESET/REFUSED concentrated on one host => A1 (WAF/IP deny); ERR_HTTP2_PROTOCOL_ERROR => A1/A5. Most 'got error while scraping' lines (~123k/7d) have no detail \u2014 those are timeouts, see page_failed_due_to_reason.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "crawl_visited_counter",
+   "where": "crawl-worker",
+   "stage": "crawl-discovery",
+   "message_pattern": "successfully visited <N> pages so far",
+   "templateid": [
+    "1212cbf6-9fa9-11f1-94dc-5ee20c2e67e1"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $m.templateid == '1212cbf6-9fa9-11f1-94dc-5ee20c2e67e1' | extract $d.message into $d.v using regexp(e=/visited (?<n>\\d+) pages/) | groupby $d.resource.attributes['k8s.job.name'] as job aggregate max($d.v.n:number) as maxv | filter maxv <= 1",
+   "key_fields": [
+    "N",
+    "k8s.job.name (= crawl id)"
+   ],
+   "volume": "~14k/day; 7d: 389 crawl jobs, 49 with max<=1, 31 with 2-5",
+   "noise": "Counter itself is benign; the per-job max is the signal.",
+   "maps_to_sub_issues": [
+    "A2",
+    "A3",
+    "C1",
+    "C2",
+    "C4",
+    "C6",
+    "B1",
+    "B2"
+   ],
+   "discriminative": "low",
+   "notes": "Finds 0/1-page crawls; then apply the decision recipe (status codes, whitelist reasons, interaction errors, 'filtered out: N urls'). Jobs that visit 0 pages may never print it \u2014 cross-check with scan-worker/scrape-server scanTotalUrls.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "filtered_out_links",
+   "where": "crawl-worker",
+   "stage": "crawl-discovery",
+   "message_pattern": "filtered out: <N> urls",
+   "templateid": [
+    "d1042a4e-9c4f-11f1-8905-329537c5ee79",
+    "1b292592-9cb5-11f1-92dd-be037f26c345"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'filtered out: ' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.message) as sample",
+   "key_fields": [
+    "N",
+    "k8s.job.name"
+   ],
+   "volume": "~100/12h",
+   "noise": "benign per page",
+   "maps_to_sub_issues": [
+    "C6",
+    "C1",
+    "C2"
+   ],
+   "discriminative": "medium",
+   "notes": "1-page crawl with 'filtered out: 0 urls' => no links found (C6 / challenge page); high N => links found but out of scope (C1/C2).",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "scan_total_urls",
+   "where": "scrape-server",
+   "stage": "scan-page",
+   "message_pattern": "page <url> in scan <id> completed. <k> scan pages finished - waiting for <M> to be completed | METRIC_EVENT {..\"eventType\":\"scan.page.complete\",..\"scanTotalUrls\":\"<M>\"..}",
+   "templateid": [
+    "81c746f6-aa4a-11f1-ba0a-6686f8ca4618",
+    "fd1575d4-c328-11f1-8921-82f195532998"
+   ],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scrape-server' && $m.templateid == '81c746f6-aa4a-11f1-ba0a-6686f8ca4618' | extract $d.message into $d.s using regexp(e=/in scan (?<scan>\\S+) completed\\. \\d+ scan pages finished - waiting for (?<m>\\d+)/) | groupby $d.s.scan aggregate max($d.s.m:number) as total | filter total <= 1",
+   "key_fields": [
+    "scanId",
+    "M (total pages)"
+   ],
+   "volume": "one per scanned page",
+   "noise": "benign progress",
+   "maps_to_sub_issues": [
+    "A2",
+    "A3",
+    "C1",
+    "C2",
+    "C6"
+   ],
+   "discriminative": "low",
+   "notes": "Gives scan size per scanId, linking a ticket's scan to a 1-page crawl.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "node_pool_static",
+   "where": "crawl-worker, scan-worker (resource attrs)",
+   "stage": "dispatch",
+   "message_pattern": "(any line) $d.resource.attributes['k8s.node.name'] = gke-prod-mon-cluster-(crawls|scans)-pool-stat*",
+   "templateid": [],
+   "dataprime": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') | groupby $l.subsystemname, $d.resource.attributes['k8s.node.name'] as node aggregate approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "key_fields": [
+    "k8s.node.name",
+    "k8s.job.name"
+   ],
+   "volume": "n/a",
+   "noise": "All prod jobs sampled ran on '*-pool-stat*' pools",
+   "maps_to_sub_issues": [
+    "A4"
+   ],
+   "discriminative": "low",
+   "notes": "No egress IP is logged. A crawl that has no crawl-worker k8s job at all may have run on the fast tier (Cloud Function production_crawl_link_extractor \u2014 not present in Coralogix gcp/logs over 7d). Confirm A4 from Retool flags, not logs.",
+   "file": "access_auth"
+  },
+  {
+   "sig_id": "job_timeline_by_property",
+   "where": "admin-server, front-server, admin-webapp, front-webapp, scrape-server",
+   "stage": "schedule",
+   "message_pattern": "Scan with ID=<id> state changed from <A> to <B> | URL set with ID=<id> state changed from <A> to <B> | job with id: <id>, changed state to: <S> and phase <P> | Changed scan <id> state from <A> to <B> (scrape-server)",
+   "templateid": [],
+   "dataprime": "source logs | filter $d.context.property_id == '<LAST12_OF_PROPERTY_ID>' | filter $d.logger_name ~ 'ScanService|JobService|JobPoller|JobScheduler|UrlSetService|JobMessageListener|AppCommunicatorUtils|Export|Email' || $m.severity == WARNING || $m.severity == ERROR | choose $m.timestamp, $l.subsystemname, $d.logger_name, $d.context.scan_id, $d.context.job_id, $d.error.message, substr($d.message:string,0,250) as msg | orderby $m.timestamp asc",
+   "key_fields": [
+    "$d.context.property_id (last 12 hex)",
+    "$d.context.scan_id",
+    "$d.context.job_id",
+    "$d.context.url_set_id",
+    "$d.context.tenant_name",
+    "$d.context.client",
+    "$d.context.job_time",
+    "$d.logger_name",
+    "$d.error.message"
+   ],
+   "volume": "~20-40 lines per scan job; window = ticket date +-1 day",
+   "noise": "Info lifecycle lines; not an error signature itself. Use to see where the chain stopped.",
+   "maps_to_sub_issues": [
+    "E1",
+    "E2",
+    "E3",
+    "E5"
+   ],
+   "discriminative": "medium",
+   "notes": "IDs in $d.context are truncated to last 12 hex chars of the UUID. Context propagates into scrape-server (dispatch, k8s job creation, polling). templateid unstable for these services; use logger_name+regex.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "scheduler_next_run",
+   "where": "admin-server, front-server, admin-webapp, front-webapp",
+   "stage": "schedule",
+   "message_pattern": "for property: <propertyId>, the next schedule job time is: <yyyy-MM-ddTHH:mm>",
+   "templateid": [
+    "4f7d1c2c-9f08-11f1-b398-de4cc0071d9b",
+    "349ac97c-9e36-11f1-a781-0208ccc400c0"
+   ],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'the next schedule job time is' && $d.message ~ '<PROPERTY_UUID>' | choose $m.timestamp, $l.subsystemname, $d.message | orderby $m.timestamp asc",
+   "key_fields": [
+    "propertyId (in text)",
+    "next run time (in text, no timezone)"
+   ],
+   "volume": "one per scheduled run (dozens/hour)",
+   "noise": "Info. Signal when next time is wrong vs customer's configured schedule/timezone or not logged at all.",
+   "maps_to_sub_issues": [
+    "E2"
+   ],
+   "discriminative": "high",
+   "notes": "Compare to property schedule settings; times appear local-naive (no zone) - a timezone bug shows as an offset.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "scheduler_failed_to_create_entity",
+   "where": "admin-server, front-server, admin-webapp, front-webapp",
+   "stage": "schedule",
+   "message_pattern": "failed to create entity for property with id: <propertyId>. continuing to the next property",
+   "templateid": [
+    "df295d36-9afd-11f1-a627-c22aa48257ed",
+    "42be3cde-9af6-11f1-a847-02e8a3b35476",
+    "1a59517e-95a7-11f1-aa39-6e6ebf84f5c8",
+    "7dfef9ee-95bc-11f1-a2e1-5ac21e177d27"
+   ],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'failed to create entity for property' | groupby $d.error.type, substr($d.error.message:string,0,120) as emsg aggregate count() as n, distinct_count($d.context.property_id) as props | orderby n desc",
+   "key_fields": [
+    "$d.error.type",
+    "$d.error.message",
+    "$d.context.property_id",
+    "$d.context.tenant_name"
+   ],
+   "volume": "~24k/day total (2026-11-02), repeats every scheduler cycle per property",
+   "noise": "Mostly chronic background (expired licences, empty URL sets). Signal only when the ticket's property appears; the error.message gives the reason.",
+   "maps_to_sub_issues": [
+    "E4",
+    "E2",
+    "B1"
+   ],
+   "discriminative": "high",
+   "notes": "error.message values: 'The license has expired...' (LimitExceededException ~15k/day, E4); 'No URLs were supplied' / 'Property URL set is not defined' / 'Scan must have at least one URL' (config/0 URLs); 'The time the runner waits before it starts must be less than 30 seconds' (settings validation); 'property not found for propertyId' (orphan schedule).",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "limit_exceeded_license",
+   "where": "admin-server, front-server, *-webapp",
+   "stage": "schedule",
+   "message_pattern": "$d.error.type == com.evinced.common.exception.LimitExceededException; messages 'The license has expired...' / 'No license exists. Please create a trial license...'",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.error.type ~ 'LimitExceededException' | groupby $d.context.tenant_name, substr($d.error.message:string,0,100) as emsg aggregate count() as n, distinct_count($d.context.property_id) as props | orderby n desc",
+   "key_fields": [
+    "$d.error.message",
+    "$d.context.tenant_name",
+    "$d.context.property_id"
+   ],
+   "volume": "~15k/day (2026-11-02)",
+   "noise": "Chronic for expired tenants. Signal = ticket's tenant appears / a new tenant starts appearing.",
+   "maps_to_sub_issues": [
+    "E4"
+   ],
+   "discriminative": "high",
+   "notes": "Concurrent-scan limit messages not observed in sample day; group by emsg to spot other limit types.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "crawl_dispatch_failed",
+   "where": "admin-server, front-server, *-webapp (UrlSetService)",
+   "stage": "dispatch",
+   "message_pattern": "Failed running create crawl request for URL set with ID=<urlSetId>",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'Failed running create crawl request' | choose $m.timestamp, $l.subsystemname, $d.context.tenant_name, $d.context.property_id, $d.context.client, $d.context.job_time, $d.error.type, $d.error.message",
+   "key_fields": [
+    "$d.error.type",
+    "$d.error.message",
+    "$d.context.url_set_id",
+    "$d.context.job_time"
+   ],
+   "volume": "~5/day",
+   "noise": "Low volume -> each one is meaningful. error.message 'Job failed due to timeout/failure' (JobPoller.onTimedOut) = job timed out after ~24h, vs connection/HTTP errors = real dispatch refusal.",
+   "maps_to_sub_issues": [
+    "E3",
+    "E1"
+   ],
+   "discriminative": "medium",
+   "notes": "Followed by JobService 'job with id: X, changed state to: FAILED and phase FAILED'.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "job_state_failed",
+   "where": "admin-server, front-server, *-webapp",
+   "stage": "dispatch",
+   "message_pattern": "job with id: <id>, changed state to: FAILED and phase FAILED | Scan with ID=<id> state changed from RUNNING to FAILED",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && ($d.message ~ 'changed state to: FAILED' || $d.message ~ 'state changed from \\\\w+ to FAILED') | groupby $d.context.tenant_name, $l.subsystemname aggregate count() as n, any_value($d.message:string) as sample | orderby n desc",
+   "key_fields": [
+    "$d.context.*",
+    "preceding ERROR in same job_id"
+   ],
+   "volume": "~10/12h",
+   "noise": "Low volume; every hit is a failed run. Look at ERRORs with same $d.context.job_id just before.",
+   "maps_to_sub_issues": [
+    "E3",
+    "E1"
+   ],
+   "discriminative": "low",
+   "notes": "Outcome marker, not cause.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "scheduler_duplicate_jobentity",
+   "where": "admin-server, front-server, admin-webapp, front-webapp (SqlExceptionHelper, client=JobScheduler)",
+   "stage": "schedule",
+   "message_pattern": "ERROR: duplicate key ... violates unique constraint \"key_type_constraint\" Detail: Key ...=(<propertyId><jobId><yyyy-MM-ddTHH:mm>, JobEntity) already exists.",
+   "templateid": [
+    "7d19c54a-95bc-11f1-a2e1-5ac21e177d27",
+    "19cce91e-95a7-11f1-aa39-6e6ebf84f5c8",
+    "e03a53d8-9afd-11f1-a627-c22aa48257ed",
+    "102fd4ee-9af6-11f1-a847-02e8a3b35476"
+   ],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'JobEntity\\\\) already exists' | extract $d.message into $d.dk using regexp(e=/=\\((?<ids>[0-9a-f-]{72})(?<runat>\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d), JobEntity/) | groupby $l.subsystemname, $d.dk.ids, $d.dk.runat aggregate count() as n, min($m.timestamp) as first | orderby n desc",
+   "key_fields": [
+    "propertyId+jobId+runAt in the key",
+    "$d.context.client=JobScheduler"
+   ],
+   "volume": "~2.6k/day (2026-11-02): 164/day per server (race) + 1164/day per webapp (stuck)",
+   "noise": "runAt == current slot -> benign race between admin-server and front-server schedulers. runAt in the past and repeating every 7.5 min -> STUCK schedule (property never runs again).",
+   "maps_to_sub_issues": [
+    "E2"
+   ],
+   "discriminative": "high",
+   "notes": "Accompanied by 'SQL Error: 0, SQLState: 23505' and 'Application exception overridden by commit exception' (JsonMappingException on UrlSetDiscoveryConfigurationEntity). Stuck keys seen: runAt 2025-07-21..2026-02-15 on site-scanner webapps.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "api_slow_controller_call",
+   "where": "front-server, front-webapp (FunctionLogger)",
+   "stage": "ui-api",
+   "message_pattern": "invocation of function (<Controller>.<method>) took <N> millis.  (WARNING when > ~10s)",
+   "templateid": [
+    "bfc20614-9b48-11f1-92c7-96308be8f4d0"
+   ],
+   "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.c.l.f.FunctionLogger' && ($d.message ~ 'ViewsController' || $d.message ~ 'ScanController' || $d.message ~ 'ScanPagesController' || $d.message ~ 'ScanIssuesController' || $d.message ~ 'PropertyOverview') | extract $d.message into $d.fx using regexp(e=/\\((?<fn>[A-Za-z]+\\.[A-Za-z]+)\\) (?<what>took|failed)/) | extract $d.message into $d.fm using regexp(e=/(?<ms>[0-9]+) millis/) | groupby $d.fx.fn, $d.fx.what, $m.severity, $d.context.tenant_name aggregate count() as n, avg($d.fm.ms:number) as avgms, max($d.fm.ms:number) as mx | orderby mx desc",
+   "key_fields": [
+    "function name",
+    "millis",
+    "$d.context.tenant_name",
+    "$d.context.scan_id",
+    "$m.severity"
+   ],
+   "volume": "6h: ScanController.list 5.5k calls (23 WARN, max 50s); ScanPages/ScanIssues.overview ~16 WARN each (max ~20s)",
+   "noise": "Info lines are normal traffic; WARNING (>10s) rows for the ticket's tenant/scan are the 'Error loading scan' backend-timeout signal.",
+   "maps_to_sub_issues": [
+    "E5",
+    "E1"
+   ],
+   "discriminative": "high",
+   "notes": "If many tenants show WARN in the same hour -> E1. Also ProductExportService.checkReportExists ~16-32s (export page).",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "api_controller_failed",
+   "where": "front-server, front-webapp (FunctionLogger + RestExceptionHandler)",
+   "stage": "ui-api",
+   "message_pattern": "invocation of function (X.y) failed (<Exception>:<msg>) after N millis | controller rejected request with client error | controller request failed with server error | An internal error occurred and the response is altered to the default error message",
+   "templateid": [
+    "89ca8e62-b79c-11f1-8217-ea9ec8078fc6",
+    "9f6cdfd6-b79c-11f1-8217-ea9ec8078fc6"
+   ],
+   "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.c.web.api.RestExceptionHandler' | groupby $d.message as kind, $d.error.type, substr($d.context.request_uri:string,0,40) as uri aggregate count() as n, distinct_count($d.context.tenant_id) as tenants, any_value(substr($d.error.message:string,0,100)) as emsg | orderby n desc",
+   "key_fields": [
+    "$d.context.request_uri",
+    "$d.error.type",
+    "$d.error.message",
+    "$d.error.stack_trace",
+    "$d.context.tenant_name"
+   ],
+   "volume": "2026-11-02: ~35 5xx, ~400 4xx",
+   "noise": "4xx 'Service account not found' on /api/service-accounts is chronic (2 SAs). 5xx are rare and meaningful.",
+   "maps_to_sub_issues": [
+    "E5",
+    "F3",
+    "F4"
+   ],
+   "discriminative": "high",
+   "notes": "Seen: NPE in PagesEnricherStrategy on /api/property-overview (one tenant, dashboard fails); NotFound 'Scan could not be found' / 'could not find view' / 'Property could not be found' (deleted scan/view/property -> E5 scan_deleted_not_found).",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "export_generation_failed",
+   "where": "admin-webapp, front-webapp, admin-server, front-server (ScanResultExportService / ScanResultExportPoller / PollTaskRunnerService)",
+   "stage": "export",
+   "message_pattern": "failed to generate (CSV|XLSX) for scan <scanId> for owner <ownerId> \\((poller timeout|poll request failed)\\) | Failed handling sample failure of SCAN_RESULT_EXPORT task with ID=<id> - this reflects a ScanResultExportPoller.onFailed() bug | poll request failed - will retry at next poll interval",
+   "templateid": [
+    "1aa5d242-95a7-11f1-aa39-6e6ebf84f5c8",
+    "19f69728-95a7-11f1-aa39-6e6ebf84f5c8",
+    "7d7a361e-95bc-11f1-a2e1-5ac21e177d27",
+    "fd6154ee-959d-11f1-ac72-1220de2b6ea3"
+   ],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && matches($d.message:string, /failed to generate (CSV|XLSX)|SCAN_RESULT_EXPORT|ExportIssues|exportIssues/) | extract $d.message into $d.ex using regexp(e=/generate (?<fmt>CSV|XLSX) for scan (?<scan>[0-9a-f-]{36}).*\\((?<why>[^)]+)\\)/) | groupby $d.ex.fmt, $d.ex.scan, $d.ex.why, $d.error.message aggregate count() as n | orderby n desc",
+   "key_fields": [
+    "scanId",
+    "format",
+    "reason (poller timeout|poll request failed)",
+    "$d.error.message (e.g. 'Scan X not found')"
+   ],
+   "volume": "~85/day + 1.8k/day poll-retry NPEs (single owner, webapps)",
+   "noise": "One stuck owner/scan can loop for days. Signal = ticket's scanId. ConflictException 'Export for this scan and filter already running' = user double-click.",
+   "maps_to_sub_issues": [
+    "F1"
+   ],
+   "discriminative": "high",
+   "notes": "Error 'Scan <id> not found' -> export of deleted scan. ScanResultExportPoller.onFailed() bug -> failure never surfaced to user.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "csv_queue_publish_failed",
+   "where": "front-server, front-webapp (CsvGenerationRabbitCommunicator)",
+   "stage": "export",
+   "message_pattern": "publish to queue <id>-csv failed (attempt N): Connection refused. retrying in Nms | Could not publish message to queue: <id>-csv after 12 attempts / 120000ms",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.p.c.s.c.CsvGenerationRabbitCommunicator' | groupby $l.subsystemname, roundTime($m.timestamp, 1h) as hour aggregate count() as n, any_value(substr($d.message:string,0,160)) as sample",
+   "key_fields": [
+    "queue name",
+    "attempt",
+    "$d.context.tenant_name"
+   ],
+   "volume": "~34 in 14 days",
+   "noise": "Any occurrence = RabbitMQ unreachable; exports during that window not generated.",
+   "maps_to_sub_issues": [
+    "F1",
+    "E1"
+   ],
+   "discriminative": "high",
+   "notes": "",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "completion_email_failed",
+   "where": "admin-webapp, front-webapp, admin/front-server (CrawlCompletionEmailListener, ScanCompletionEmailListener)",
+   "stage": "post-processing",
+   "message_pattern": "Failed to send (crawl|scan) completion email for (urlSetId|scanId)=<id> | CrawlCompletionEmailListener failed processing URL set state changed (RUNNING -> DONE) event",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && matches($d.message:string, /Failed to send (crawl|scan) completion email|CompletionEmailListener.*failed processing/) | groupby $d.logger_name, $d.error.type, substr($d.error.message:string,0,120) as emsg aggregate count() as n, distinct_count($d.context.tenant_id) as tenants",
+   "key_fields": [
+    "$d.error.type",
+    "$d.error.message",
+    "urlSetId/scanId",
+    "$d.context.tenant_name"
+   ],
+   "volume": "~10/day",
+   "noise": "NotFoundException \"Didn't find property P for mail to user U\" = deleted property (benign). NoHttpResponseException 'api.sendgrid.com:443 failed to respond' = SendGrid outage (real).",
+   "maps_to_sub_issues": [
+    "F1"
+   ],
+   "discriminative": "high",
+   "notes": "Absence of these lines + customer says no email -> spam/quarantine on customer side.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "mcp_invalid_caller_id",
+   "where": "front-server, front-webapp (c.e.f.context.OperationContextFilter)",
+   "stage": "ui-api",
+   "message_pattern": "An invalid request caller ID was received: MCP",
+   "templateid": [
+    "0b8621c6-d1cb-11f1-95e0-927b9d7e424e"
+   ],
+   "dataprime": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && ($d.message ~ 'invalid request caller ID' || $d.message ~ 'TokenController.generateAccessToken') | groupby $d.message, $d.error.type aggregate count() as n",
+   "key_fields": [
+    "caller id",
+    "$d.error.message on token generation"
+   ],
+   "volume": "~57/day",
+   "noise": "Warning on every MCP request using that header; signal when correlated with MCP auth complaints. Token generation failures: 'Service account not found', LimitExceededException 'No license exists'.",
+   "maps_to_sub_issues": [
+    "F4",
+    "E4"
+   ],
+   "discriminative": "medium",
+   "notes": "Jira/ADO have NO server-side log lines in scope.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "k8s_job_failed",
+   "where": "scrape-server (c.e.c.k.t.KubernetesJobStateTransformer)",
+   "stage": "dispatch",
+   "message_pattern": "kubernetes job failed - see job for more details Job(... name=<scanId> ... reason=BackoffLimitExceeded ...) | kubernetes job is in an unknown state Job(...)",
+   "templateid": [
+    "75bbd05b-5cf2-bbf0-6737-82881e09cec5"
+   ],
+   "dataprime": "source logs | filter ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scrape-webapp') && $d.logger_name == 'c.e.c.k.t.KubernetesJobStateTransformer' | extract $d.message into $d.k using regexp(e=/name=(?<jobname>[0-9a-f-]{36}).*?reason=(?<reason>[A-Za-z]+)/) | groupby $m.severity, $d.k.reason, $d.context.tenant_name aggregate count() as n, any_value($d.k.jobname) as scan",
+   "key_fields": [
+    "k8s job name == scanId",
+    "reason (BackoffLimitExceeded/CompletionsReached)",
+    "$d.context.*"
+   ],
+   "volume": "~10 failed + ~30 unknown-state in 14 days",
+   "noise": "Rare; each is a real worker-pool failure. Many in one hour across tenants -> E1.",
+   "maps_to_sub_issues": [
+    "E3",
+    "E1"
+   ],
+   "discriminative": "medium",
+   "notes": "Also check scrape-server 'polling scan with id S. Kubernetes job state: {... failedPodsCount: N}'.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "scan_status_timeout_failed",
+   "where": "admin-server, front-server, *-webapp (c.e.p.service.scan.ScanService)",
+   "stage": "dispatch",
+   "message_pattern": "Sampling scan with ID=<scanId> for its status passed its timeout, marking it as FAILED",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'passed its timeout, marking it as FAILED' | choose $m.timestamp, $l.subsystemname, $d.context.tenant_name, $d.context.property_id, $d.message",
+   "key_fields": [
+    "scanId",
+    "$d.context.tenant_name"
+   ],
+   "volume": "~5 in 14 days",
+   "noise": "Every hit is a stuck scan that was force-failed.",
+   "maps_to_sub_issues": [
+    "E3",
+    "E1"
+   ],
+   "discriminative": "medium",
+   "notes": "Look back for k8s_job_failed / 'Scan ingesting state for S not found' for the same scan.",
+   "file": "lifecycle_platform"
+  },
+  {
+   "sig_id": "platform_incident_tenant_spread",
+   "where": "admin-server, front-server, scrape-server",
+   "stage": "dispatch",
+   "message_pattern": "(aggregate) distinct tenants with ERROR per hour, chronic noise excluded",
+   "templateid": [],
+   "dataprime": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'scrape-server') && ($m.severity == ERROR || $m.severity == CRITICAL) | create $d.txt from firstNonNull($d.message:string, $d.body:string) | filter !($d.txt ~ 'failed to create entity for property') && !($d.txt ~ 'duplicate key') && !($d.txt ~ 'SQLState') && !($d.txt ~ 'overridden by commit') && !($d.txt ~ 'service-accounts') | extract $d.txt into $d.mdc using regexp(e=/tenancyName=(?<tenant>[^\\]]+)\\]/) | groupby roundTime($m.timestamp, 1h) as hour aggregate count() as errors, distinct_count(firstNonNull($d.context.tenant_name:string, $d.mdc.tenant:string)) as tenants, any_value(substr($d.txt,0,200)) as sample | orderby hour asc",
+   "key_fields": [
+    "tenants per hour",
+    "sample"
+   ],
+   "volume": "baseline 0-5 tenants/h; 2026-06-29 outage: 14 at 10:00Z, 32 at 18:00Z",
+   "noise": "Raw error count is flat (chronic noise); use distinct tenants. Threshold ~3x 24h median and >=8.",
+   "maps_to_sub_issues": [
+    "E1"
+   ],
+   "discriminative": "high",
+   "notes": "Works on both old ($d.body text MDC, June 2026) and new ($d.message + $d.context) schemas.",
+   "file": "lifecycle_platform"
+  }
+ ],
+ "validated": [
+  {
+   "file": "page_level",
+   "sig_id": "scrape_final_failure_by_type",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message == 'all attempts to scrape url had failed' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $l.subsystemname, $d.u.host:string as host, $d.ej.type:string as etype aggregate count() as n | orderby n desc",
+   "note": "rows capped by limit 3; OPEN_PAGE_TIMEOUT/FAILED_TO_RUN_ENGINES present"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "open_page_timeout",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message == 'all attempts to scrape url had failed' && $d.error.message:string ~ 'OPEN_PAGE_TIMEOUT' | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host aggregate count() as n",
+   "note": "maximus.com 2, spectrumreach 1"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "goto_url_timeout",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'encountered error while running a function with timeout' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $l.subsystemname, $d.ej.errorDescription:string as d aggregate count() as n, approx_count_distinct($d.context.request_id) as urls",
+   "note": "gotoURL >60000 (crawl) / >40000 (scan) descriptions present; some null descriptions in scan-worker"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "plugin_run_timeout",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.message ~ 'encountered error while running a function with timeout' && $d.error.message:string ~ 'bound run execution' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $d.ej.errorDescription:string aggregate count() as n",
+   "note": "bound run >20000/30000/60000 ms"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "handle_request_hard_cap",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') && $d.error.message:string ~ 'bound handleRequest execution took more than'",
+   "note": "rare (2/day, scan-worker); widened to 24h; $d.context.url is null on these records"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "http_status_non200",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host, $d.x.code:string as code aggregate count() as n | orderby n desc",
+   "note": "top rows are 200 - query does not exclude 200; add && !($d.message ~ 'is: 200') to focus on non-200"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "browser_subresource_net_err",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'Failed to load resource: net::ERR_' | extract $d.message:string into $d.x using regexp(e=/(?<code>net::ERR_[A-Z0-9_]+)/) | groupby $l.subsystemname, $d.x.code:string aggregate count() as n",
+   "note": "ERR_FAILED 941 in 3h scan-worker"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "interaction_selector_not_found",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ 'No element found for selector' | extract $d.error.message:string into $d.ej using jsonobject() | groupby $l.subsystemname, $d.ej.message:string as msg, $d.ej.url:string as final_url aggregate count() as n, approx_count_distinct($d.context.url) as urls | orderby n desc",
+   "note": "final_url groups are high-cardinality (login URLs with nonce/state params) - consider grouping by URL base"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "interaction_landed_on_login_or_geo",
+   "status": "fixed",
+   "rows": 1,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.error.message:string ~ 'No element found for selector' | extract $d.error.message:string into $d.ej using jsonobject() | create landing from $d.ej.url:string | filter landing.contains('login') || landing.contains('guest') || landing.contains('authenti') || landing.contains('out-of-country') | extract landing into $d.fu using regexp(e=/^(?<base>https?:\\/\\/[^?#]+)/) | groupby $d.fu.base:string as base aggregate count() as n, any_value($d.context.url) as page | orderby n desc",
+   "note": "original returned 0 rows over 24h although selector errors with final url id.spectrum.net/login existed in same window (prefilter ~ '\"url\":' and/or ~ on extracted field failed). Rewrite filters by message text on worker subsystems instead of templateids and uses .contains() on the extracted url; groups by url base (strips query params)."
+  },
+  {
+   "file": "page_level",
+   "sig_id": "engine_crash_failed_to_run_engines",
+   "status": "ok",
+   "rows": 1,
+   "window": "2026-11-02T06:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.error.message:string ~ 'FAILED_TO_RUN_ENGINES' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.u.host:string as host, substr($d.ej.additionalInfo.stackTrace:string,0,80) as st aggregate count() as n",
+   "note": "pearson 8"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "engines_plugin_error_worker_fs",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.error.message:string ~ 'ENGINES_PLUGIN_ERROR' | extract $d.error.message:string into $d.ej using jsonobject() | groupby substr($d.ej.additionalInfo.details:string,0,60) as d aggregate count() as n, any_value($d.context.url) as url",
+   "note": "ENOENT/ENOTEMPTY collegeboard, websteronline"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "final_type_misc",
+   "status": "ok",
+   "rows": 4,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5222f0-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '0d569b2a-9b5c-11f1-a137-c2fc7991ad86') | extract $d.error.message:string into $d.ej using jsonobject() | groupby formatTimestamp($m.timestamp, '%Y-%m-%d') as day, $d.ej.type:string as etype aggregate count() as n",
+   "note": "templateids still valid on 11-02; OPEN_PAGE_TIMEOUT 724, FAILED_TO_RUN_ENGINES 20, INTERNAL_ERROR 6"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "page_level_net_error_inline",
+   "status": "ok",
+   "rows": 1,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && $d.error.message:string ~ 'net::ERR_' | extract $d.error.message:string into $d.x using regexp(e=/(?<code>net::ERR_[A-Z0-9_]+) at https?:\\/\\/(?<host>[^\\/:?#]+)/) | groupby $d.x.code:string, $d.x.host:string aggregate count() as n",
+   "note": "rare; ERR_TIMED_OUT vrbo 1"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "nav_instability_context_destroyed",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == '9b5233c6-9b48-11f1-bb8a-4206745c74cb' || $m.templateid == '3f414be4-9c6f-11f1-a76b-3e8752cb6a06' || $m.templateid == '23a24bcc-b0f1-11f1-8b5b-aedcf7151837') && ($d.error.message:string ~ 'Execution context was destroyed' || $d.error.message:string ~ 'detached') | groupby $d.context.url aggregate count() as n",
+   "note": "widened to 24h; aa.com, pearson"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "scrape_server_scan_page_failed",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scrape-server' && $d.message ~ ' failed, scan id is ' | extract $d.message:string into $d.x using regexp(e=/scan page (?<url>[^ ]+) failed, scan id is (?<sid>[0-9a-f-]+)/) | groupby $d.x.sid:string aggregate count() as pages, any_value($d.x.url) as sample",
+   "note": "one scan with 50 failed pdf pages"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "content_type_mismatch",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && ($m.templateid == 'a92c1eca-a74c-11f1-9144-fab0241da207' || $m.templateid == 'e7b5fc88-aaf8-11f1-b655-422d8edb1526') | extract $d.message:string into $d.x using regexp(e=/content type: (?<ct>[^ ]+) /) | groupby $d.x.ct:string aggregate count() as n",
+   "note": "application/pdf 140"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "gcs_upload_rate_limited",
+   "status": "ok",
+   "rows": 1,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && ($d.message ~ 'upload file to cloud' || $d.message ~ 'error uploading file to bucket') | extract $d.message:string into $d.x using regexp(e=/tasks\\/(?<sid>[0-9a-f-]+)\\//) | groupby $d.x.sid:string, substr($d.error.message:string,0,60) as e aggregate count() as n",
+   "note": "1 record; sid extraction returned null (message lacks tasks/<id>/ path on this record)"
+  },
+  {
+   "file": "page_level",
+   "sig_id": "benign_crawl_cap_grouping_full",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $m.templateid == '08e4a5d0-9b45-11f1-a536-52ef7929d954' | groupby $d.context.url aggregate count() as n",
+   "note": "templateid still valid"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "http_status_doc_non200",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'http status code is: ' && !($d.message ~ 'is: 200') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+   "note": "404/504/429"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "browser_resource_status",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'Failed to load resource: the server responded with a status of' | extract $d.message into $d.sc using regexp(e=/status of (?<code>[0-9]{3})/) | groupby $l.subsystemname, $d.sc.code aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "note": "401 848 scan-worker"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "not_included_whitelist",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'final url not included in whitelist' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+   "note": "sky domains"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "not_included_other_reasons",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.message ~ 'not including url in result url set' | extract $d.message into $d.rx using regexp(e=/reason: (?<reason>[a-zA-Z _.:-]{0,60})/) | groupby $l.subsystemname, $d.rx.reason aggregate count() as n | orderby n desc",
+   "note": "content type / already visited / max visits"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "page_failed_due_to_reason",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.message ~ 'failed due to' | extract $d.message into $d.fr using regexp(e=/(?<kind>[A-Z]+) with id \\S+ failed due to (?<reason>[A-Z_0-9]+)/) | groupby $l.subsystemname, $d.fr.kind, $d.fr.reason aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | orderby n desc",
+   "note": "SCAN OPEN_PAGE_TIMEOUT 3, FAILED_TO_RUN_ENGINES 2"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "config_dump_user_agent",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-08:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'config is: {' | extract $d.message into $d.ua using regexp(e=/--user-agent=(?<ua>[^\"]{0,160})/) | extract $d.message into $d.p using regexp(e=/\"propertyName\":\"(?<prop>[^\"]+)\"/) | groupby $d.p.prop, $d.ua.ua aggregate count() as n | orderby n desc",
+   "note": "UA Chrome/112 spoof string; propertyName null on many rows"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "browser_version",
+   "status": "ok",
+   "rows": 1,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $m.templateid == 'd1d6dbd8-9c4f-11f1-8905-329537c5ee79' | groupby $d.message aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "note": "templateid still valid; single value Chrome/126.0.6478.126 (820 in 3h)"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "final_url_login_or_error_landing",
+   "status": "ok",
+   "rows": 4,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'final url after redirections' | extract $d.message into $d.fu using regexp(e=/redirections: (?<u>\\S+)/) | create landing from if($d.fu.u:string.matches(/(?i)\\/(u\\/)?(login|signin|sign-in|logon|authenticate|sso|mfa|otp|challenge)|out-of-country|\\/404|\\/500|not-found|error/), 'login/error/geo', 'normal') | groupby $d.resource.attributes['k8s.job.name'] as job, landing aggregate count() as n, any_value($d.fu.u) as sample | orderby n desc",
+   "note": "top rows are normal landings; filter landing == login/error/geo to focus"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "interaction_selector_missing",
+   "status": "ok",
+   "rows": 1,
+   "window": "2026-11-02T00:00-06:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'No element found for selector' || $d.message ~ 'exists: false') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value(substr($d.message:string,0,250)) as sample | orderby n desc",
+   "note": "crawl-worker #kite-label-input-4 (spectrum login)"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "interaction_steps",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-06:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'starting page interaction plugin') | groupby $l.subsystemname, $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n | orderby job",
+   "note": ""
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "scrape_net_error_inline",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $d.message ~ 'got error while scraping net::' | extract $d.message into $d.e using regexp(e=/(?<err>net::[A-Z_0-9]+)/) | groupby $l.subsystemname, $d.e.err, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.context.url) as url | orderby n desc",
+   "note": ""
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "crawl_visited_counter",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $m.templateid == '1212cbf6-9fa9-11f1-94dc-5ee20c2e67e1' | extract $d.message into $d.v using regexp(e=/visited (?<n>\\d+) pages/) | groupby $d.resource.attributes['k8s.job.name'] as job aggregate max($d.v.n:number) as maxv | filter maxv <= 1",
+   "note": "templateid still valid; jobs with maxv=1"
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "filtered_out_links",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'filtered out: ' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value($d.message) as sample",
+   "note": ""
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "scan_total_urls",
+   "status": "ok_empty",
+   "rows": 0,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scrape-server' && $d.message ~ 'scan pages finished - waiting for' | extract $d.message into $d.s using regexp(e=/in scan (?<scan>\\S+) completed\\. \\d+ scan pages finished - waiting for (?<m>\\d+)/) | groupby $d.s.scan aggregate max($d.s.m:number) as total | filter total <= 1",
+   "note": "0 rows because no scan had total<=1 in window (min total=2). Original templateid 81c746f6 still emits but a second template 29752660-9ca5-11f1-a420-8ed5aaa466b7 carries the same message, so the templateid filter misses part of the data; query_final filters by message text instead."
+  },
+  {
+   "file": "access_auth",
+   "sig_id": "node_pool_static",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-07:00Z",
+   "query_final": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') | groupby $l.subsystemname, $d.resource.attributes['k8s.node.name'] as node aggregate approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "note": "static node pools (scans-pool-stati / crawls-pool-stat)"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "job_timeline_by_property",
+   "status": "fixed",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter $d.context.property_id == '<LAST12_OF_PROPERTY_ID>' | filter $d.logger_name:string.matches(/ScanService|JobService|JobPoller|JobScheduler|UrlSetService|JobMessageListener|AppCommunicatorUtils|Export|Email/) || $m.severity == WARNING || $m.severity == ERROR | choose $m.timestamp, $l.subsystemname, $d.logger_name, $d.context.scan_id, $d.context.job_id, $d.error.message, substr($d.message:string,0,250) as msg | orderby $m.timestamp asc",
+   "note": "ALTERNATION BUG: $d.logger_name ~ 'ScanService|JobService|...' is a literal substring match and never matches (rows only came via the severity terms). Rewritten with .matches(/.../). Placeholder substituted with a8c3fd547532 (last 12 of a property id seen in scheduler errors); JobScheduler rows returned."
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "scheduler_next_run",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02T06:00-07:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'the next schedule job time is' && $d.message ~ '<PROPERTY_UUID>' | choose $m.timestamp, $l.subsystemname, $d.message | orderby $m.timestamp asc",
+   "note": "message text verified ('for property: <uuid>, the next schedule job time is: ...' on front-server); <PROPERTY_UUID> e.g. fbba6ac3-1845-40b9-a6b5-3db3c43a2f51 taken from that run"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "scheduler_failed_to_create_entity",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'failed to create entity for property' | groupby $d.error.type, substr($d.error.message:string,0,120) as emsg aggregate count() as n, distinct_count($d.context.property_id) as props | orderby n desc",
+   "note": "LimitExceeded (license expired) 1860, InvalidInput no URLs 600, URL set not defined 288"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "limit_exceeded_license",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.error.type ~ 'LimitExceededException' | groupby $d.context.tenant_name, substr($d.error.message:string,0,100) as emsg aggregate count() as n, distinct_count($d.context.property_id) as props | orderby n desc",
+   "note": ""
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "crawl_dispatch_failed",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'Failed running create crawl request' | choose $m.timestamp, $l.subsystemname, $d.context.tenant_name, $d.context.property_id, $d.context.client, $d.context.job_time, $d.error.type, $d.error.message",
+   "note": "rare; RuntimeException Job failed due to timeout/failure"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "job_state_failed",
+   "status": "fixed",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && ($d.message ~ 'changed state to: FAILED' || $d.message:string.matches(/state changed from \\w+ to FAILED/)) | create kind from if($d.message ~ 'changed state to: FAILED', 'job', 'scan') | groupby $d.context.tenant_name, $l.subsystemname, kind aggregate count() as n, any_value(substr($d.message:string,0,200)) as sample | orderby n desc",
+   "note": "BUG: $d.message ~ 'state changed from \\\\w+ to FAILED' is literal (no regex), so ScanService 'Scan with ID=.. state changed from RUNNING to FAILED' rows were missed; only the job-level term matched. Rewritten with .matches(); now returns both kinds."
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "scheduler_duplicate_jobentity",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'JobEntity\\\\) already exists' | extract $d.message into $d.dk using regexp(e=/=\\((?<ids>[0-9a-f-]{72})(?<runat>\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d), JobEntity/) | groupby $l.subsystemname, $d.dk.ids, $d.dk.runat aggregate count() as n, min($m.timestamp) as first | orderby n desc",
+   "note": "returns rows despite the escaped paren in ~ 'JobEntity\\\\) already exists' (simpler: ~ 'JobEntity) already exists')"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "api_slow_controller_call",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.c.l.f.FunctionLogger' && ($d.message ~ 'ViewsController' || $d.message ~ 'ScanController' || $d.message ~ 'ScanPagesController' || $d.message ~ 'ScanIssuesController' || $d.message ~ 'PropertyOverview') | extract $d.message into $d.fx using regexp(e=/\\((?<fn>[A-Za-z]+\\.[A-Za-z]+)\\) (?<what>took|failed)/) | extract $d.message into $d.fm using regexp(e=/(?<ms>[0-9]+) millis/) | groupby $d.fx.fn, $d.fx.what, $m.severity, $d.context.tenant_name aggregate count() as n, avg($d.fm.ms:number) as avgms, max($d.fm.ms:number) as mx | orderby mx desc",
+   "note": ""
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "api_controller_failed",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-12:00Z",
+   "query_final": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.c.web.api.RestExceptionHandler' | groupby $d.message as kind, $d.error.type, substr($d.context.request_uri:string,0,40) as uri aggregate count() as n, distinct_count($d.context.tenant_id) as tenants, any_value(substr($d.error.message:string,0,100)) as emsg | orderby n desc",
+   "note": "dominated by service-accounts NotFound; NPE on /api/property-overview"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "export_generation_failed",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-12:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && matches($d.message:string, /failed to generate (CSV|XLSX)|SCAN_RESULT_EXPORT|ExportIssues|exportIssues/) | extract $d.message into $d.ex using regexp(e=/generate (?<fmt>CSV|XLSX) for scan (?<scan>[0-9a-f-]{36}).*\\((?<why>[^)]+)\\)/) | groupby $d.ex.fmt, $d.ex.scan, $d.ex.why, $d.error.message aggregate count() as n | orderby n desc",
+   "note": ""
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "csv_queue_publish_failed",
+   "status": "ok_empty",
+   "rows": 0,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && $d.logger_name == 'c.e.p.c.s.c.CsvGenerationRabbitCommunicator' | groupby $l.subsystemname, roundTime($m.timestamp, 1h) as hour aggregate count() as n, any_value(substr($d.message:string,0,160)) as sample",
+   "note": "rare (~34/14d); 0 on 11-02 plausible"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "completion_email_failed",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && matches($d.message:string, /Failed to send (crawl|scan) completion email|CompletionEmailListener.*failed processing/) | groupby $d.logger_name, $d.error.type, substr($d.error.message:string,0,120) as emsg aggregate count() as n, distinct_count($d.context.tenant_id) as tenants",
+   "note": "regex also catches UrlSetService rollback rows (via CompletionEmailListener.*failed processing)"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "mcp_invalid_caller_id",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T00:00-12:00Z",
+   "query_final": "source logs | filter ($l.subsystemname == 'front-server' || $l.subsystemname == 'front-webapp') && ($d.message ~ 'invalid request caller ID' || $d.message ~ 'TokenController.generateAccessToken') | groupby $d.message, $d.error.type aggregate count() as n",
+   "note": "rows returned are TokenController.generateAccessToken invocations; 'invalid request caller ID' not in top 3 of 12h window"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "k8s_job_failed",
+   "status": "ok",
+   "rows": 2,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scrape-webapp') && $d.logger_name == 'c.e.c.k.t.KubernetesJobStateTransformer' | extract $d.message into $d.k using regexp(e=/name=(?<jobname>[0-9a-f-]{36}).*?reason=(?<reason>[A-Za-z]+)/) | groupby $m.severity, $d.k.reason, $d.context.tenant_name aggregate count() as n, any_value($d.k.jobname) as scan",
+   "note": "BackoffLimitExceeded (one scan)"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "scan_status_timeout_failed",
+   "status": "ok",
+   "rows": 1,
+   "window": "2026-11-02 00:00-24:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'admin-webapp' || $l.subsystemname == 'front-webapp') && $d.message ~ 'passed its timeout, marking it as FAILED' | choose $m.timestamp, $l.subsystemname, $d.context.tenant_name, $d.context.property_id, $d.message",
+   "note": "rare; 1 on 11-02"
+  },
+  {
+   "file": "lifecycle_platform",
+   "sig_id": "platform_incident_tenant_spread",
+   "status": "ok",
+   "rows": 3,
+   "window": "2026-11-02T06:00-09:00Z",
+   "query_final": "source logs | filter ($l.applicationname == 'admin' || $l.applicationname == 'front' || $l.subsystemname == 'scrape-server') && ($m.severity == ERROR || $m.severity == CRITICAL) | create $d.txt from firstNonNull($d.message:string, $d.body:string) | filter !($d.txt ~ 'failed to create entity for property') && !($d.txt ~ 'duplicate key') && !($d.txt ~ 'SQLState') && !($d.txt ~ 'overridden by commit') && !($d.txt ~ 'service-accounts') | extract $d.txt into $d.mdc using regexp(e=/tenancyName=(?<tenant>[^\\]]+)\\]/) | groupby roundTime($m.timestamp, 1h) as hour aggregate count() as errors, distinct_count(firstNonNull($d.context.tenant_name:string, $d.mdc.tenant:string)) as tenants, any_value(substr($d.txt,0,200)) as sample | orderby hour asc",
+   "note": "baseline 1 tenant/h; PropertyOverviewController NPE dominates"
+  }
+ ],
+ "backtest": [
+  {
+   "ticket": "#2903",
+   "sub_id": "A1",
+   "property_hint": "starz.ca (Bell Canada)",
+   "window": "2026-07-27..07-28 (customer re-ran on 07-27; ticket 07-24; 07-14..07-24 had no starz crawls)",
+   "evidence_found": "yes",
+   "signals": [
+    "crawl-worker 'http status code is: 403' (tmpl f19acea8, severity Info!) x3 jobs",
+    "'[browser] [error] Failed to load resource: the server responded with a status of 403 ()' (f1a49802)",
+    "'not including url in result url set. reason: final url not included in whitelist' (f1a281ca)",
+    "'successfully visited 1 pages so far'",
+    "www.starz.ca: 'request was handled successfully' (200, single page)",
+    "browser Chrome/126.0.6478.126"
+   ],
+   "agrees_with_root_cause": "yes",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'starz\\\\.ca' | groupby $m.templateid aggregate count() as n, any_value($d.message:string) as sample",
+   "notes": "Exactly the signatures quoted in the thread. All lines are severity Info - a 403 on the seed is NOT a WARN/ERROR, so severity filters miss it. In July the URL is $d.url (not $d.context.url) and requestId is $d.requestId; k8s.job.name = crawl job. Ticket created before the evidence run - window must follow the customer's run date, not ticket date."
+  },
+  {
+   "ticket": "#3340",
+   "sub_id": "A6",
+   "property_hint": "investor.capitalone.com (property f2e79976-\u2026)",
+   "window": "2026-10-08..10-14 (ticket 10-02; 09-30..10-02 had no crawls of this host)",
+   "evidence_found": "partial",
+   "signals": [
+    "5 crawl jobs (~10-09) failed on the seed: 'got error while scraping net::ERR_HTTP2_PROTOCOL_ERROR at https://investor.capitalone.com/' (Warning) -> 'encountered error while running a function with timeout' (Error) x100 retries -> 'all attempts to scrape url had failed' -> 'CRAWL with id \u2026 failed due to INTERNAL_ERROR - {\"details\":\"could not scrape page\"}'",
+    "~10-14: 2 jobs succeed, 'crawling page. visited 40 pages so far', 2540 x 'http status code is: 200' (after UA fix)",
+    "'browser was opened successfully. version: Chrome/126.0.6478.126' in both failing and good runs (browser version != UA string sent)"
+   ],
+   "agrees_with_root_cause": "no",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'investor\\\\.capitalone' && !($d.message:string ~ '^\\\\[browser\\\\]') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,160) as sample",
+   "notes": "Logs show a seed-page block (Akamai tarpit -> ERR_HTTP2_PROTOCOL_ERROR -> crawl INTERNAL_ERROR) and the before/after fix, but nothing names the user-agent as cause: the logged browser version is Chrome/126 even though the UA sent was Chrome/65. Signal is family-level (A1/A5/A6 indistinguishable). Oct schema: URL in $d.context.url (July used $d.url). Templateids were re-minted between July and Oct (e.g. 'http status code is' f19acea8 -> 33948266), so template ids are not stable across months."
+  },
+  {
+   "ticket": "#3301",
+   "sub_id": "A1",
+   "property_hint": "bell.myprepaidcenter.com / virginplus.myprepaidcenter.com (Bell, DataDome behind Fastly)",
+   "window": "2026-09-23..09-25",
+   "evidence_found": "yes",
+   "signals": [
+    "crawl-worker '[browser] [error] Failed to load resource: the server responded with a status of 405 ()' x9 (Info)",
+    "'finished waiting for page to stabilize. final url after redirections: \u2026/login/user' x40",
+    "'typing text in element: #usernameText' / 'element: #usernameText, exists: true'",
+    "'got error while scraping No element found for selector: #usernameText' (Warning)",
+    "'CRAWL with id \u2026 failed due to PAGE_INTERACTION_PLUGIN_ERROR - {details: could not scrape page}'"
+   ],
+   "agrees_with_root_cause": "yes",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && ($d.context.url:string ~ 'myprepaidcenter' || $d.url:string ~ 'myprepaidcenter') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,160) as sample",
+   "notes": "Decisive line is the 405 browser resource error (DataDome). Trap: the terminal code is PAGE_INTERACTION_PLUGIN_ERROR and the warning is 'No element found for selector', which by itself would be read as B2 (selector mismatch). Rule for investigator: when a login selector fails, check for a 403/405 resource error on the same job first -> A1, not B2. 'http status code is:' line absent on interaction-flow pages."
+  },
+  {
+   "ticket": "#3228",
+   "sub_id": "E3",
+   "property_hint": "Salesforce 'all salesforce.com' (URL set 26a0c29f; scheduled job 2026-09-01 07:00 UTC)",
+   "window": "2026-09-01 06:55..07:10 (ticket 09-09; thread names the incident time)",
+   "evidence_found": "yes",
+   "signals": [
+    "scrape-server 'HikariPool-1 - Connection is not available, request timed out after 30000ms (total=10, active=10, idle=0, waiting=7)' (Error) x33 in 15 min",
+    "admin-server 'Failed running create crawl request for URL set with ID=\u2026' (Error) x10",
+    "front-server same 'Failed running create crawl request' x12 (Error)",
+    "admin-server METRIC_EVENT {eventType: CrawlSummary, propertyId, taskId, status: FAILED, totalUrlsCount}"
+   ],
+   "agrees_with_root_cause": "yes",
+   "detecting_query": "source logs | filter $d.message:string ~ 'Connection is not available' || $d.message:string ~ 'create crawl request' | groupby $l.applicationname, $l.subsystemname aggregate count() as n, substr(any_value($d.message:string),0,200) as sample",
+   "notes": "Platform-wide at that moment (both admin and front tenants affected), so the same signal also covers E1. The 1-2 day window before the ticket date (09-08..09-09) shows nothing; you must use the failing run time. METRIC_EVENT CrawlSummary (admin-server/front-server) is a structured per-crawl outcome record with propertyId+status - best entry point for 'crawl failed' tickets. A first query with a grouped regex '(A|B|C)' on admin-server+scrape-server returned 0 rows; separate '~' terms joined by || worked."
+  },
+  {
+   "ticket": "#2192",
+   "sub_id": "E4",
+   "property_hint": "NatWest.com / NatWest International scans (failed 2026-05-05)",
+   "window": "2026-05-04 12:00..05-06 (failed run 05-05)",
+   "evidence_found": "no",
+   "signals": [],
+   "agrees_with_root_cause": "na",
+   "detecting_query": "source logs | filter $l.applicationname == 'admin' && $d.message:string ~ 'LimitExceededException'  (returns 0 for May)",
+   "notes": "0 rows for LimitExceededException in admin+front 05-05..05-06, 0 rows for '(?i)natwest' in admin-server on 05-05, and admin-server has no 'state changed from' lines on 05-05 at all; crawl-worker had no logs in a sampled May hour (admin-server only, mostly poller noise). Early-May logs don't have the MDC/state-transition lines this ticket needs. Not a log-design gap for E4 itself, just retention/instrumentation age."
+  },
+  {
+   "ticket": "#2371",
+   "sub_id": "B2",
+   "property_hint": "bell.jasperwireless.com (Bell)",
+   "window": "2026-05-28..06-02",
+   "evidence_found": "yes",
+   "signals": [
+    "crawl-worker Error 'encountered error while running a function with timeout. retry count: 0 Exception: {url: \u2026/provision/jsp/login.jsp, message: \"Failed to execute 'querySelector' on 'Document': '.input type=\\\"submit\\\"' is not a valid selector.\", element: {type: CLICK_ELEMENT, elementSelector: \u2026}}' x9-10",
+    "terminal PAGE_INTERACTION_PLUGIN_ERROR 'could not scrape page' (Scraper.ts:132)",
+    "'finished waiting for page to stabilize. final url after redirections: \u2026/login.jsp' x976 over 3 jobs (crawl never leaves login page)",
+    "Warning 'could not parse href: \u2026javascript:Menu.continueTour();\u2026' (JS nav, C6-type side signal)"
+   ],
+   "agrees_with_root_cause": "yes",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.url:string ~ 'jasperwireless' && $d.message:string ~ 'Exception' | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),60,400) as sample",
+   "notes": "Very discriminative: the exception JSON names the interaction type and the offending elementSelector, and the browser's 'is not a valid selector' text separates a malformed selector from a stale one ('No element found for selector'). Late-May crawl-worker logs exist (URL in $d.url)."
+  },
+  {
+   "ticket": "#3198",
+   "sub_id": "B2",
+   "property_hint": "Chick-fil-A properties f24b2608 / 23520cf6 (order.chick-fil-a.com/location interaction); discovery 2026-09-03 15:55-15:56",
+   "window": "2026-09-03 15:40..17:00 (plus 09-01..09-03 pre-window: nothing)",
+   "evidence_found": "partial",
+   "signals": [
+    "crawl-worker 'going from url: about:blank to url: https://order.chick-fil-a.com/location' / 'current page url: \u2026/location' x54 over 2 jobs (the interaction flow runs)",
+    "'element: #input-1, exists: true, in an iframe: false' x36 (first interaction step succeeds)",
+    "generic 'encountered error while running a function with timeout' (Error) - no selector text surfaced in the top templates",
+    "side find: relative-link bug, crawler visits 'https://www.chick-fil-a.com/https:/order.chick-fil-a.com/get-started' -> 'http status code is: 404'"
+   ],
+   "agrees_with_root_cause": "no",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'order\\\\.chick-fil-a' && !($d.message:string ~ '^\\\\[browser\\\\]') | groupby $m.templateid aggregate count() as n, substr(any_value($d.message:string),0,300) as sample",
+   "notes": "Crawls with the interaction ran at the stated time, but the top-20 templates show no 'No element found for selector' line for the sc-\u2026 CLICK_ELEMENT. A stale selector that silently matches nothing or times out can end DONE with 0 URLs and no clear error. The decisive fact ('DONE with 0 URLs') likely sits in admin-server CrawlSummary METRIC_EVENT (totalUrlsCount=0), not in crawl-worker. Many concurrent Chick-fil-A crawls (www, 1346 pages) share the host; filter by k8s.job.name per property."
+  },
+  {
+   "ticket": "#2914",
+   "sub_id": "A5",
+   "property_hint": "natwest.com / rbs.co.uk properties (NatWest Group)",
+   "window": "2026-07-20..07-28 (day buckets), detail 07-27",
+   "evidence_found": "no",
+   "signals": [
+    "Only 2 (07-23) + 5 (07-27) 'http status code is: 200' lines for any natwest URL in 07-21..07-28",
+    "07-27 activity is the tylbynatwest.com property (blacklist drops, pdf content-type), not natwest.com"
+   ],
+   "agrees_with_root_cause": "na",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.message:string ~ 'http status code is' && $d.url:string ~ 'natwest' | groupby formatTimestamp($m.timestamp, '%Y-%m-%d') as day, $d.message:string as msg aggregate count() as n",
+   "notes": "The 429-heavy run discussed in the thread (~5h, 1,384 timeouts) is not in the week before the ticket. It was an earlier run and the exact date isn't in the thread. The day-bucketed status-code histogram is the right detector (a 429 share per crawl job); it just needs the run date. Two queries with grouped alternation '(natwest\\.com|rbs\\.co\\.uk)' returned 0 rows, so alternation groups in ~ look unreliable: use separate ~ terms."
+  },
+  {
+   "ticket": "#3420",
+   "sub_id": "A2",
+   "property_hint": "community.environicsanalytics.com (Bell, Zendesk Help Center behind Cloudflare)",
+   "window": "2026-10-17..10-19",
+   "evidence_found": "yes",
+   "signals": [
+    "crawl-worker 'http status code is: 403' x4 + '[browser] [error] Failed to load resource: \u2026 status of 403 ()' x6 across 3 jobs",
+    "'successfully visited 1 pages so far' x4 (4 jobs)",
+    "redirect to Zendesk '/auth/v3/signin?brand_id=\u2026' (final url after redirections)",
+    "other jobs in the same window reach 'max number of successful visits was reached' (x124) - 200s, presumably after the UA / puppeteer-args change"
+   ],
+   "agrees_with_root_cause": "no",
+   "detecting_query": "source logs | filter $l.subsystemname == 'crawl-worker' && $d.context.url:string ~ 'environicsanalytics' && !($d.message:string ~ '^\\\\[browser\\\\] \\\\[warn') | groupby substr($d.message:string,0,200) as msg aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs",
+   "notes": "The block is visible (403 + 1 page per job) but logs carry no Cloudflare marker (no 'Just a moment', cf-ray or challenge title), so A2 (challenge) can't be told from A1 (hard 403). Family A pinned, sub-issue not. A page-title or response-header line in crawl-worker would separate A1/A2/A3."
+  },
+  {
+   "ticket": "#3248",
+   "sub_id": "D1",
+   "property_hint": "www.ulta.com (Ulta Beauty)",
+   "window": "2026-09-11..09-14",
+   "evidence_found": "no",
+   "signals": [
+    "crawl-worker non-Info for www.ulta.com: only 'max number of successful visits was reached' (Warning) x129 - crawl hit its page cap, no timeouts",
+    "scan-worker: a single page (www.ulta.com/) scanned OK with engines 16.32.2"
+   ],
+   "agrees_with_root_cause": "na",
+   "detecting_query": "source logs | filter ($l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') && $d.context.url:string ~ 'www\\\\.ulta\\\\.com' && $m.severity != INFO | groupby $l.subsystemname, substr($d.message:string,0,200) as msg aggregate count() as n",
+   "notes": "The scan with the failed /shop/ /p/ /stores/ pages wasn't in the window (or its per-page records don't carry context.url). Expected detector once the run is found: scan-worker 'encountered error while running a function with timeout' + 'Function: gotoURL execution took more than 40000 miliseconds' / page-ready timeout, grouped by URL path prefix."
+  },
+  {
+   "ticket": "#3293",
+   "sub_id": "D2",
+   "property_hint": "shop.chick-fil-a.com restaurant-locator page (Chick-fil-A)",
+   "window": "2026-09-17..09-24 (scan seen ~09-23 22:00 UTC)",
+   "evidence_found": "partial",
+   "signals": [
+    "scan-worker 'SCAN with id \u2026 failed due to FAILED_TO_RUN_ENGINES - {\"details\":\"could not run analysis\"}' exists (133 in 09-23..09-24 12:00, all tenants), URL in $d.context.url",
+    "shop.chick-fil-a.com pages scanned ~09-23 ('running plugin EvincedEnginesPlugin' per product URL)",
+    "no chick-fil-a URL among the top FAILED_TO_RUN_ENGINES URLs in 09-23..09-24 (Salesforce trailblazer profiles, verizon dominate)"
+   ],
+   "agrees_with_root_cause": "na",
+   "detecting_query": "source logs | filter $l.subsystemname == 'scan-worker' && $d.message:string ~ 'failed due to FAILED_TO_RUN_ENGINES' | groupby substr($d.context.url:string,0,70) as url aggregate count() as n",
+   "notes": "The detector (per-page FAILED_TO_RUN_ENGINES with URL) exists and is cheap, but the locator-page failure wasn't found in budget. The background is noisy (100+/day on Salesforce profile pages), so D2 needs the URL plus the engine error text (e.g. CircularEvValueError, timeout) to separate engine crash from page-load issues."
+  },
+  {
+   "ticket": "#2751 (+#2752 #2755 #2760 #2764)",
+   "sub_id": "E1",
+   "property_hint": "platform-wide (Bell, Progressive, StorageVault, Verizon, \u2026) June 2026 incident",
+   "window": "2026-06-24..06-30, per-day volume by subsystem",
+   "evidence_found": "yes",
+   "signals": [
+    "scan-worker volume collapses: 395k (06-24) -> 5.3k (06-26) and 5.2k (06-28); crawl-worker 644k -> 71k on 06-26",
+    "scan-worker ERROR burst on 06-27: 26,324 errors of 272k lines (vs 861 on 06-24)",
+    "scrape-server keeps logging normally (112k-253k/day, 0 errors) while workers starve: the dispatcher is alive, the k8s worker jobs aren't running",
+    "06-29 catch-up surge: crawl-worker 2.23M, scan-worker 1.06M lines",
+    "no admin-server 'state changed from' lines and no METRIC_EVENT *Summary records exist in June (that instrumentation is newer)"
+   ],
+   "agrees_with_root_cause": "yes",
+   "detecting_query": "source logs | filter $l.applicationname == 'site-scanner' && ($l.subsystemname == 'scrape-server' || $l.subsystemname == 'scan-worker' || $l.subsystemname == 'crawl-worker') | groupby formatTimestamp($m.timestamp, '%m-%d') as day, $l.subsystemname as sub aggregate count() as n, count_if($m.severity == ERROR) as errors",
+   "notes": "E1 shows up as a volume anomaly, not a message: worker log volume drops ~75x while scrape-server is steady, then a backlog surge. Detect with a per-hour volume ratio scan-worker/scrape-server (alert when it collapses). One query covers all 5 outage tickets."
+  }
+ ],
+ "unused_sigs": [
+  "browser_subresource_net_err",
+  "browser_version",
+  "content_type_mismatch",
+  "interaction_steps",
+  "job_timeline_by_property",
+  "node_pool_static",
+  "scan_total_urls",
+  "scrape_server_scan_page_failed"
+ ]
+}
