@@ -1,0 +1,1183 @@
+[
+ {
+  "n": 1,
+  "pattern": "A2-challenge",
+  "job_id": "8ffa9d66-456b-43cb-9d69-4044a2785ce5",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T09:01:35Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Booking",
+  "tenant_id": "0937bc0d-d8b6-43ae-8623-02dec633cea7",
+  "property_name": "Booking - Flights",
+  "property_id": "aaf8d837-7446-47af-8184-5ec6d440c211",
+  "url_set_id": "8ffa9d66-456b-43cb-9d69-4044a2785ce5",
+  "site": "flights.booking.com",
+  "seed_or_sample_url": "https://flights.booking.com/api/oauth/login",
+  "evidence": "202 on 5255 of 9477 document statuses (55%), 200 on 2; 202 from request 1.",
+  "log_excerpt": [
+   "http status code is: 202",
+   "http status code is: 200",
+   "got error while scraping Execution context was destroyed, most likely because of a navigation."
+  ],
+  "suggested_fix": "Allowlist Evinced static NAT IPs / custom header in the bot manager (challenge-exempt) and change the user agent to a current Chrome UA.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/aaf8d837-7446-47af-8184-5ec6d440c211?viewId=all",
+   "run": "https://app.evinced.com/properties/aaf8d837-7446-47af-8184-5ec6d440c211/urlset/8ffa9d66-456b-43cb-9d69-4044a2785ce5",
+   "settings": "https://app.evinced.com/properties/aaf8d837-7446-47af-8184-5ec6d440c211/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '8ffa9d66-456b-43cb-9d69-4044a2785ce5' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Remaining statuses are mostly 429 (rate limiting, also an A5 signal); job ended INTERNAL_ERROR on 1 URL after 5000 visits."
+ },
+ {
+  "n": 2,
+  "pattern": "A2-challenge",
+  "job_id": "d0a4e561-a096-4aec-92b5-1dd3025640bb",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-15T08:01:38Z",
+  "run_date": "2026-10-15",
+  "tenant_name": "capitalone-sdk-testing",
+  "tenant_id": "dd02aedd-5a21-43d2-83ea-43551450d475",
+  "property_name": "capitalone.ca",
+  "property_id": "e3f58524-e121-41d9-8c08-71dc0c9e86a4",
+  "url_set_id": "d0a4e561-a096-4aec-92b5-1dd3025640bb",
+  "site": "creditblog.capitalone.ca",
+  "seed_or_sample_url": "http://capitalone.ca/",
+  "evidence": "202 on 822 of 1043 document statuses (79%), 200 on 220; first 202 after initial 200s, then mixed 200/202 until the end.",
+  "log_excerpt": [
+   "http status code is: 202",
+   "http status code is: 200",
+   "successfully visited: 1000 urls"
+  ],
+  "suggested_fix": "Allowlist Evinced static NAT IPs / custom header in the bot manager (challenge-exempt) and change the user agent to a current Chrome UA.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/e3f58524-e121-41d9-8c08-71dc0c9e86a4?viewId=all",
+   "run": "https://app.evinced.com/properties/e3f58524-e121-41d9-8c08-71dc0c9e86a4/urlset/d0a4e561-a096-4aec-92b5-1dd3025640bb",
+   "settings": "https://app.evinced.com/properties/e3f58524-e121-41d9-8c08-71dc0c9e86a4/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'd0a4e561-a096-4aec-92b5-1dd3025640bb' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Tenant capitalone-sdk-testing; the same site also blocks 202 under tenant Capital One Exclusive (job 10514982-6412-4cd9-af11-f400066cebe8, property 7056a538-f5c0-466a-b1e4-23cc3cb052cc) - not listed separately."
+ },
+ {
+  "n": 3,
+  "pattern": "A2-challenge",
+  "job_id": "7128bd4d-fca8-4850-8a39-832f88531b21",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-07T22:31:42Z",
+  "run_date": "2026-10-07",
+  "tenant_name": "Capital One Exclusive",
+  "tenant_id": "92262574-a2e6-446e-a523-94414c321ea6",
+  "property_name": "resources.dinersclub.com",
+  "property_id": "56878c0d-cff9-427c-af0f-d333e468f361",
+  "url_set_id": "7128bd4d-fca8-4850-8a39-832f88531b21",
+  "site": "resources.dinersclub.com",
+  "seed_or_sample_url": "http://resources.dinersclub.com",
+  "evidence": "202/403 on 255 of 398 document statuses (64%: 250x202, 5x403), 200 on 143; first 202 after initial 200s, then mixed 200/202 until the end.",
+  "log_excerpt": [
+   "http status code is: 202",
+   "http status code is: 200",
+   "successfully visited: 372 urls"
+  ],
+  "suggested_fix": "Allowlist Evinced static NAT IPs / custom header in the bot manager (challenge-exempt) and change the user agent to a current Chrome UA.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/56878c0d-cff9-427c-af0f-d333e468f361?viewId=all",
+   "run": "https://app.evinced.com/properties/56878c0d-cff9-427c-af0f-d333e468f361/urlset/7128bd4d-fca8-4850-8a39-832f88531b21",
+   "settings": "https://app.evinced.com/properties/56878c0d-cff9-427c-af0f-d333e468f361/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '7128bd4d-fca8-4850-8a39-832f88531b21' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "250x202 + 5x403."
+ },
+ {
+  "n": 4,
+  "pattern": "A1",
+  "job_id": "5d720dc0-9539-42e6-ad29-2916862c111c",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-09T10:01:43Z",
+  "run_date": "2026-10-09",
+  "tenant_name": "Capital One Exclusive",
+  "tenant_id": "92262574-a2e6-446e-a523-94414c321ea6",
+  "property_name": "velocity.black",
+  "property_id": "08159a6b-5930-4853-89c2-dcea0a5fdfa2",
+  "url_set_id": "5d720dc0-9539-42e6-ad29-2916862c111c",
+  "site": "velocity.black",
+  "seed_or_sample_url": "http://velocity.black",
+  "evidence": "403 on 10 of 10 document statuses (100%), 200 on 0; 403 from request 1.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 403",
+   "successfully visited: 10 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/08159a6b-5930-4853-89c2-dcea0a5fdfa2?viewId=all",
+   "run": "https://app.evinced.com/properties/08159a6b-5930-4853-89c2-dcea0a5fdfa2/urlset/5d720dc0-9539-42e6-ad29-2916862c111c",
+   "settings": "https://app.evinced.com/properties/08159a6b-5930-4853-89c2-dcea0a5fdfa2/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '5d720dc0-9539-42e6-ad29-2916862c111c' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Scan on the same property was also 403 on 10/10 (scan bca7229c-9c1d-4066-9633-5fd9ff322342)."
+ },
+ {
+  "n": 5,
+  "pattern": "A1",
+  "job_id": "408508a1-e8c2-497b-8019-acb2a94e9583",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-05T02:01:43Z",
+  "run_date": "2026-10-05",
+  "tenant_name": "NatWest",
+  "tenant_id": "0a510ac0-2360-4a34-8f15-4b57ec58c823",
+  "property_name": "www.mettle.co.uk",
+  "property_id": "b1fe797d-1ade-493f-9557-09c51bf0d97b",
+  "url_set_id": "408508a1-e8c2-497b-8019-acb2a94e9583",
+  "site": "www.mettle.co.uk",
+  "seed_or_sample_url": "https://www.mettle.co.uk/",
+  "evidence": "403 on 151 of 199 document statuses (76%), 200 on 26; 403 after 26 initial 200s, never recovered.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 176 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/b1fe797d-1ade-493f-9557-09c51bf0d97b?viewId=all",
+   "run": "https://app.evinced.com/properties/b1fe797d-1ade-493f-9557-09c51bf0d97b/urlset/408508a1-e8c2-497b-8019-acb2a94e9583",
+   "settings": "https://app.evinced.com/properties/b1fe797d-1ade-493f-9557-09c51bf0d97b/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '408508a1-e8c2-497b-8019-acb2a94e9583' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t"
+ },
+ {
+  "n": 6,
+  "pattern": "A1",
+  "job_id": "0bb4e083-95be-44ae-b07a-886881e16702",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-08T12:02:32Z",
+  "run_date": "2026-10-08",
+  "tenant_name": "Capital One Exclusive",
+  "tenant_id": "92262574-a2e6-446e-a523-94414c321ea6",
+  "property_name": "pulsenetwork.com",
+  "property_id": "da905cd2-60de-4faa-870d-070c9d1aa224",
+  "url_set_id": "0bb4e083-95be-44ae-b07a-886881e16702",
+  "site": "www.pulsenetwork.com",
+  "seed_or_sample_url": "https://www.pulsenetwork.com/",
+  "evidence": "403 on 45 of 56 document statuses (80%), 200 on 11; 403 after 11 initial 200s, never recovered.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 74 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/da905cd2-60de-4faa-870d-070c9d1aa224?viewId=all",
+   "run": "https://app.evinced.com/properties/da905cd2-60de-4faa-870d-070c9d1aa224/urlset/0bb4e083-95be-44ae-b07a-886881e16702",
+   "settings": "https://app.evinced.com/properties/da905cd2-60de-4faa-870d-070c9d1aa224/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '0bb4e083-95be-44ae-b07a-886881e16702' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Property/tenant ids from admin/front logs (worker config line had no property fields for this job)."
+ },
+ {
+  "n": 7,
+  "pattern": "A1",
+  "job_id": "cf465951-8d9f-488c-af1d-8410ac0a357b",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T10:00:09Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Comcast",
+  "tenant_id": "cdf15e98-6507-460e-8d73-bb2c69aa76d2",
+  "property_name": "comcastpreview.runmytests.com",
+  "property_id": "8f0a7a37-3e98-486f-a8fe-2dda09549d73",
+  "url_set_id": "cf465951-8d9f-488c-af1d-8410ac0a357b",
+  "site": "comcastpreview.runmytests.com",
+  "seed_or_sample_url": "https://comcastpreview.runmytests.com",
+  "evidence": "403 on 440 of 514 document statuses (86%), 200 on 74; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 500 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/8f0a7a37-3e98-486f-a8fe-2dda09549d73?viewId=all",
+   "run": "https://app.evinced.com/properties/8f0a7a37-3e98-486f-a8fe-2dda09549d73/urlset/cf465951-8d9f-488c-af1d-8410ac0a357b",
+   "settings": "https://app.evinced.com/properties/8f0a7a37-3e98-486f-a8fe-2dda09549d73/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'cf465951-8d9f-488c-af1d-8410ac0a357b' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t"
+ },
+ {
+  "n": 8,
+  "pattern": "A1",
+  "job_id": "2cbfcd06-1003-4ba9-ab40-aabcb49f5a4e",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-19T09:02:22Z",
+  "run_date": "2026-10-19",
+  "tenant_name": "American Airlines",
+  "tenant_id": "ffdf798c-5474-4da1-a1d5-44962f7dd52e",
+  "property_name": "AA Vacations",
+  "property_id": "48b25866-d688-4b75-af22-87ddb73c5959",
+  "url_set_id": "2cbfcd06-1003-4ba9-ab40-aabcb49f5a4e",
+  "site": "www.aavacations.com",
+  "seed_or_sample_url": "https://www.aavacations.com/about-us",
+  "evidence": "403 on 224 of 247 document statuses (91%), 200 on 22; 403 from request 1.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 251 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/48b25866-d688-4b75-af22-87ddb73c5959?viewId=all",
+   "run": "https://app.evinced.com/properties/48b25866-d688-4b75-af22-87ddb73c5959/urlset/2cbfcd06-1003-4ba9-ab40-aabcb49f5a4e",
+   "settings": "https://app.evinced.com/properties/48b25866-d688-4b75-af22-87ddb73c5959/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '2cbfcd06-1003-4ba9-ab40-aabcb49f5a4e' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Property/tenant ids from admin/front logs (tenant id from admin request body). The follow-up scan 97087564-9d03-4857-bc84-bd358f5bf22e was also 403 on 229/251."
+ },
+ {
+  "n": 9,
+  "pattern": "A1",
+  "job_id": "2df63642-9f56-40e6-9eec-69c361d9d2a3",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-29T13:49:43Z",
+  "run_date": "2026-10-29",
+  "tenant_name": "Evinced Demo Account",
+  "tenant_id": "18accef9-6075-4ec0-bd6e-14ec182b7fcc",
+  "property_name": "www.lenovo.com",
+  "property_id": "439d1f0f-5e5b-4804-ba27-ca737c7d8225",
+  "url_set_id": "2df63642-9f56-40e6-9eec-69c361d9d2a3",
+  "site": "www.lenovo.com",
+  "seed_or_sample_url": "https://www.lenovo.com/anti-slavery-statement/",
+  "evidence": "403 on 878 of 882 document statuses (100%), 200 on 3; 3 x 200 in the first ~4 min, then 403 on every page for the rest of the run (never recovered); 25 URLs also failed OPEN_PAGE_TIMEOUT.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "CRAWL with id 2df63642-9f56-40e6-9eec-69c361d9d2a3 failed due to OPEN_PAGE_TIMEOUT - {}"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/439d1f0f-5e5b-4804-ba27-ca737c7d8225?viewId=all",
+   "run": "https://app.evinced.com/properties/439d1f0f-5e5b-4804-ba27-ca737c7d8225/urlset/2df63642-9f56-40e6-9eec-69c361d9d2a3",
+   "settings": "https://app.evinced.com/properties/439d1f0f-5e5b-4804-ba27-ca737c7d8225/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '2df63642-9f56-40e6-9eec-69c361d9d2a3' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Evinced Demo Account tenant (prospect/demo property). Also 25 OPEN_PAGE_TIMEOUT failures. Property id from admin logs."
+ },
+ {
+  "n": 10,
+  "pattern": "A1",
+  "job_id": "95b3a1f2-3101-455b-8352-2125ab4e3022",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T08:32:03Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Sky UK",
+  "tenant_id": "c73c2e11-7337-4d46-9dc9-bea9684f23f3",
+  "property_name": "Sky Germany: sky.at",
+  "property_id": "0fc2c9f5-e0d6-4456-b483-dd8c1f83e345",
+  "url_set_id": "95b3a1f2-3101-455b-8352-2125ab4e3022",
+  "site": "www.sky.at",
+  "seed_or_sample_url": "https://www.sky.at",
+  "evidence": "403 on 402 of 454 document statuses (89%), 200 on 52; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 454 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/0fc2c9f5-e0d6-4456-b483-dd8c1f83e345?viewId=all",
+   "run": "https://app.evinced.com/properties/0fc2c9f5-e0d6-4456-b483-dd8c1f83e345/urlset/95b3a1f2-3101-455b-8352-2125ab4e3022",
+   "settings": "https://app.evinced.com/properties/0fc2c9f5-e0d6-4456-b483-dd8c1f83e345/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '95b3a1f2-3101-455b-8352-2125ab4e3022' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Sky UK tenant has ticket #3369 (www.sky.de, A1, 2026-10-08) for a different property/host; no ticket names sky.at."
+ },
+ {
+  "n": 11,
+  "pattern": "A1",
+  "job_id": "8198d91c-c124-402a-b3ef-db937ed0ef03",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T18:01:32Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Comcast",
+  "tenant_id": "cdf15e98-6507-460e-8d73-bb2c69aa76d2",
+  "property_name": "xumo.com",
+  "property_id": "34733051-d4d6-43c4-9a2d-229c90fba58c",
+  "url_set_id": "8198d91c-c124-402a-b3ef-db937ed0ef03",
+  "site": "www.xumo.com",
+  "seed_or_sample_url": "https://www.xumo.com/",
+  "evidence": "403 on 109 of 128 document statuses (85%), 200 on 19; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 122 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/34733051-d4d6-43c4-9a2d-229c90fba58c?viewId=all",
+   "run": "https://app.evinced.com/properties/34733051-d4d6-43c4-9a2d-229c90fba58c/urlset/8198d91c-c124-402a-b3ef-db937ed0ef03",
+   "settings": "https://app.evinced.com/properties/34733051-d4d6-43c4-9a2d-229c90fba58c/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '8198d91c-c124-402a-b3ef-db937ed0ef03' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t"
+ },
+ {
+  "n": 12,
+  "pattern": "A1",
+  "job_id": "15d9ac27-60a1-4889-832e-319f4504419d",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-27T13:19:22Z",
+  "run_date": "2026-10-27",
+  "tenant_name": "Evinced Demo Account",
+  "tenant_id": "18accef9-6075-4ec0-bd6e-14ec182b7fcc",
+  "property_name": "www.zs.com",
+  "property_id": "473dba7c-fc98-442d-9081-0afe89180fd3",
+  "url_set_id": "15d9ac27-60a1-4889-832e-319f4504419d",
+  "site": "www.zs.com",
+  "seed_or_sample_url": "https://www.zs.com/",
+  "evidence": "403 on 357 of 469 document statuses (76%), 200 on 112; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 455 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/473dba7c-fc98-442d-9081-0afe89180fd3?viewId=all",
+   "run": "https://app.evinced.com/properties/473dba7c-fc98-442d-9081-0afe89180fd3/urlset/15d9ac27-60a1-4889-832e-319f4504419d",
+   "settings": "https://app.evinced.com/properties/473dba7c-fc98-442d-9081-0afe89180fd3/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '15d9ac27-60a1-4889-832e-319f4504419d' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Evinced Demo Account tenant. Property id from admin/front logs."
+ },
+ {
+  "n": 13,
+  "pattern": "A1",
+  "job_id": "bbbea415-a717-42e8-8449-f93d44ad646b",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-30T18:21:20Z",
+  "run_date": "2026-10-30",
+  "tenant_name": "Deloitte Canada",
+  "tenant_id": "4a0e4c69-1b4e-4dfe-936f-7175311d6e30",
+  "property_name": "Deloitte Digital Canada",
+  "property_id": "2c0aa691-6221-4ea2-b2c7-7078532a9302",
+  "url_set_id": "bbbea415-a717-42e8-8449-f93d44ad646b",
+  "site": "www.deloittedigital.com",
+  "seed_or_sample_url": "https://www.deloittedigital.com/ca/en.html",
+  "evidence": "403 on 39 of 67 document statuses (58%), 200 on 28; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 65 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/2c0aa691-6221-4ea2-b2c7-7078532a9302?viewId=all",
+   "run": "https://app.evinced.com/properties/2c0aa691-6221-4ea2-b2c7-7078532a9302/urlset/bbbea415-a717-42e8-8449-f93d44ad646b",
+   "settings": "https://app.evinced.com/properties/2c0aa691-6221-4ea2-b2c7-7078532a9302/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'bbbea415-a717-42e8-8449-f93d44ad646b' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Borderline share (58%). Property id from admin logs. Deloitte has older unrelated tickets (#599 H1, #750 G2, #1348 F3)."
+ },
+ {
+  "n": 14,
+  "pattern": "A1",
+  "job_id": "80b7f973-dd03-4a30-8752-9453dbe790c8",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T18:01:35Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Comcast",
+  "tenant_id": "cdf15e98-6507-460e-8d73-bb2c69aa76d2",
+  "property_name": "forums.xfinity.com",
+  "property_id": "4b26a24f-bc95-49f7-ac7f-83f8b67256f0",
+  "url_set_id": "80b7f973-dd03-4a30-8752-9453dbe790c8",
+  "site": "forums.xfinity.com",
+  "seed_or_sample_url": "https://forums.xfinity.com",
+  "evidence": "403 on 289 of 325 document statuses (89%), 200 on 36; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 325 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/4b26a24f-bc95-49f7-ac7f-83f8b67256f0?viewId=all",
+   "run": "https://app.evinced.com/properties/4b26a24f-bc95-49f7-ac7f-83f8b67256f0/urlset/80b7f973-dd03-4a30-8752-9453dbe790c8",
+   "settings": "https://app.evinced.com/properties/4b26a24f-bc95-49f7-ac7f-83f8b67256f0/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '80b7f973-dd03-4a30-8752-9453dbe790c8' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t"
+ },
+ {
+  "n": 15,
+  "pattern": "A1",
+  "job_id": "9e029d85-5a5c-4a00-bc5f-dfa232dc7ef6",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-11T09:01:41Z",
+  "run_date": "2026-10-11",
+  "tenant_name": "Evinced Demo Account",
+  "tenant_id": "18accef9-6075-4ec0-bd6e-14ec182b7fcc",
+  "property_name": "www.pbs.org",
+  "property_id": "2548ea52-b8f6-436b-b082-d020bb8aa9d6",
+  "url_set_id": "9e029d85-5a5c-4a00-bc5f-dfa232dc7ef6",
+  "site": "www.pbs.org",
+  "seed_or_sample_url": "http://www.pbs.org/about/pbs-privacy-policy/",
+  "evidence": "403 on 1343 of 1531 document statuses (88%), 200 on 185; first 403 after initial 200s, then mixed 200/403 until the end.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "http status code is: 200",
+   "successfully visited: 1500 urls"
+  ],
+  "suggested_fix": "Ask customer to allowlist Evinced static NAT IPs and enable static IP for the property (or add the agreed custom header to the WAF bypass rule).",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/2548ea52-b8f6-436b-b082-d020bb8aa9d6?viewId=all",
+   "run": "https://app.evinced.com/properties/2548ea52-b8f6-436b-b082-d020bb8aa9d6/urlset/9e029d85-5a5c-4a00-bc5f-dfa232dc7ef6",
+   "settings": "https://app.evinced.com/properties/2548ea52-b8f6-436b-b082-d020bb8aa9d6/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '9e029d85-5a5c-4a00-bc5f-dfa232dc7ef6' && $d.message ~ 'http status code is: ' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 5m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+  "notes": "Evinced Demo Account tenant; repeats on 2026-11-01 (crawl cb160fdb-8663-452a-b645-26c29447d116) and scans dc07f2a9/c0cf4993."
+ },
+ {
+  "n": 16,
+  "pattern": "A4",
+  "job_id": "fcf0c9a5-7844-4c0e-8cbc-78c4a1a5cfeb",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-11T07:00:13Z",
+  "run_date": "2026-10-11",
+  "tenant_name": "State of CT",
+  "tenant_id": "7477c351-bc42-460b-95aa-1093dd06fed0",
+  "property_name": "birth23.org",
+  "property_id": "7016ed53-4945-480b-bd58-56c28c60a512",
+  "scan_id": "fcf0c9a5-7844-4c0e-8cbc-78c4a1a5cfeb",
+  "site": "www.birth23.org",
+  "seed_or_sample_url": "https://www.birth23.org/",
+  "evidence": "Admin request body useStaticIp=false; ran on gke-prod-mon-cluster-scans-node-pool-62f884fd (non-static pool). 403 on 565 of 622 document statuses (91%), 200 on 52; 430 URLs; job FAILED (ENGINES_PLUGIN_ERROR on 5 URLs).",
+  "log_excerpt": [
+   "http status code is: 403",
+   "successfully visited: 9 urls",
+   "failed to scrape: 5 urls"
+  ],
+  "suggested_fix": "Enable static IP for the property in Retool (or remove the property-level useStaticIp=false override / move it off the fast non-static tier), then have the customer allowlist the static NAT IPs.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/7016ed53-4945-480b-bd58-56c28c60a512?viewId=all",
+   "run": "https://app.evinced.com/properties/7016ed53-4945-480b-bd58-56c28c60a512/scans/fcf0c9a5-7844-4c0e-8cbc-78c4a1a5cfeb/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/7016ed53-4945-480b-bd58-56c28c60a512/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == 'fcf0c9a5-7844-4c0e-8cbc-78c4a1a5cfeb' && ($d.message ~ 'http status code is: ' || $d.message ~ 'failed due to OPEN_PAGE_TIMEOUT') | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby $d.resource.attributes['k8s.node.name']:string as node aggregate count() as n, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.message ~ 'OPEN_PAGE_TIMEOUT', 1, 0)) as opt  // plus admin: source logs | filter $l.applicationname == 'admin' && $d.message ~ 'Sending POST request to' && $d.message ~ 'fcf0c9a5-7844-4c0e-8cbc-78c4a1a5cfeb' | extract $d.message:string into $d.s using regexp(e=/useStaticIp\\\\?\":(?<v>true|false)/) | choose $m.timestamp, $d.s.v",
+  "notes": "Repeat on 2026-10-04 (scan d1a7b84b-ca1b-4ea5-88fb-9db52b18fe44, 439/470 403). State of CT has only licence-expiry notification tickets since 2026-09-20 (#3304-#3326), none about access."
+ },
+ {
+  "n": 17,
+  "pattern": "A4",
+  "job_id": "11276894-7986-4e07-9b01-5efe41cc3f4f",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-11T17:30:11Z",
+  "run_date": "2026-10-11",
+  "tenant_name": "State of CT",
+  "tenant_id": "7477c351-bc42-460b-95aa-1093dd06fed0",
+  "property_name": "DECD CT Make it here",
+  "property_id": "19aa4813-632b-4c02-9b56-a0d07c65d7ec",
+  "scan_id": "11276894-7986-4e07-9b01-5efe41cc3f4f",
+  "site": "www.ctmakeithere.com",
+  "seed_or_sample_url": "https://www.ctmakeithere.com/",
+  "evidence": "Admin request body useStaticIp=false; ran on gke-prod-mon-cluster-scans-node-pool-62f884fd (non-static pool). 403 on 177 of 177 document statuses (100%) over 176 URLs, zero 200s.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "successfully visited: 9 urls",
+   "failed to scrape: 0 urls"
+  ],
+  "suggested_fix": "Enable static IP for the property in Retool (or remove the property-level useStaticIp=false override / move it off the fast non-static tier), then have the customer allowlist the static NAT IPs.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/19aa4813-632b-4c02-9b56-a0d07c65d7ec?viewId=all",
+   "run": "https://app.evinced.com/properties/19aa4813-632b-4c02-9b56-a0d07c65d7ec/scans/11276894-7986-4e07-9b01-5efe41cc3f4f/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/19aa4813-632b-4c02-9b56-a0d07c65d7ec/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '11276894-7986-4e07-9b01-5efe41cc3f4f' && ($d.message ~ 'http status code is: ' || $d.message ~ 'failed due to OPEN_PAGE_TIMEOUT') | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby $d.resource.attributes['k8s.node.name']:string as node aggregate count() as n, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.message ~ 'OPEN_PAGE_TIMEOUT', 1, 0)) as opt  // plus admin: source logs | filter $l.applicationname == 'admin' && $d.message ~ 'Sending POST request to' && $d.message ~ '11276894-7986-4e07-9b01-5efe41cc3f4f' | extract $d.message:string into $d.s using regexp(e=/useStaticIp\\\\?\":(?<v>true|false)/) | choose $m.timestamp, $d.s.v",
+  "notes": "Same result on 2026-10-05 (scan 12a47362-0898-4028-a955-26be9bf4404b, 177/177 403). State of CT has only licence-expiry notification tickets since 2026-09-20 (#3304-#3326), none about access."
+ },
+ {
+  "n": 18,
+  "pattern": "A4",
+  "job_id": "19039a90-c175-4752-b762-4e6a98a37dc6",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-11T18:02:15Z",
+  "run_date": "2026-10-11",
+  "tenant_name": "State of CT",
+  "tenant_id": "7477c351-bc42-460b-95aa-1093dd06fed0",
+  "property_name": "DPH Student Loan Repayment Program",
+  "property_id": "48b68d1c-27ff-40bc-b4ae-f8efaa2d4ec5",
+  "scan_id": "19039a90-c175-4752-b762-4e6a98a37dc6",
+  "site": "www.ctslrp.org",
+  "seed_or_sample_url": "https://www.ctslrp.org",
+  "evidence": "Admin request body useStaticIp=false; ran on gke-prod-mon-cluster-scans-node-pool-de40b94d (non-static pool). 403 on 10 of 10 document statuses (100%), zero 200s.",
+  "log_excerpt": [
+   "http status code is: 403",
+   "successfully visited: 10 urls",
+   "failed to scrape: 0 urls"
+  ],
+  "suggested_fix": "Enable static IP for the property in Retool (or remove the property-level useStaticIp=false override / move it off the fast non-static tier), then have the customer allowlist the static NAT IPs.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/48b68d1c-27ff-40bc-b4ae-f8efaa2d4ec5?viewId=all",
+   "run": "https://app.evinced.com/properties/48b68d1c-27ff-40bc-b4ae-f8efaa2d4ec5/scans/19039a90-c175-4752-b762-4e6a98a37dc6/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/48b68d1c-27ff-40bc-b4ae-f8efaa2d4ec5/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '19039a90-c175-4752-b762-4e6a98a37dc6' && ($d.message ~ 'http status code is: ' || $d.message ~ 'failed due to OPEN_PAGE_TIMEOUT') | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby $d.resource.attributes['k8s.node.name']:string as node aggregate count() as n, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.message ~ 'OPEN_PAGE_TIMEOUT', 1, 0)) as opt  // plus admin: source logs | filter $l.applicationname == 'admin' && $d.message ~ 'Sending POST request to' && $d.message ~ '19039a90-c175-4752-b762-4e6a98a37dc6' | extract $d.message:string into $d.s using regexp(e=/useStaticIp\\\\?\":(?<v>true|false)/) | choose $m.timestamp, $d.s.v",
+  "notes": "Same result on 2026-10-05 (scan a2d23aef-8108-4f03-9529-30368729aa27, 10/10 403). State of CT has only licence-expiry notification tickets since 2026-09-20 (#3304-#3326), none about access."
+ },
+ {
+  "n": 19,
+  "pattern": "A4",
+  "job_id": "89c8e8ff-5724-4557-8503-cbc999aede21",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-11T03:33:17Z",
+  "run_date": "2026-10-11",
+  "tenant_name": "State of CT",
+  "tenant_id": "7477c351-bc42-460b-95aa-1093dd06fed0",
+  "property_name": "CTDA- Connecticut State Library Newspapers of Connecticut",
+  "property_id": "415012d3-92db-4da0-8729-ec2d514daefe",
+  "scan_id": "89c8e8ff-5724-4557-8503-cbc999aede21",
+  "site": "ctdigitalarchive.org",
+  "seed_or_sample_url": "https://ctdigitalarchive.org/challenge",
+  "evidence": "Admin request body useStaticIp=false; ran on gke-prod-mon-cluster-scans-node-pool-de40b94d (non-static pool). 1 URL scanned; it was redirected to /challenge and answered 403 (1 of 1).",
+  "log_excerpt": [
+   "http status code is: 403",
+   "successfully visited: 1 urls"
+  ],
+  "suggested_fix": "Enable static IP for the property in Retool (or remove the property-level useStaticIp=false override / move it off the fast non-static tier), then have the customer allowlist the static NAT IPs.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/415012d3-92db-4da0-8729-ec2d514daefe?viewId=all",
+   "run": "https://app.evinced.com/properties/415012d3-92db-4da0-8729-ec2d514daefe/scans/89c8e8ff-5724-4557-8503-cbc999aede21/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/415012d3-92db-4da0-8729-ec2d514daefe/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '89c8e8ff-5724-4557-8503-cbc999aede21' && ($d.message ~ 'http status code is: ' || $d.message ~ 'failed due to OPEN_PAGE_TIMEOUT') | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby $d.resource.attributes['k8s.node.name']:string as node aggregate count() as n, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.message ~ 'OPEN_PAGE_TIMEOUT', 1, 0)) as opt  // plus admin: source logs | filter $l.applicationname == 'admin' && $d.message ~ 'Sending POST request to' && $d.message ~ '89c8e8ff-5724-4557-8503-cbc999aede21' | extract $d.message:string into $d.s using regexp(e=/useStaticIp\\\\?\":(?<v>true|false)/) | choose $m.timestamp, $d.s.v",
+  "notes": "Weak example: only 1 status (below the >=5 threshold used for A1); final URL is a bot-challenge page. State of CT has only licence-expiry notification tickets since 2026-09-20 (#3304-#3326), none about access."
+ },
+ {
+  "n": 20,
+  "pattern": "B2",
+  "job_id": "c08faa1f-bfe0-4d8d-85a5-d701d13dd4d9",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-16T10:16:36Z",
+  "run_date": "2026-10-16",
+  "tenant_name": "bell media",
+  "tenant_id": "a7daf7c3-988e-4ff7-8ece-0abd8a72d732",
+  "property_name": "1086-CTS-W-S-LI - bell.jasperwireless.com",
+  "property_id": "e5df39e0-7ac8-4b86-b393-b03c3783dcd1",
+  "url_set_id": "c08faa1f-bfe0-4d8d-85a5-d701d13dd4d9",
+  "site": "bell.jasperwireless.com",
+  "seed_or_sample_url": "https://bell.jasperwireless.com/",
+  "evidence": "Selector failure 9x on https://bell.jasperwireless.com/provision/jsp/login.jsp (9 interaction starts); 0 403/405 document or [browser] resource errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #j_username",
+   "got error while scraping No element found for selector: #j_username",
+   "CRAWL with id c08faa1f-bfe0-4d8d-85a5-d701d13dd4d9 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#j_username (TYPE_TEXT on login page (first field))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/e5df39e0-7ac8-4b86-b393-b03c3783dcd1?viewId=all",
+   "run": "https://app.evinced.com/properties/e5df39e0-7ac8-4b86-b393-b03c3783dcd1/urlset/c08faa1f-bfe0-4d8d-85a5-d701d13dd4d9",
+   "settings": "https://app.evinced.com/properties/e5df39e0-7ac8-4b86-b393-b03c3783dcd1/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'c08faa1f-bfe0-4d8d-85a5-d701d13dd4d9' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t"
+ },
+ {
+  "n": 21,
+  "pattern": "B2",
+  "job_id": "f5d9abdf-943e-4437-bb3c-f38fbe7daf0a",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-05T10:01:38Z",
+  "run_date": "2026-10-05",
+  "tenant_name": "Charter",
+  "tenant_id": "225aa7d3-8fe4-49dc-9480-e6e688e7d91b",
+  "property_name": "STVA OVP",
+  "property_id": "4146e8d5-6ce9-44ac-a77b-3bd6084ce570",
+  "url_set_id": "f5d9abdf-943e-4437-bb3c-f38fbe7daf0a",
+  "site": "watch.spectrum.net",
+  "seed_or_sample_url": "https://watch.spectrum.net",
+  "evidence": "Selector failure 9x with browser on id.spectrum.net/login; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #kite-label-input-4",
+   "got error while scraping No element found for selector: #kite-label-input-4",
+   "CRAWL with id f5d9abdf-943e-4437-bb3c-f38fbe7daf0a failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#kite-label-input-4 (TYPE_TEXT on id.spectrum.net/login (generated kite id))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/4146e8d5-6ce9-44ac-a77b-3bd6084ce570?viewId=all",
+   "run": "https://app.evinced.com/properties/4146e8d5-6ce9-44ac-a77b-3bd6084ce570/urlset/f5d9abdf-943e-4437-bb3c-f38fbe7daf0a",
+   "settings": "https://app.evinced.com/properties/4146e8d5-6ce9-44ac-a77b-3bd6084ce570/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'f5d9abdf-943e-4437-bb3c-f38fbe7daf0a' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Generated id (kite-label-input-N) shifts between releases of the IdP page."
+ },
+ {
+  "n": 22,
+  "pattern": "B2",
+  "job_id": "10689082-3c7d-45b1-9ab8-b0df811b1dbc",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-05T16:31:55Z",
+  "run_date": "2026-10-05",
+  "tenant_name": "Charter",
+  "tenant_id": "225aa7d3-8fe4-49dc-9480-e6e688e7d91b",
+  "property_name": "Webmail 3.0",
+  "property_id": "9fa41f33-772d-4f3e-8e89-8545c1d380f2",
+  "url_set_id": "10689082-3c7d-45b1-9ab8-b0df811b1dbc",
+  "site": "mail3.spectrum.net",
+  "seed_or_sample_url": "https://mail3.spectrum.net",
+  "evidence": "Selector failure 18x (18 interaction starts) on id.spectrum.net/login; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #kite-label-input-3",
+   "got error while scraping No element found for selector: #kite-label-input-3",
+   "CRAWL with id 10689082-3c7d-45b1-9ab8-b0df811b1dbc failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#kite-label-input-3 (TYPE_TEXT on id.spectrum.net/login (generated kite id))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/9fa41f33-772d-4f3e-8e89-8545c1d380f2?viewId=all",
+   "run": "https://app.evinced.com/properties/9fa41f33-772d-4f3e-8e89-8545c1d380f2/urlset/10689082-3c7d-45b1-9ab8-b0df811b1dbc",
+   "settings": "https://app.evinced.com/properties/9fa41f33-772d-4f3e-8e89-8545c1d380f2/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '10689082-3c7d-45b1-9ab8-b0df811b1dbc' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Repeats on 2026-10-17 (73515a12) and 2026-11-02 (2c241337)."
+ },
+ {
+  "n": 23,
+  "pattern": "B2",
+  "job_id": "daa75dec-9733-4772-a057-86ed17dda4d6",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-05T00:01:48Z",
+  "run_date": "2026-10-05",
+  "tenant_name": "Charter",
+  "tenant_id": "225aa7d3-8fe4-49dc-9480-e6e688e7d91b",
+  "property_name": "SCS.net",
+  "property_id": "2dffadd2-02ba-464c-8acf-fb0f64388c90",
+  "url_set_id": "daa75dec-9733-4772-a057-86ed17dda4d6",
+  "site": "www.spectrumcommunitysolutions.net",
+  "seed_or_sample_url": "https://www.spectrumcommunitysolutions.net/",
+  "evidence": "Clicked #login-button > button, redirected to id.spectrum.net/login, then selector failure 9x; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #kite-label-input-4",
+   "got error while scraping No element found for selector: #kite-label-input-4",
+   "CRAWL with id daa75dec-9733-4772-a057-86ed17dda4d6 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#kite-label-input-4 (CLICK #login-button > button OK, then TYPE_TEXT on id.spectrum.net/login fails)",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/2dffadd2-02ba-464c-8acf-fb0f64388c90?viewId=all",
+   "run": "https://app.evinced.com/properties/2dffadd2-02ba-464c-8acf-fb0f64388c90/urlset/daa75dec-9733-4772-a057-86ed17dda4d6",
+   "settings": "https://app.evinced.com/properties/2dffadd2-02ba-464c-8acf-fb0f64388c90/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'daa75dec-9733-4772-a057-86ed17dda4d6' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Repeats 2026-10-17 (73776bda) and 2026-11-02 (b3984da6)."
+ },
+ {
+  "n": 24,
+  "pattern": "B2",
+  "job_id": "d42b1347-292b-45fc-862d-86f00c7adb26",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-05T16:32:04Z",
+  "run_date": "2026-10-05",
+  "tenant_name": "Charter",
+  "tenant_id": "225aa7d3-8fe4-49dc-9480-e6e688e7d91b",
+  "property_name": "Spectrum on Demand",
+  "property_id": "1dd63509-71c9-489b-baa0-1272bd79e4a3",
+  "url_set_id": "d42b1347-292b-45fc-862d-86f00c7adb26",
+  "site": "ondemand.spectrum.net",
+  "seed_or_sample_url": "https://ondemand.spectrum.net/",
+  "evidence": "Sign-in button clicked, browser on id.spectrum.net/login, selector failure 9x; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #kite-label-input-3",
+   "got error while scraping No element found for selector: #kite-label-input-3",
+   "CRAWL with id d42b1347-292b-45fc-862d-86f00c7adb26 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#kite-label-input-3 (CLICK .nav__actions--sign-in-btn OK, then TYPE_TEXT on id.spectrum.net/login fails)",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/1dd63509-71c9-489b-baa0-1272bd79e4a3?viewId=all",
+   "run": "https://app.evinced.com/properties/1dd63509-71c9-489b-baa0-1272bd79e4a3/urlset/d42b1347-292b-45fc-862d-86f00c7adb26",
+   "settings": "https://app.evinced.com/properties/1dd63509-71c9-489b-baa0-1272bd79e4a3/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'd42b1347-292b-45fc-862d-86f00c7adb26' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "On 2026-11-02 (ec749f2e) the first step '.nav__actions--sign-in-btn' itself is not found."
+ },
+ {
+  "n": 25,
+  "pattern": "B2",
+  "job_id": "a8068a39-ef00-45c5-8479-8d6393ab7614",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-19T10:04:16Z",
+  "run_date": "2026-10-19",
+  "tenant_name": "Charter",
+  "tenant_id": "225aa7d3-8fe4-49dc-9480-e6e688e7d91b",
+  "property_name": ".NET SMB",
+  "property_id": "67e47c7c-0895-46d8-adf4-7a703369c088",
+  "url_set_id": "a8068a39-ef00-45c5-8479-8d6393ab7614",
+  "site": "www.spectrumbusiness.net",
+  "seed_or_sample_url": "https://www.spectrumbusiness.net/a",
+  "evidence": "Selector failure 9x with browser on https://www.spectrumbusiness.net/; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #kite-label-input-4",
+   "got error while scraping No element found for selector: #kite-label-input-4",
+   "CRAWL with id a8068a39-ef00-45c5-8479-8d6393ab7614 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#kite-label-input-4 (TYPE_TEXT on www.spectrumbusiness.net (non-IdP page))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/67e47c7c-0895-46d8-adf4-7a703369c088?viewId=all",
+   "run": "https://app.evinced.com/properties/67e47c7c-0895-46d8-adf4-7a703369c088/urlset/a8068a39-ef00-45c5-8479-8d6393ab7614",
+   "settings": "https://app.evinced.com/properties/67e47c7c-0895-46d8-adf4-7a703369c088/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'a8068a39-ef00-45c5-8479-8d6393ab7614' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t"
+ },
+ {
+  "n": 26,
+  "pattern": "B2",
+  "job_id": "9df55bd8-3278-4aa0-b55a-80705e6497d4",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-16T06:31:42Z",
+  "run_date": "2026-10-16",
+  "tenant_name": "bell media",
+  "tenant_id": "a7daf7c3-988e-4ff7-8ece-0abd8a72d732",
+  "property_name": "1007-A-W-T-NL- myaccount.luckymobile.ca",
+  "property_id": "d22a0a72-2157-455e-b4f7-fb8ea2ca5988",
+  "url_set_id": "9df55bd8-3278-4aa0-b55a-80705e6497d4",
+  "site": "myaccount.luckymobile.ca",
+  "seed_or_sample_url": "https://myaccount.luckymobile.ca/",
+  "evidence": "Cookie-banner click #onetrust-accept-btn-handler fails 6x (9 interaction starts); 0 403/405 errors; 0 URLs visited, 1 failed.",
+  "log_excerpt": [
+   "clicking element: #onetrust-accept-btn-handler",
+   "got error while scraping No element found for selector: #onetrust-accept-btn-handler",
+   "successfully visited: 0 urls"
+  ],
+  "selector_or_step": "#onetrust-accept-btn-handler (CLICK cookie-banner accept (non-login step))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/d22a0a72-2157-455e-b4f7-fb8ea2ca5988?viewId=all",
+   "run": "https://app.evinced.com/properties/d22a0a72-2157-455e-b4f7-fb8ea2ca5988/urlset/9df55bd8-3278-4aa0-b55a-80705e6497d4",
+   "settings": "https://app.evinced.com/properties/d22a0a72-2157-455e-b4f7-fb8ea2ca5988/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '9df55bd8-3278-4aa0-b55a-80705e6497d4' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Non-login interaction. Historical ticket #2167 (luckymobile, B1) predates the window."
+ },
+ {
+  "n": 27,
+  "pattern": "B2",
+  "job_id": "dfceac1c-37bb-49c7-92b8-fe3ec601493c",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-26T10:01:36Z",
+  "run_date": "2026-10-26",
+  "tenant_name": "Sky UK",
+  "tenant_id": "c73c2e11-7337-4d46-9dc9-bea9684f23f3",
+  "property_name": "Sky Business UK: business.sky.com",
+  "property_id": "1f556ada-d9d7-45b1-a13a-32e1217b2094",
+  "url_set_id": "dfceac1c-37bb-49c7-92b8-fe3ec601493c",
+  "site": "business.sky.com",
+  "seed_or_sample_url": "https://business.sky.com/",
+  "evidence": "Cookie-banner click fails 504x across 504 interaction starts; 0 403/405 errors; 0 URLs visited, 56 failed, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "clicking element: #notice .message-component.message-button",
+   "got error while scraping No element found for selector: #notice .message-component.message-button",
+   "CRAWL with id dfceac1c-37bb-49c7-92b8-fe3ec601493c failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#notice .message-component.message-button (CLICK cookie-banner (Sourcepoint) close (non-login step))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/1f556ada-d9d7-45b1-a13a-32e1217b2094?viewId=all",
+   "run": "https://app.evinced.com/properties/1f556ada-d9d7-45b1-a13a-32e1217b2094/urlset/dfceac1c-37bb-49c7-92b8-fe3ec601493c",
+   "settings": "https://app.evinced.com/properties/1f556ada-d9d7-45b1-a13a-32e1217b2094/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'dfceac1c-37bb-49c7-92b8-fe3ec601493c' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Non-login interaction (consent banner in iframe / changed markup)."
+ },
+ {
+  "n": 28,
+  "pattern": "B2",
+  "job_id": "598fa5a9-5a1c-4f9e-b353-6763996332a9",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-04T09:02:01Z",
+  "run_date": "2026-10-04",
+  "tenant_name": "Sky UK",
+  "tenant_id": "c73c2e11-7337-4d46-9dc9-bea9684f23f3",
+  "property_name": "NOW: help.nowtv.com",
+  "property_id": "a0f2cc67-f4a6-4d03-ba4e-70f88d6715a2",
+  "url_set_id": "598fa5a9-5a1c-4f9e-b353-6763996332a9",
+  "site": "help.nowtv.com",
+  "seed_or_sample_url": "https://help.nowtv.com/",
+  "evidence": "Cookie-banner click fails 9x; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "clicking element: #notice .message-component.message-button",
+   "got error while scraping No element found for selector: #notice .message-component.message-button",
+   "CRAWL with id 598fa5a9-5a1c-4f9e-b353-6763996332a9 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#notice .message-component.message-button (CLICK cookie-banner close (non-login step))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/a0f2cc67-f4a6-4d03-ba4e-70f88d6715a2?viewId=all",
+   "run": "https://app.evinced.com/properties/a0f2cc67-f4a6-4d03-ba4e-70f88d6715a2/urlset/598fa5a9-5a1c-4f9e-b353-6763996332a9",
+   "settings": "https://app.evinced.com/properties/a0f2cc67-f4a6-4d03-ba4e-70f88d6715a2/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '598fa5a9-5a1c-4f9e-b353-6763996332a9' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Non-login interaction."
+ },
+ {
+  "n": 29,
+  "pattern": "B2",
+  "job_id": "27a4d295-becb-4486-a30b-82f6bc839a88",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-04T09:01:38Z",
+  "run_date": "2026-10-04",
+  "tenant_name": "Sky UK",
+  "tenant_id": "c73c2e11-7337-4d46-9dc9-bea9684f23f3",
+  "property_name": "Sky Germany: skymedia.de",
+  "property_id": "d8ed1ddb-6056-4070-a258-f4d275f4a844",
+  "url_set_id": "27a4d295-becb-4486-a30b-82f6bc839a88",
+  "site": "www.skymedia.de",
+  "seed_or_sample_url": "https://www.skymedia.de",
+  "evidence": "Cookie-banner click fails 9x; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "clicking element: #notice .message-component.message-button.last-focusable-el",
+   "got error while scraping No element found for selector: #notice .message-component.message-button.last-focusable-el",
+   "CRAWL with id 27a4d295-becb-4486-a30b-82f6bc839a88 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#notice .message-component.message-button.last-focusable-el (CLICK cookie-banner close (non-login step))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/d8ed1ddb-6056-4070-a258-f4d275f4a844?viewId=all",
+   "run": "https://app.evinced.com/properties/d8ed1ddb-6056-4070-a258-f4d275f4a844/urlset/27a4d295-becb-4486-a30b-82f6bc839a88",
+   "settings": "https://app.evinced.com/properties/d8ed1ddb-6056-4070-a258-f4d275f4a844/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '27a4d295-becb-4486-a30b-82f6bc839a88' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Non-login interaction."
+ },
+ {
+  "n": 30,
+  "pattern": "B2",
+  "job_id": "9ce2bcbb-3443-4049-a829-136403dc3be3",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-11T19:31:52Z",
+  "run_date": "2026-10-11",
+  "tenant_name": "Cigna",
+  "tenant_id": "3e16c792-05fc-4f5c-a15a-7577e7a08438",
+  "property_name": "POST-AUTH DEMO - MyCigna",
+  "property_id": "87fb069e-c010-4459-9761-a60ce89ca410",
+  "url_set_id": "9ce2bcbb-3443-4049-a829-136403dc3be3",
+  "site": "demo-my.cigna.com",
+  "seed_or_sample_url": "https://demo-my.cigna.com/web/public/consumer/forgot/id",
+  "evidence": "Selector failure 104x on demo-my.cigna.com/web/public/guest (223 interaction starts); 0 403/405 errors; 0 URLs visited, 41 failed.",
+  "log_excerpt": [
+   "typing text in element: #username",
+   "got error while scraping No element found for selector: #username",
+   "successfully visited: 0 urls"
+  ],
+  "selector_or_step": "#username (TYPE_TEXT on /web/public/guest login page)",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/87fb069e-c010-4459-9761-a60ce89ca410?viewId=all",
+   "run": "https://app.evinced.com/properties/87fb069e-c010-4459-9761-a60ce89ca410/urlset/9ce2bcbb-3443-4049-a829-136403dc3be3",
+   "settings": "https://app.evinced.com/properties/87fb069e-c010-4459-9761-a60ce89ca410/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '9ce2bcbb-3443-4049-a829-136403dc3be3' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Slow SPA login page: element reported 'exists: true' then not found. Historical ticket #997 (myCigna demo, B4) predates the window."
+ },
+ {
+  "n": 31,
+  "pattern": "B2",
+  "job_id": "634a92b2-fba8-4749-a930-f4ed87c4d2ae",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T10:01:37Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Cigna",
+  "tenant_id": "3e16c792-05fc-4f5c-a15a-7577e7a08438",
+  "property_name": "Cigna Healthplans - my.cigna.com",
+  "property_id": "b3d3501a-45be-4fba-af07-60ea0b2f9966",
+  "url_set_id": "634a92b2-fba8-4749-a930-f4ed87c4d2ae",
+  "site": "my.cigna.com",
+  "seed_or_sample_url": "https://my.cigna.com",
+  "evidence": "Selector failure 90x on my.cigna.com/web/public/guest (119 interaction starts); 0 403/405 errors; 0 URLs visited, 25 failed.",
+  "log_excerpt": [
+   "typing text in element: #username",
+   "got error while scraping No element found for selector: #username",
+   "successfully visited: 0 urls"
+  ],
+  "selector_or_step": "#username (TYPE_TEXT on /web/public/guest login page)",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/b3d3501a-45be-4fba-af07-60ea0b2f9966?viewId=all",
+   "run": "https://app.evinced.com/properties/b3d3501a-45be-4fba-af07-60ea0b2f9966/urlset/634a92b2-fba8-4749-a930-f4ed87c4d2ae",
+   "settings": "https://app.evinced.com/properties/b3d3501a-45be-4fba-af07-60ea0b2f9966/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '634a92b2-fba8-4749-a930-f4ed87c4d2ae' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t"
+ },
+ {
+  "n": 32,
+  "pattern": "B2",
+  "job_id": "99bc73aa-0f6c-4112-9db6-8fb5968775d8",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-18T10:00:11Z",
+  "run_date": "2026-10-18",
+  "tenant_name": "Kiddom",
+  "tenant_id": "b53a3fb8-40be-4293-8e0a-d222ef422ced",
+  "property_name": "app.kiddom.co",
+  "property_id": "f1c957fc-275b-48b1-bcf8-f7a78968b575",
+  "scan_id": "99bc73aa-0f6c-4112-9db6-8fb5968775d8",
+  "site": "app.kiddom.co",
+  "seed_or_sample_url": "https://app.kiddom.co/class/831971/announcements",
+  "evidence": "Username and password typed, submit-button click fails 171x (171 interaction starts) on app.kiddom.co/login; 0 403/405 errors; 0 URLs visited, 9 failed, SCAN failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #username-input",
+   "got error while scraping No element found for selector: #maincontent > div > div > main > div > div > div > div > div.login-form > form > div.buttons ",
+   "SCAN with id 99bc73aa-0f6c-4112-9db6-8fb5968775d8 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#maincontent > div > div > main > div > div > div > div > div.login-form > form > div.buttons > button.MuiButtonBase-root... (CLICK submit after typing #username-input and #password-input)",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/f1c957fc-275b-48b1-bcf8-f7a78968b575?viewId=all",
+   "run": "https://app.evinced.com/properties/f1c957fc-275b-48b1-bcf8-f7a78968b575/scans/99bc73aa-0f6c-4112-9db6-8fb5968775d8/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/f1c957fc-275b-48b1-bcf8-f7a78968b575/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '99bc73aa-0f6c-4112-9db6-8fb5968775d8' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Long positional MUI class selector. Same failure in scans 40e4359c, a479417a, 99bd967a, d3d3ccd5 (5 runs in window)."
+ },
+ {
+  "n": 33,
+  "pattern": "B2",
+  "job_id": "c4fa4111-86df-490e-a8ab-f2eea8277318",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-16T15:37:58Z",
+  "run_date": "2026-10-16",
+  "tenant_name": "NatWest",
+  "tenant_id": "0a510ac0-2360-4a34-8f15-4b57ec58c823",
+  "property_name": "keystone-catshell.prd.spa.paas.pnf.banksvcs.net",
+  "property_id": "bd0265d5-6034-4ef5-84ae-a82bdcdc7740",
+  "scan_id": "c4fa4111-86df-490e-a8ab-f2eea8277318",
+  "site": "keystone-catshell.sit.spa.paas.pnf.banksvcs.net",
+  "seed_or_sample_url": "https://keystone-catshell.sit.spa.paas.pnf.banksvcs.net/",
+  "evidence": "PAGE_INTERACTION_PLUGIN_ERROR on the only URL (9 interaction attempts, browser stayed on about:blank); 0 403/405 errors; 0 URLs visited.",
+  "log_excerpt": [
+   "starting page interaction plugin",
+   "got error while scraping",
+   "SCAN with id c4fa4111-86df-490e-a8ab-f2eea8277318 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "unknown (interaction error has no message; browser still on about:blank) (first interaction step (navigation) fails)",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/bd0265d5-6034-4ef5-84ae-a82bdcdc7740?viewId=all",
+   "run": "https://app.evinced.com/properties/bd0265d5-6034-4ef5-84ae-a82bdcdc7740/scans/c4fa4111-86df-490e-a8ab-f2eea8277318/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/bd0265d5-6034-4ef5-84ae-a82bdcdc7740/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == 'c4fa4111-86df-490e-a8ab-f2eea8277318' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Weak B2: the failing selector/step is not logged; may be an unreachable internal (sit) host rather than a selector. Verify before use."
+ },
+ {
+  "n": 34,
+  "pattern": "B2",
+  "job_id": "68d1d0b2-3c62-44c3-8da5-7b3e24b47859",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-30T06:04:20Z",
+  "run_date": "2026-10-30",
+  "tenant_name": "bell media",
+  "tenant_id": "a7daf7c3-988e-4ff7-8ece-0abd8a72d732",
+  "property_name": "1048-BM-W-T-NL - ops.astraloutofhome.com",
+  "property_id": "dd02c869-3da4-42e3-a6ce-81b398be7e7c",
+  "scan_id": "68d1d0b2-3c62-44c3-8da5-7b3e24b47859",
+  "site": "ops.astraloutofhome.com",
+  "seed_or_sample_url": "https://ops.astraloutofhome.com/change-password",
+  "evidence": "Selector failure 1x on ops.astraloutofhome.com/login after a successful login on the first page; 0 403/405 errors; 2 URLs visited, 0 failed.",
+  "log_excerpt": [
+   "typing text in element: #input-13",
+   "got error while scraping No element found for selector: #input-13",
+   "successfully visited: 2 urls"
+  ],
+  "selector_or_step": "#input-13 (TYPE_TEXT on ops.astraloutofhome.com/login (Vuetify generated id))",
+  "suggested_fix": "Update the interaction selector to a stable one (id / data-* attribute, not generated or positional) and re-run.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/dd02c869-3da4-42e3-a6ce-81b398be7e7c?viewId=all",
+   "run": "https://app.evinced.com/properties/dd02c869-3da4-42e3-a6ce-81b398be7e7c/scans/68d1d0b2-3c62-44c3-8da5-7b3e24b47859/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/dd02c869-3da4-42e3-a6ce-81b398be7e7c/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '68d1d0b2-3c62-44c3-8da5-7b3e24b47859' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Weak/intermittent; generated Vuetify id. Historical ticket #2143 (same host, B2) predates the window; Bell tenant ticket #3425 is about IPs, not this."
+ },
+ {
+  "n": 35,
+  "pattern": "B4",
+  "job_id": "bedcf775-cb87-41c3-8896-f12f468d85a8",
+  "job_type": "scan",
+  "run_start_utc": "2026-11-01T04:01:50Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Zalando",
+  "tenant_id": "906326bb-5060-4e0f-9709-6c73c75b9797",
+  "property_name": "Zalando Web (audit scope) -  Public + Login",
+  "property_id": "35d6a8f6-16c0-4fd0-863d-acac9532e276",
+  "scan_id": "bedcf775-cb87-41c3-8896-f12f468d85a8",
+  "site": "accounts.zalando.com",
+  "seed_or_sample_url": "https://accounts.zalando.com/authenticate",
+  "evidence": "Username typed 243x, Continue click fails 243x (243 interaction starts) on accounts.zalando.com/authenticate; 0 403/405 errors; 0 URLs visited, 9 failed, SCAN failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #username",
+   "clicking element: #theme-wrapper > main > section:nth-child(2) > form > button",
+   "got error while scraping No element found for selector: #theme-wrapper > main > section:nth-child(2) > form > button"
+  ],
+  "selector_or_step": "#username typed (TYPE_TEXT) -> CLICK '#theme-wrapper > main > section:nth-child(2) > form > button' (Continue) fails on accounts.zalando.com/authenticate; password step never reached",
+  "suggested_fix": "Configure the login as Multiple Interactions: step 1 type username + click Continue, wait for the password page, step 2 type password + submit; use stable selectors.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/35d6a8f6-16c0-4fd0-863d-acac9532e276?viewId=all",
+   "run": "https://app.evinced.com/properties/35d6a8f6-16c0-4fd0-863d-acac9532e276/scans/bedcf775-cb87-41c3-8896-f12f468d85a8/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/35d6a8f6-16c0-4fd0-863d-acac9532e276/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == 'bedcf775-cb87-41c3-8896-f12f468d85a8' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Same property fails identically in scans c0ff661e (10-04), ac490bf3 (10-11), 73a8ff70 (10-16), 6f17bd4c (10-26). Also ERR_TIMED_OUT on zalando.de/login in some retries. Historical Zalando B4 tickets #571/#869/#1214 predate the window."
+ },
+ {
+  "n": 36,
+  "pattern": "B4",
+  "job_id": "ca8b7ff9-4c23-4801-ab34-226adf124a79",
+  "job_type": "crawl",
+  "run_start_utc": "2026-11-01T10:31:34Z",
+  "run_date": "2026-11-01",
+  "tenant_name": "Zalando",
+  "tenant_id": "906326bb-5060-4e0f-9709-6c73c75b9797",
+  "property_name": "Zalando full scan",
+  "property_id": "232b5d76-6551-4f20-b23d-c19ec1c548cc",
+  "url_set_id": "ca8b7ff9-4c23-4801-ab34-226adf124a79",
+  "site": "accounts.zalando.com",
+  "seed_or_sample_url": "https://en.zalando.de",
+  "evidence": "Username typed 9x, Continue click fails 9x on accounts.zalando.com/authenticate; 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #username",
+   "clicking element: #theme-wrapper > main > section:nth-child(2) > form > button",
+   "CRAWL with id ca8b7ff9-4c23-4801-ab34-226adf124a79 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#username typed -> CLICK Continue '#theme-wrapper > main > section:nth-child(2) > form > button' fails on accounts.zalando.com/authenticate",
+  "suggested_fix": "Configure the login as Multiple Interactions: step 1 type username + click Continue, wait for the password page, step 2 type password + submit; use stable selectors.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/232b5d76-6551-4f20-b23d-c19ec1c548cc?viewId=all",
+   "run": "https://app.evinced.com/properties/232b5d76-6551-4f20-b23d-c19ec1c548cc/urlset/ca8b7ff9-4c23-4801-ab34-226adf124a79",
+   "settings": "https://app.evinced.com/properties/232b5d76-6551-4f20-b23d-c19ec1c548cc/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == 'ca8b7ff9-4c23-4801-ab34-226adf124a79' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Repeats in crawls 776ad28b (10-04), 37178355 (10-11), 42ad5803 (10-16), 2d860a91 (10-26). Historical Zalando B4 tickets #571/#869/#1214 predate the window."
+ },
+ {
+  "n": 37,
+  "pattern": "B4",
+  "job_id": "65ea6922-0118-4c47-8422-e183f14a2c32",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-16T07:18:31Z",
+  "run_date": "2026-10-16",
+  "tenant_name": "bell media",
+  "tenant_id": "a7daf7c3-988e-4ff7-8ece-0abd8a72d732",
+  "property_name": "1031 USERS snr.bell.ca",
+  "property_id": "4c495d11-bc2e-45e0-92e5-73e20b3f0803",
+  "scan_id": "65ea6922-0118-4c47-8422-e183f14a2c32",
+  "site": "snr.bell.ca",
+  "seed_or_sample_url": "https://snr.bell.ca/Clients/TermsAndConditions/",
+  "evidence": "Username typed and #loginNextButton clicked, then #password not found 6x on /authnz/user-check (11 interaction starts); 0 403/405 errors; scan visited 9 URLs, 1 failed.",
+  "log_excerpt": [
+   "clicking element: #loginNextButton",
+   "got error while scraping No element found for selector: #password"
+  ],
+  "selector_or_step": "#userid typed -> CLICK #loginNextButton -> TYPE_TEXT #password fails on snr.bell.ca/authnz/user-check (identifier-first)",
+  "suggested_fix": "Configure the login as Multiple Interactions: step 1 type username + click Continue, wait for the password page, step 2 type password + submit; use stable selectors.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/4c495d11-bc2e-45e0-92e5-73e20b3f0803?viewId=all",
+   "run": "https://app.evinced.com/properties/4c495d11-bc2e-45e0-92e5-73e20b3f0803/scans/65ea6922-0118-4c47-8422-e183f14a2c32/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/4c495d11-bc2e-45e0-92e5-73e20b3f0803/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '65ea6922-0118-4c47-8422-e183f14a2c32' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Partial: some requests log in, others fail at step 2 (timing of the password page). Same property: scan 9b086434 fails on '#Row1Col0' at /servlet/Login."
+ },
+ {
+  "n": 38,
+  "pattern": "B4",
+  "job_id": "2605f067-e55b-420d-ae1b-c8df55d2f943",
+  "job_type": "scan",
+  "run_start_utc": "2026-10-16T07:19:31Z",
+  "run_date": "2026-10-16",
+  "tenant_name": "bell media",
+  "tenant_id": "a7daf7c3-988e-4ff7-8ece-0abd8a72d732",
+  "property_name": "1031-GROUP-CTS-W-T-LI - snr.bell.ca",
+  "property_id": "b00f4603-0ef0-4780-a5b9-5677ece2ca9b",
+  "scan_id": "2605f067-e55b-420d-ae1b-c8df55d2f943",
+  "site": "snr.bell.ca",
+  "seed_or_sample_url": "https://snr.bell.ca/Common/folder_contents.jsp",
+  "evidence": "Username typed and #loginNextButton clicked, then #password not found 4x on /authnz/user-check (10 interaction starts); 0 403/405 errors; scan visited 8 URLs.",
+  "log_excerpt": [
+   "clicking element: #loginNextButton",
+   "got error while scraping No element found for selector: #password",
+   "successfully visited: 8 urls"
+  ],
+  "selector_or_step": "#userid typed -> CLICK #loginNextButton -> TYPE_TEXT #password fails on snr.bell.ca/authnz/user-check",
+  "suggested_fix": "Configure the login as Multiple Interactions: step 1 type username + click Continue, wait for the password page, step 2 type password + submit; use stable selectors.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/b00f4603-0ef0-4780-a5b9-5677ece2ca9b?viewId=all",
+   "run": "https://app.evinced.com/properties/b00f4603-0ef0-4780-a5b9-5677ece2ca9b/scans/2605f067-e55b-420d-ae1b-c8df55d2f943/urls-status?viewId=all",
+   "settings": "https://app.evinced.com/properties/b00f4603-0ef0-4780-a5b9-5677ece2ca9b/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'scan-worker' && $d.resource.attributes['k8s.job.name'] == '2605f067-e55b-420d-ae1b-c8df55d2f943' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Same site as the previous example but a different property (GROUP vs USERS)."
+ },
+ {
+  "n": 39,
+  "pattern": "B4",
+  "job_id": "4d2fb5ac-1580-4a43-a47e-df5205b5c162",
+  "job_type": "crawl",
+  "run_start_utc": "2026-10-14T21:49:12Z",
+  "run_date": "2026-10-14",
+  "tenant_name": "bell media",
+  "tenant_id": "a7daf7c3-988e-4ff7-8ece-0abd8a72d732",
+  "property_name": "1103-CTS-W-T-LI - mybell.bell.ca",
+  "property_id": "91e2048b-5ba9-4069-bc77-f079358d98a9",
+  "url_set_id": "4d2fb5ac-1580-4a43-a47e-df5205b5c162",
+  "site": "identification.bell.ca",
+  "seed_or_sample_url": "https://mybell.bell.ca/",
+  "evidence": "Username typed, then #password not found 9x with the browser still on identification.bell.ca/u/login/identifier (Auth0 identifier-first); 0 403/405 errors; 0 URLs visited, CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR.",
+  "log_excerpt": [
+   "typing text in element: #username",
+   "got error while scraping No element found for selector: #password",
+   "CRAWL with id 4d2fb5ac-1580-4a43-a47e-df5205b5c162 failed due to PAGE_INTERACTION_PLUGIN_ERROR"
+  ],
+  "selector_or_step": "#username typed on identification.bell.ca/u/login/identifier -> TYPE_TEXT #password fails on the same identifier page (password is on the next page, /u/login/password)",
+  "suggested_fix": "Configure the login as Multiple Interactions: step 1 type username + click Continue, wait for the password page, step 2 type password + submit; use stable selectors.",
+  "ticket_check": "no ticket (Zendesk search on host and property name, created>2026-09-20: 0 results; not in data/ticket_labels.csv or data/gt_tickets.json)",
+  "links": {
+   "property": "https://app.evinced.com/properties/91e2048b-5ba9-4069-bc77-f079358d98a9?viewId=all",
+   "run": "https://app.evinced.com/properties/91e2048b-5ba9-4069-bc77-f079358d98a9/urlset/4d2fb5ac-1580-4a43-a47e-df5205b5c162",
+   "settings": "https://app.evinced.com/properties/91e2048b-5ba9-4069-bc77-f079358d98a9/settings"
+  },
+  "coralogix_query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes['k8s.job.name'] == '4d2fb5ac-1580-4a43-a47e-df5205b5c162' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element' || $d.message ~ 'got error while scraping' || $d.message ~ 'failed due to' || $d.message ~ 'status of 403' || $d.message ~ 'status of 405' || $d.message ~ 'http status code is: 40') | create mt from substr($d.message:string, 0, 140) | groupby mt aggregate min($m.timestamp) as t, count() as n | orderby t",
+  "notes": "Property id from admin/front logs ('starting crawl. property id: ...'); worker config had no property fields. A retry 14 min later (62deb511) clicked Continue and reached /u/login/password but #password still failed."
+ }
+]
