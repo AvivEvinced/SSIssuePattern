@@ -245,7 +245,7 @@
         "A2",
         "A6"
        ],
-       "next": "Blocked. Check: is static IP on for the property? Is a custom header set (extraHeaders)? Which user agent is sent (config dump)?",
+       "next": "Blocked. Check: admin-server crawl request body useStaticIp=false or a non '*-pool-stat*' node pool \u2192 A4; 202 share \u226530% \u2192 A2; config-dump UA Chrome/65 \u2192 A6 candidate; else A1.",
        "validated": [
         "ok",
         "ok"
@@ -534,22 +534,38 @@
     },
     {
      "id": "S4.3",
-     "title": "Pages bounce back to the login page",
-     "desc": "Visited pages' final URL is /login, /guest, /authenticate after login succeeded.",
+     "title": "Still on, or back on, the login page",
+     "desc": "Judge per request and per pod (browser session), not per job: the login step itself logs the login URL as its final URL.",
      "children": [
       {
        "id": "S4.3a",
-       "title": "Session dropped mid-crawl",
-       "pattern": "final url after redirections: \u2026/login|guest|authenticate (high share in one job)",
+       "title": "Login 'succeeded' but the browser never left the login route",
+       "pattern": "all steps + 'finished interacting with page successfully', then final URL still the login route on every request",
+       "sigs": [
+        "final_url_login_or_error_landing",
+        "interaction_steps"
+       ],
+       "subs": [
+        "B3"
+       ],
+       "next": "Wrong/expired password or lockout. Rule out a 403 on first load (A1) and an MFA screen on the same route (B1).",
+       "validated": [
+        "ok",
+        "ok"
+       ]
+      },
+      {
+       "id": "S4.3b",
+       "title": "One browser session drops mid-crawl",
+       "pattern": "one pod logs in OK, then its later requests keep landing on the login URL while other pods succeed",
        "sigs": [
         "final_url_login_or_error_landing",
         "interaction_landed_on_login_or_geo"
        ],
        "subs": [
-        "B5",
-        "B3"
+        "B5"
        ],
-       "next": "Logs can't tell expired password (B3) from session loss (B5): ask whether the password changed; else parallelism=1 and exclude logout URLs.",
+       "next": "Session lost: parallelism=1, exclude logout/session-check URLs, stagger schedules. Per-URL bounces in every pod = gated pages (C4).",
        "validated": [
         "ok",
         "fixed"
@@ -620,12 +636,12 @@
     {
      "id": "S5.2",
      "title": "The crawl ended almost empty",
-     "desc": "The highest 'successfully visited N pages so far' for the job is 0\u20131.",
+     "desc": "Use the end-of-job summary 'successfully visited: N urls' (or METRIC_EVENT CrawlSummary totalUrlsCount) \u2014 the progress counter is never printed for 0-page crawls.",
      "children": [
       {
        "id": "S5.2a",
-       "title": "1 page and nothing filtered out",
-       "pattern": "max visited \u2264 1 and 'filtered out: 0 urls', no errors",
+       "title": "Seed loaded, nothing followed, nothing filtered",
+       "pattern": "successfully visited: \u22641 urls, filtered out: 0 urls, seed 200, final URL = seed, no errors",
        "sigs": [
         "crawl_visited_counter",
         "filtered_out_links"
@@ -643,8 +659,8 @@
       },
       {
        "id": "S5.2b",
-       "title": "1 page with blocks or rejections",
-       "pattern": "max visited \u2264 1 plus S3.1a or S5.1a lines in the same job",
+       "title": "Seed blocked or rejected",
+       "pattern": "successfully visited: \u22641 urls plus a non-200 seed status (S3.1a) or the seed rejected by the whitelist (S5.1a)",
        "sigs": [
         "crawl_visited_counter"
        ],
@@ -914,13 +930,13 @@
       },
       {
        "id": "S8.1b",
-       "title": "Static IP not used",
-       "pattern": "nothing: the egress IP is not logged",
+       "title": "Static IP on, but the customer allowlisted other IPs",
+       "pattern": "nothing: the egress IP is not logged (useStaticIp=false IS visible \u2014 see S3.1a)",
        "sigs": [],
        "subs": [
         "A4"
        ],
-       "next": "Check the property's use-static-ip flag in Retool.",
+       "next": "Send the customer the NAT IP list and compare.",
        "validated": []
       },
       {
@@ -2868,7 +2884,6 @@
   "browser_subresource_net_err",
   "browser_version",
   "content_type_mismatch",
-  "interaction_steps",
   "job_timeline_by_property",
   "node_pool_static",
   "scan_total_urls",

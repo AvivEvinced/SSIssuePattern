@@ -54,7 +54,7 @@ TREE = [
    ("S3.1", "The site answered with an error status", "'http status code is: N' — logged at INFO, so error-level filters miss it. Look at the share per job/host.", [
      ("S3.1a", "Mostly 403 / 405", "http status code is: 403|405 on most URLs of the job (often 1 page visited)",
       ["http_status_non200", "http_status_doc_non200"], ["A1", "A4", "A2", "A6"],
-      "Blocked. Check: is static IP on for the property? Is a custom header set (extraHeaders)? Which user agent is sent (config dump)?"),
+      "Blocked. Check: admin-server crawl request body useStaticIp=false or a non '*-pool-stat*' node pool → A4; 202 share ≥30% → A2; config-dump UA Chrome/65 → A6 candidate; else A1."),
      ("S3.1b", "Many 429", "http status code is: 429 across many URLs",
       ["http_status_non200", "http_status_doc_non200"], ["A5"], "Rate limited: move to speed-tier slow, check sibling properties scheduled at the same time."),
      ("S3.1c", "202 bursts", "http status code is: 202 on many URLs",
@@ -98,10 +98,11 @@ TREE = [
      ("S4.2a", "Multi-step login hit the hard cap", "Function: bound handleRequest execution took more than 300000 milliseconds",
       ["handle_request_hard_cap"], ["B4", "D1"], "Needs a backend Multiple Interactions script, or longer waits per step."),
    ]),
-   ("S4.3", "Pages bounce back to the login page", "Visited pages' final URL is /login, /guest, /authenticate after login succeeded.", [
-     ("S4.3a", "Session dropped mid-crawl", "final url after redirections: …/login|guest|authenticate (high share in one job)",
-      ["final_url_login_or_error_landing", "interaction_landed_on_login_or_geo"], ["B5", "B3"],
-      "Logs can't tell expired password (B3) from session loss (B5): ask whether the password changed; else parallelism=1 and exclude logout URLs."),
+   ("S4.3", "Still on, or back on, the login page", "Judge per request and per pod (browser session), not per job: the login step itself logs the login URL as its final URL.", [
+     ("S4.3a", "Login 'succeeded' but the browser never left the login route", "all steps + 'finished interacting with page successfully', then final URL still the login route on every request",
+      ["final_url_login_or_error_landing", "interaction_steps"], ["B3"], "Wrong/expired password or lockout. Rule out a 403 on first load (A1) and an MFA screen on the same route (B1)."),
+     ("S4.3b", "One browser session drops mid-crawl", "one pod logs in OK, then its later requests keep landing on the login URL while other pods succeed",
+      ["final_url_login_or_error_landing", "interaction_landed_on_login_or_geo"], ["B5"], "Session lost: parallelism=1, exclude logout/session-check URLs, stagger schedules. Per-URL bounces in every pod = gated pages (C4)."),
    ]),
  ]),
  ("S5", "The crawl kept the wrong set of URLs", "Pages loaded fine, but the crawl ended with too few, too many, or the wrong URLs.", [
@@ -113,11 +114,11 @@ TREE = [
      ("S5.1c", "Content type rejected (case bug)", "content type text/HTML; charset=utf-8 is not allowed",
       ["not_included_other_reasons"], ["C4"], "Likely a case-sensitivity bug in the content-type check — escalate."),
    ]),
-   ("S5.2", "The crawl ended almost empty", "The highest 'successfully visited N pages so far' for the job is 0–1.", [
-     ("S5.2a", "1 page and nothing filtered out", "max visited ≤ 1 and 'filtered out: 0 urls', no errors",
+   ("S5.2", "The crawl ended almost empty", "Use the end-of-job summary 'successfully visited: N urls' (or METRIC_EVENT CrawlSummary totalUrlsCount) — the progress counter is never printed for 0-page crawls.", [
+     ("S5.2a", "Seed loaded, nothing followed, nothing filtered", "successfully visited: ≤1 urls, filtered out: 0 urls, seed 200, final URL = seed, no errors",
       ["crawl_visited_counter", "filtered_out_links"], ["C6", "A2", "A3"],
       "Either the page has no real links (JS navigation → List mode) or it is a challenge/block page served as 200."),
-     ("S5.2b", "1 page with blocks or rejections", "max visited ≤ 1 plus S3.1a or S5.1a lines in the same job",
+     ("S5.2b", "Seed blocked or rejected", "successfully visited: ≤1 urls plus a non-200 seed status (S3.1a) or the seed rejected by the whitelist (S5.1a)",
       ["crawl_visited_counter"], ["A1", "C2"], "Follow the branch the companion lines point to."),
    ]),
    ("S5.3", "The crawl hit a configured cap", "'matching grouping … is full' / 'max number of successful visits was reached' — background, by design.", [
@@ -166,8 +167,8 @@ TREE = [
    ("S8.1", "Looks normal in the logs", "Status 200, no errors — the problem is in the page content or the UI.", [
      ("S8.1a", "Soft block (block page with 200)", "nothing: page title / DOM size are not logged",
       [], ["A3"], "Look at the scan's screenshots / issue spike on landmark & H1 rules."),
-     ("S8.1b", "Static IP not used", "nothing: the egress IP is not logged",
-      [], ["A4"], "Check the property's use-static-ip flag in Retool."),
+     ("S8.1b", "Static IP on, but the customer allowlisted other IPs", "nothing: the egress IP is not logged (useStaticIp=false IS visible — see S3.1a)",
+      [], ["A4"], "Send the customer the NAT IP list and compare."),
      ("S8.1c", "TLS certificate error", "nothing: the browser ignores certificate errors",
       [], ["A9"], "Open the site in a browser and check the certificate."),
      ("S8.1d", "Grouping merges or splits pages", "nothing beyond page counts",
@@ -208,3 +209,16 @@ if __name__ == "__main__":
     leaves = [l for n in out for c in n["children"] for l in c["children"]]
     print("L1", len(out), "L2", sum(len(n["children"]) for n in out), "L3", len(leaves), "sigs used", len(used), "of", len(sigs))
     print("unused:", sorted(set(sigs) - used))
+
+# Primary log leaf per sub-issue: where a ticket of this sub-issue SHOWS UP in the logs
+# (the symptom location, not the root cause). Used for the ticket heatmap.
+PRIMARY = {
+ "A1": "S3.1a", "A2": "S3.1a", "A3": "S8.1a", "A4": "S3.1a", "A5": "S3.1b", "A6": "S3.1a", "A7": "S3.4a", "A8": "S3.2b", "A9": "S8.1c",
+ "B1": "S4.1b", "B2": "S4.1a", "B3": "S4.3a", "B4": "S4.2a", "B5": "S4.3b",
+ "C1": "S5.1a", "C2": "S5.1a", "C3": "S5.3a", "C4": "S3.1e", "C5": "S8.1d", "C6": "S5.2a", "C7": "S1.1b",
+ "D1": "S3.3b", "D2": "S6.1a", "D3": "S6.3a",
+ "E1": "S2.1a", "E2": "S1.2a", "E3": "S2.2b", "E4": "S1.1a", "E5": "S7.1a",
+ "F1": "S7.2a", "F2": "S8.1e", "F3": "S8.1e", "F4": "S8.1e",
+ "G1": "S8.1e", "G2": "S8.1e", "G3": "S8.1e", "G4": "S8.1e",
+ "H1": "S8.1e", "H2": "S8.1e", "H3": "S8.1e", "H4": "S8.1e", "H5": "S8.1e",
+}

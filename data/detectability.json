@@ -1,0 +1,380 @@
+[
+ {
+  "id": "E2",
+  "name": "Scheduler bug (missed / wrong next run)",
+  "tickets": 7,
+  "grade": "detect",
+  "signal": "Duplicate JobEntity key with a past run time repeating every ~7.5 min; next-run line vs UI.",
+  "rules": "",
+  "residual": "Time zone missing from next-run line (timezone variant invisible)."
+ },
+ {
+  "id": "E4",
+  "name": "Tenant limits reached",
+  "tickets": 2,
+  "grade": "detect",
+  "signal": "failed to create entity \u2026 + LimitExceededException ('license has expired' / limit).",
+  "rules": "",
+  "residual": ""
+ },
+ {
+  "id": "F1",
+  "name": "Export failure",
+  "tickets": 10,
+  "grade": "detect",
+  "signal": "failed to generate CSV|XLSX \u2026 (poller timeout / poll request failed); publish to \u2026-csv failed; completion email failed.",
+  "rules": "",
+  "residual": "Row-limit (10k) rejection not logged."
+ },
+ {
+  "id": "A7",
+  "name": "Geo-blocking",
+  "tickets": 2,
+  "grade": "detect",
+  "signal": "Interaction error url or seed final URL on out-of-country / unavailable page.",
+  "rules": "",
+  "residual": ""
+ },
+ {
+  "id": "A8",
+  "name": "Redirect loop",
+  "tickets": 1,
+  "grade": "detect",
+  "signal": "net::ERR_TOO_MANY_REDIRECTS on the page.",
+  "rules": "",
+  "residual": ""
+ },
+ {
+  "id": "C4",
+  "name": "Seed unreachable / soft-404 / error-page redirect",
+  "tickets": 3,
+  "grade": "detect",
+  "signal": "DNS_ERROR_COULD_NOT_FIND_URL on seed; high 404 share; final url \u2026/404|/500.",
+  "rules": "",
+  "residual": ""
+ },
+ {
+  "id": "D2",
+  "name": "Analysis engine crash / limit",
+  "tickets": 2,
+  "grade": "detect",
+  "signal": "failed due to FAILED_TO_RUN_ENGINES with stack trace (page URL).",
+  "rules": "",
+  "residual": "Worker-side ENGINES_PLUGIN_ERROR (ENOENT) must be split off as Evinced-side."
+ },
+ {
+  "id": "E3",
+  "name": "Pipeline dispatch / state-machine failure",
+  "tickets": 5,
+  "grade": "detect",
+  "signal": "Pair 'Failing URL set \u2026 due to job timeout/failure' + 'Failed running create crawl request' for one property after a scheduler tick; k8s BackoffLimitExceeded.",
+  "rules": "",
+  "residual": "Underlying cause of 'job timeout/failure' not logged."
+ },
+ {
+  "id": "A5",
+  "name": "Rate limiting (HTTP 429)",
+  "tickets": 3,
+  "grade": "rule",
+  "signal": "Per-job status histogram: 429 share \u2265 10% (front-loaded & decaying = throttle; sustained = hard limit).",
+  "rules": "access R3",
+  "residual": "Rate-based WAF rules that answer 403 in waves look like A1."
+ },
+ {
+  "id": "A2",
+  "name": "Bot challenge page (Cloudflare / reCAPTCHA)",
+  "tickets": 4,
+  "grade": "partial",
+  "signal": "Per-job histogram: 202 share \u2265 30% from the first minute (bot-manager interstitial).",
+  "rules": "access R2; discovery R1",
+  "residual": "Cloudflare challenge returns 403 \u2192 identical to A1 (#3420)."
+ },
+ {
+  "id": "A1",
+  "name": "WAF / firewall hard block",
+  "tickets": 13,
+  "grade": "rule",
+  "signal": "403/405 share \u2265 50%; onset at request 1\u20133 (deny list) vs after N 200s never recovering (reputation trip); OPEN_PAGE_TIMEOUT share \u2265 80% at a flat plateau (tarpit).",
+  "rules": "access R4, R6",
+  "residual": "vs A2-Cloudflare, vs A4 when the flag is on but wrong IPs allowlisted."
+ },
+ {
+  "id": "A4",
+  "name": "Static egress IP not enabled",
+  "tickets": 5,
+  "grade": "rule",
+  "signal": "admin-server request body useStaticIp=false for the job (id = k8s job name) or job on a non '*-pool-stat*' node pool, combined with a block.",
+  "rules": "access R1",
+  "residual": "Flag on but customer allowlisted other IPs: egress IP not logged."
+ },
+ {
+  "id": "A6",
+  "name": "Outdated browser user agent blocked",
+  "tickets": 1,
+  "grade": "partial",
+  "signal": "Blocked job whose config dump user agent is Chrome/65 or HeadlessChrome.",
+  "rules": "access R5",
+  "residual": "An old UA does not change the block's shape; confirmed only by a re-run with a current UA."
+ },
+ {
+  "id": "D1",
+  "name": "Heavy page load timeout",
+  "tickets": 3,
+  "grade": "rule",
+  "signal": "OPEN_PAGE_TIMEOUT share \u2264 10%, 200s continue to the end, the same URLs fail in every run.",
+  "rules": "access R7",
+  "residual": "Shares between 10% and 80% stay ambiguous with A1/A5."
+ },
+ {
+  "id": "B2",
+  "name": "Login / interaction selector mismatch",
+  "tickets": 6,
+  "grade": "rule",
+  "signal": "Interaction error 'No element found for selector: X' with error.url = login page, AND no 403/405 resource error on the login request; 'is not a valid selector' = malformed.",
+  "rules": "login R1\u2013R3",
+  "residual": "exists:true is unreliable; vs B4 on identifier-first IdPs."
+ },
+ {
+  "id": "B3",
+  "name": "Stale / invalid credentials",
+  "tickets": 3,
+  "grade": "rule",
+  "signal": "All login steps run, 'finished interacting with page successfully', but the browser is still on the login route ~20 s later on every request.",
+  "rules": "login R5",
+  "residual": "SPA MFA screens sharing the login route look the same (B1)."
+ },
+ {
+  "id": "B5",
+  "name": "Session lost mid-crawl",
+  "tickets": 3,
+  "grade": "rule",
+  "signal": "Per pod (browser session): first request logs in OK, later requests of the same pod keep landing on the login URL while other pods succeed.",
+  "rules": "login R7",
+  "residual": "With one pod there is no sibling to compare; per-URL bounces = gated pages (C4)."
+ },
+ {
+  "id": "B1",
+  "name": "MFA / 2FA blocks login",
+  "tickets": 5,
+  "grade": "partial",
+  "signal": "Request that clicked submit ends on a path with mfa|otp|2fa|verify|challenge (path only, not query string).",
+  "rules": "login R6",
+  "residual": "Rule defined but no live case found in 7 days; SPA MFA on the same route is invisible."
+ },
+ {
+  "id": "B4",
+  "name": "Multi-step / custom login flow needs configuration",
+  "tickets": 15,
+  "grade": "partial",
+  "signal": "Partial step sequence: username typed, then the Continue/next step fails on the identity provider.",
+  "rules": "login R4",
+  "residual": "Cannot separate 'element missing' from 'element not yet rendered' (needs DOM/screenshot); 300000 ms cap is not specific."
+ },
+ {
+  "id": "C2",
+  "name": "Redirect target outside the domain whitelist",
+  "tickets": 5,
+  "grade": "rule",
+  "signal": "Seed final URL rejected as 'final url not included in whitelist' AND its host is NOT in the job's 'allowed domains: {\u2026}' line.",
+  "rules": "discovery R4",
+  "residual": ""
+ },
+ {
+  "id": "C1",
+  "name": "Include regex matches nothing / invalid regex",
+  "tickets": 4,
+  "grade": "rule",
+  "signal": "Same rejection text but the host IS in 'allowed domains' (regex/path rejected); or 'language is not included in whitelist' on every URL.",
+  "rules": "discovery R5",
+  "residual": "The include regex itself is not logged in a safe line."
+ },
+ {
+  "id": "C3",
+  "name": "Scope too broad / unexpected URLs",
+  "tickets": 8,
+  "grade": "rule",
+  "signal": "Huge crawl with > 90% of fetched URLs rejected by the exclude list after fetching; page cap 'max visits reached'.",
+  "rules": "discovery R6, R9",
+  "residual": ""
+ },
+ {
+  "id": "C7",
+  "name": "List-mode misconfiguration",
+  "tickets": 1,
+  "grade": "rule",
+  "signal": "failed to create entity \u2026 'No URLs were supplied' / 'URL set not defined'; 'max visits reached' with visited = 1 (cap set to 1).",
+  "rules": "discovery R6",
+  "residual": ""
+ },
+ {
+  "id": "E1",
+  "name": "Platform outage / infra incident",
+  "tickets": 12,
+  "grade": "rule",
+  "signal": "Distinct tenants with FAILED / dispatch failures per hour \u2265 ~5, or a collapse in worker log volume.",
+  "rules": "discovery R10",
+  "residual": "Threshold calibrated on one quiet week and one outage."
+ },
+ {
+  "id": "E5",
+  "name": "Backend query error / timeout ('Error loading scan')",
+  "tickets": 6,
+  "grade": "rule",
+  "signal": "front-server 5xx with request_uri joined by operation_id to 'invocation of function \u2026 took > 10 s' or NotFound (deleted scan).",
+  "rules": "discovery R12",
+  "residual": "502/504 returned by the gateway is not logged."
+ },
+ {
+  "id": "F3",
+  "name": "UI bug / UI confusion",
+  "tickets": 22,
+  "grade": "partial",
+  "signal": "Same join as E5 but with a product exception (NullPointerException etc.).",
+  "rules": "discovery R12",
+  "residual": "Pure front-end bugs and UI confusion never reach the server."
+ },
+ {
+  "id": "C5",
+  "name": "Grouping / URL-normalization rules",
+  "tickets": 5,
+  "grade": "partial",
+  "signal": "Only rejects are 'sanitized url was already visited' on #fragment URLs (SPA routes collapsed).",
+  "rules": "discovery R7",
+  "residual": "Other grouping problems leave only page counts."
+ },
+ {
+  "id": "D3",
+  "name": "Incomplete render \u2192 findings variance",
+  "tickets": 7,
+  "grade": "partial",
+  "signal": "'Execution context was destroyed' on the page (navigation during analysis).",
+  "rules": "",
+  "residual": "Most D3 tickets are findings that vary with render timing \u2014 not logged."
+ },
+ {
+  "id": "F4",
+  "name": "Integration issue (Jira / ADO / MCP)",
+  "tickets": 10,
+  "grade": "partial",
+  "signal": "MCP: 'invalid request caller ID: MCP'.",
+  "rules": "",
+  "residual": "Jira / Azure DevOps calls are not logged in these services."
+ },
+ {
+  "id": "A3",
+  "name": "Soft block (block page with HTTP 200)",
+  "tickets": 3,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "discovery R8",
+  "residual": "Block page served with 200: no title, body size or link count logged \u2014 identical to C6."
+ },
+ {
+  "id": "C6",
+  "name": "Non-link (JS) navigation",
+  "tickets": 4,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "discovery R8",
+  "residual": "Seed 200, no links followed, nothing filtered \u2014 identical to A3 / A2-with-200."
+ },
+ {
+  "id": "A9",
+  "name": "TLS / SSL certificate error",
+  "tickets": 1,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Browser ignores certificate errors; nothing logged."
+ },
+ {
+  "id": "F2",
+  "name": "Export count semantics",
+  "tickets": 5,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Export semantics, not a failure."
+ },
+ {
+  "id": "G1",
+  "name": "Confirmed engine false positive",
+  "tickets": 11,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Findings accuracy is in scan results, not logs."
+ },
+ {
+  "id": "G2",
+  "name": "Disputed finding: true positive",
+  "tickets": 8,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Same as G1."
+ },
+ {
+  "id": "G3",
+  "name": "Score / severity / WCAG configuration",
+  "tickets": 9,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Score/severity config; engine version change is the only hint."
+ },
+ {
+  "id": "G4",
+  "name": "Suppression / masking request",
+  "tickets": 2,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Request, not a failure."
+ },
+ {
+  "id": "H1",
+  "name": "Access & licence",
+  "tickets": 10,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Account/permission requests (licence expiry is E4)."
+ },
+ {
+  "id": "H2",
+  "name": "Access setup questions (IPs / headers)",
+  "tickets": 9,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Questions."
+ },
+ {
+  "id": "H3",
+  "name": "Config / admin task",
+  "tickets": 11,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Admin tasks."
+ },
+ {
+  "id": "H4",
+  "name": "Feature request / how-to",
+  "tickets": 13,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Feature requests / how-to."
+ },
+ {
+  "id": "H5",
+  "name": "Out of scope / noise",
+  "tickets": 20,
+  "grade": "invisible",
+  "signal": "",
+  "rules": "",
+  "residual": "Noise / out of scope."
+ }
+]

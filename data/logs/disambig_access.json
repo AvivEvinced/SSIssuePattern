@@ -1,0 +1,252 @@
+{
+ "group": "access",
+ "subs": [
+  "A1",
+  "A2",
+  "A4",
+  "A5",
+  "A6",
+  "D1"
+ ],
+ "rules": [
+  {
+   "step": 1,
+   "check": "Was the job sent with useStaticIp=false (admin-server request body; id == k8s job name), or did it run on a node pool not named *-pool-stat*?",
+   "query": "source logs | filter $l.applicationname == 'admin' && $d.message ~ 'Sending POST request to' && $d.message ~ '<JOB_ID>' | extract $d.message:string into $d.s using regexp(e=/useStaticIp\\\\?\\\":(?<v>true|false)/) | choose $m.timestamp, $d.s.v  // and: source logs | filter $d.resource.attributes['k8s.job.name'] == '<JOB_ID>' | groupby $d.resource.attributes['k8s.node.name'] aggregate count()",
+   "outcome_if_true": "\u2192 A4 (if the site blocks and customer allowlists our static IPs)",
+   "evidence": "7d: ~37 requests useStaticIp=false (salesforce family, tsn.ca, ctvnews, noovo, superbet, cigna checkout); same jobs on crawls-fast-pool / scans-node-pool; id\u2194job verified on 4 jobs",
+   "confidence": "medium"
+  },
+  {
+   "step": 2,
+   "check": "Per-job status histogram: share of 202 >= 30%",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes.environment == 'production' && $d.message ~ 'http status code is: ' | filter $d.resource.attributes['k8s.job.name'] == '<JOB>' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 10m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '429', 1, 0)) as s429, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+   "outcome_if_true": "\u2192 A2 (AWS WAF / bot-manager JS challenge)",
+   "evidence": "booking.com 8ffa9d66: 5,255x202 + 4,220x429, 2x200; never 202\u2192200 for the same URL",
+   "confidence": "medium"
+  },
+  {
+   "step": 3,
+   "check": "Share of 429 >= 10% (front-loaded and decaying = throttled; sustained = hard limit)",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes.environment == 'production' && $d.message ~ 'http status code is: ' | filter $d.resource.attributes['k8s.job.name'] == '<JOB>' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 10m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '429', 1, 0)) as s429, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+   "outcome_if_true": "\u2192 A5",
+   "evidence": "28 jobs/7d with 429; des.wa.gov 10a3d82b decays 64%\u21920 in 40 min; booking 37ebce10 ~50% sustained; collegeboard subdomains 20-65%",
+   "confidence": "high"
+  },
+  {
+   "step": 4,
+   "check": "Share of 403/405 >= 50%; note when it starts (request 1-3 = deny list/geo/UA; after N 200s and never recovers = WAF reputation trip; alternating waves = rate-based WAF)",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes.environment == 'production' && $d.message ~ 'http status code is: ' | filter $d.resource.attributes['k8s.job.name'] == '<JOB>' | extract $d.message:string into $d.x using regexp(e=/status code is: (?<code>[0-9]+)/) | groupby formatTimestamp(roundTime($m.timestamp, 10m), '%d %H:%M') as t aggregate count() as n, sum(if($d.x.code:string == '200', 1, 0)) as s200, sum(if($d.x.code:string == '403' || $d.x.code:string == '405', 1, 0)) as s403, sum(if($d.x.code:string == '429', 1, 0)) as s429, sum(if($d.x.code:string == '202', 1, 0)) as s202 | orderby t",
+   "outcome_if_true": "\u2192 A1 (or A2-Cloudflare, indistinguishable)",
+   "evidence": "45 jobs >=50% blocked in 7d; lenovo 2df63642, sky.at 95b3a1f2, pbs cb160fdb, nvidia x7; backtest #2903, #3301, #3420",
+   "confidence": "high"
+  },
+  {
+   "step": 5,
+   "check": "If blocked: UA in the job's config dump is Chrome/65 or HeadlessChrome",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes.environment == 'production' && $d.message ~ 'config is: {' && $d.resource.attributes['k8s.job.name'] == '<JOB>' | extract $d.message:string into $d.ua using regexp(e=/--user-agent=(?<ua>[^\"]{0,140})/) | choose $d.ua.ua",
+   "outcome_if_true": "\u2192 A6 candidate: re-run with current UA; A6 confirmed only if the block disappears",
+   "evidence": "Chrome/65 jobs 59% any-block vs Chrome/112 20%, but 17/20 blocked Chrome/65 jobs are one tenant (collegeboard 429); HeadlessChrome/65 jobs not blocked; #3340 resolved by UA override",
+   "confidence": "low"
+  },
+  {
+   "step": 6,
+   "check": "OPEN_PAGE_TIMEOUT share = OPT/(OPT+200) per job; >=80% or last 30+ min only OPT at a flat plateau",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'failed due to OPEN_PAGE_TIMEOUT' || $d.message ~ 'http status code is: ') | groupby $d.resource.attributes['k8s.job.name']:string as job aggregate sum(if($d.message ~ 'OPEN_PAGE_TIMEOUT', 1, 0)) as opt, sum(if($d.message ~ 'is: 200', 1, 0)) as ok, max(if($d.message ~ 'OPEN_PAGE_TIMEOUT', $m.timestamp, null)) as last_opt, max(if($d.message ~ 'is: 200', $m.timestamp, null)) as last_ok | filter opt >= 20",
+   "outcome_if_true": "\u2192 A1 tarpit block",
+   "evidence": "aa.com 92% (plateau ~210 OPT/30 min for 10 h after 199 ok), ynet 97-98%",
+   "confidence": "medium"
+  },
+  {
+   "step": 7,
+   "check": "OPT share <= 10%, 200s continue to the end of the job, failing URLs repeat across runs and never succeed",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $l.subsystemname == 'crawl-worker' && $d.resource.attributes.environment == 'production' && ($d.message ~ 'failed due to OPEN_PAGE_TIMEOUT' || $d.message ~ 'http status code is: 200') | extract $d.context.url:string into $d.u using regexp(e=/https?:\\/\\/(?<host>[^\\/:?#]+)/) | filter $d.u.host:string == '<HOST>' | create opt from if($d.message ~ 'OPEN_PAGE_TIMEOUT', 1, 0) | groupby $d.context.url:string as url aggregate sum(opt) as fails, sum(if(opt == 0, 1, 0)) as oks, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs | filter fails > 0 | groupby true aggregate count() as failing_urls, sum(if(jobs >= 2 && oks == 0, 1, 0)) as repeat_never_ok, sum(if(oks > 0, 1, 0)) as ok_elsewhere",
+   "outcome_if_true": "\u2192 D1 (heavy pages); if failing URLs succeed in other runs \u2192 throttling (A5/A1), not D1",
+   "evidence": "frontier 2%, totalwine 7% (8/39 URLs repeat), my-rewards 0.4%, moo 0.5%; nvidia 37% of failing URLs ok in another run",
+   "confidence": "medium"
+  }
+ ],
+ "still_ambiguous": [
+  {
+   "subs": [
+    "A1",
+    "A2"
+   ],
+   "why": "Cloudflare managed challenge returns 403 like a WAF block; no title/header/body size logged (#3420)."
+  },
+  {
+   "subs": [
+    "A1",
+    "A6"
+   ],
+   "why": "An old UA is visible in the config dump but does not change the histogram shape; only a re-run with a current UA separates them."
+  },
+  {
+   "subs": [
+    "A1",
+    "A5"
+   ],
+   "why": "Rate-based WAF rules answer 403 in waves (nvidia) \u2014 behaves like A5 but without 429."
+  },
+  {
+   "subs": [
+    "A1",
+    "A4"
+   ],
+   "why": "useStaticIp=true but customer allowlisted other IPs: no egress IP logged."
+  },
+  {
+   "subs": [
+    "A1",
+    "A5",
+    "D1"
+   ],
+   "why": "OPEN_PAGE_TIMEOUT shares between 10% and 80% with 200s to the end (pearson 46%, xfinity 51%)."
+  }
+ ],
+ "logging_gaps": [
+  {
+   "missing_event": "main-document response headers subset + page title + body bytes",
+   "needed_for": [
+    "A1",
+    "A2",
+    "A3"
+   ],
+   "suggested_fields": "status, server, cf-ray, cf-mitigated, x-amzn-waf-action, x-datadome, akamai-grn, title, content_length",
+   "where": "crawl-worker, scan-worker (per page)"
+  },
+  {
+   "missing_event": "egress mode and public egress IP at job start",
+   "needed_for": [
+    "A4"
+   ],
+   "suggested_fields": "useStaticIp, nat_ip (as seen by an IP echo), node_pool",
+   "where": "crawl-worker, scan-worker (job start)"
+  },
+  {
+   "missing_event": "per-page navigation/status lines in the useStaticIp=false (fast-pool) crawl path",
+   "needed_for": [
+    "A1",
+    "A4",
+    "A5"
+   ],
+   "suggested_fields": "going from url, http status code",
+   "where": "crawl-worker fast path"
+  },
+  {
+   "missing_event": "network state at OPEN_PAGE_TIMEOUT",
+   "needed_for": [
+    "D1",
+    "A1",
+    "A5"
+   ],
+   "suggested_fields": "ttfb_ms, document_status, bytes_received, pending_requests, last_request_url",
+   "where": "crawl-worker, scan-worker"
+  },
+  {
+   "missing_event": "end-of-job summary",
+   "needed_for": [
+    "A1",
+    "A2",
+    "A5",
+    "D1"
+   ],
+   "suggested_fields": "counts by status and failure type, parallelNum, backoff applied, pages visited",
+   "where": "crawl-worker"
+  },
+  {
+   "missing_event": "user agent actually sent",
+   "needed_for": [
+    "A6"
+   ],
+   "suggested_fields": "navigator.userAgent, Sec-CH-UA",
+   "where": "crawl-worker/scan-worker, next to 'browser was opened successfully'"
+  }
+ ],
+ "examples": [
+  {
+   "job": "2df63642-9f56-40e6-9eec-69c361d9d2a3",
+   "host": "www.lenovo.com",
+   "true_or_likely_sub": "A1",
+   "timeline_summary": "2x200, 1x503, then 878x403 to the end (~10 min)"
+  },
+  {
+   "job": "95b3a1f2-3101-455b-8352-2125ab4e3022",
+   "host": "www.sky.at",
+   "true_or_likely_sub": "A1",
+   "timeline_summary": "52x200 for ~2 min, then 402x403"
+  },
+  {
+   "job": "cb160fdb-8663-452a-b645-26c29447d116",
+   "host": "www.pbs.org",
+   "true_or_likely_sub": "A1",
+   "timeline_summary": "140x200 then 84% 403"
+  },
+  {
+   "job": "489c88f2-498e-49ae-93fc-e4004d70f19e",
+   "host": "www.nvidia.com",
+   "true_or_likely_sub": "A1 (rate-based)",
+   "timeline_summary": "403 waves of 300-1,200/10 min alternating with clean 200 windows; 603 OPEN_PAGE_TIMEOUT"
+  },
+  {
+   "job": "10a3d82b-f06d-4424-a355-43277c648da3",
+   "host": "des.wa.gov",
+   "true_or_likely_sub": "A5",
+   "timeline_summary": "429 = 64% in first 20 min, decays to 0 by 40 min, then ~1,000x200 per 10 min"
+  },
+  {
+   "job": "37ebce10-f928-4718-86bc-1db55b9a2f01",
+   "host": "www.booking.com",
+   "true_or_likely_sub": "A5",
+   "timeline_summary": "200/429 ~50/50 for 2 h, 176x202"
+  },
+  {
+   "job": "8ffa9d66-456b-43cb-9d69-4044a2785ce5",
+   "host": "www.booking.com",
+   "true_or_likely_sub": "A2 (+A5)",
+   "timeline_summary": "only 202 (5,255) and 429 (4,220) from minute 1; 2x200 in 1h50m"
+  },
+  {
+   "job": "3212d59a-49a0-433f-acf2-573d8e2f2721",
+   "host": "www.aa.com",
+   "true_or_likely_sub": "A1 tarpit",
+   "timeline_summary": "199x200 in the first 30 min, then ~210 OPEN_PAGE_TIMEOUT per 30 min with 0-14 ok for 10 h (92%)"
+  },
+  {
+   "job": "9c137d5b-e636-4cb6-895a-4efb113d942d",
+   "host": "frontier.com",
+   "true_or_likely_sub": "D1",
+   "timeline_summary": "5,074x200 steady; 112 OPT in two short bursts (2%)"
+  },
+  {
+   "job": "80e47079-414b-4905-adcb-4a5abb778fc6",
+   "host": "www.salesforce.com",
+   "true_or_likely_sub": "A4 indicator",
+   "timeline_summary": "useStaticIp=false in admin request; fast-pool path, 18,633 visits, no status lines"
+  },
+  {
+   "job": "backtest #2903 / #3301",
+   "host": "starz.ca / myprepaidcenter.com",
+   "true_or_likely_sub": "A1",
+   "timeline_summary": "403 on seed + 1 page; 405 on login then selector error"
+  },
+  {
+   "job": "backtest #3340",
+   "host": "investor.capitalone.com",
+   "true_or_likely_sub": "A6",
+   "timeline_summary": "seed ERR_HTTP2_PROTOCOL_ERROR/timeouts \u2192 INTERNAL_ERROR; healthy after UA override"
+  },
+  {
+   "job": "backtest #3420",
+   "host": "community.environicsanalytics.com",
+   "true_or_likely_sub": "A2",
+   "timeline_summary": "403 + 1 page; identical to A1"
+  },
+  {
+   "job": "backtest #2185/#2914",
+   "host": "NatWest",
+   "true_or_likely_sub": "A5",
+   "timeline_summary": "run outside retained window; rule step 3 would apply"
+  }
+ ]
+}

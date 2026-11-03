@@ -1,0 +1,258 @@
+{
+ "group": "login",
+ "subs": [
+  "B1",
+  "B2",
+  "B3",
+  "B4",
+  "B5",
+  "A1 (trap)"
+ ],
+ "window": "2026-11-01..02 live jobs; 2026-10-27..11-03 for B1/B4 scans; back-tests at ticket dates (#3301 2026-09-25, #3198 2026-09-03)",
+ "queries_used": 30,
+ "key_finding": "Unit = request_id and pod (browser session), not job. In scan-worker the login step itself logs 'final url after redirections: <login URL>' (ulta 77d15816: 146 interaction starts vs 150 /u/login landings, 0 failed requests), so counting login landings per job over-calls B5. Also: 'element: X, exists: true' is followed by 'No element found for selector: X' within 13-160 ms in all 5 selector failures examined, so 'exists: true' does not mean the selector works.",
+ "rules": [
+  {
+   "step": 0,
+   "check": "Does the job run a login/interaction at all ('starting page interaction plugin')? Without it, login/verify-login landings are gated pages/scope (C4), not B.",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'starting page interaction plugin' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as starts, approx_count_distinct($d.context.request_id) as reqs",
+   "outcome_if_true": "continue to step 1 (else \u2192 not B; C4/scope)",
+   "evidence": "enrollnow a00b1cce, paieb, salesforce/heroku blog links, argos/booking sign-in links: login landings with no interaction",
+   "confidence": "high"
+  },
+  {
+   "step": 1,
+   "check": "On the interaction request, a [browser] 'Failed to load resource ... status of 403/405' appears between 'going to URL: <login url>' and the first 'final url after redirections' (or net::ERR_CONNECTION_RESET)",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes['k8s.job.name'] == '<JOB>' && ($d.message ~ 'starting page interaction plugin' || $d.message ~ 'going to URL' || $d.message ~ 'Failed to load resource: the server responded with a status of' || $d.message ~ 'final url after redirections') | create mt from substr($d.message:string, 0, 120) | groupby $d.context.request_id as rid, mt aggregate min($m.timestamp) as t, count() as n | orderby rid, t",
+   "outcome_if_true": "\u2192 A1 (bot/WAF block) even if the terminal error is 'No element found for selector'",
+   "evidence": "#3301 crawl 601e87c1 (405 at +180 ms); absent on spectrum 2c241337/b3984da6 and Chick-fil-A 770c499d (true B2)",
+   "confidence": "medium"
+  },
+  {
+   "step": 2,
+   "check": "error.message contains \"is not a valid selector\"",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'encountered error while running a function with timeout' && $d.error.message:string ~ 'is not a valid selector' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, any_value(substr($d.error.message:string,0,300)) as sample",
+   "outcome_if_true": "\u2192 B2 (malformed selector)",
+   "evidence": "#2371 bell.jasperwireless (back-test)",
+   "confidence": "high"
+  },
+  {
+   "step": 3,
+   "check": "Interaction error JSON: message 'No element found for selector: X', error.url = the login/interaction page; last logged step = TYPE_TEXT/CLICK on X (exists: true just before). X generated-looking (':R..:', 'kite-label-input-N', 'sc-xxxx' classes, nth-child)",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'encountered error while running a function with timeout' && $d.error.message:string ~ 'No element found for selector' | extract $d.error.message:string into $d.ej using jsonobject() | extract $d.ej.url:string into $d.b using regexp(e=/^(?<base>https?:\\/\\/[^?#]+)/) | groupby $d.resource.attributes['k8s.job.name'] as job, $d.ej.message:string as msg, $d.b.base:string as browser_url aggregate count() as n, approx_count_distinct($d.context.request_id) as reqs | orderby n desc",
+   "outcome_if_true": "\u2192 B2 (stale/dynamic selector)",
+   "evidence": "#3198 Chick-fil-A 770c499d/8717415b (sc- class CLICK), spectrum 2c241337/b3984da6 (kite-label-input-3/4), cigna 634a92b2 (#username, slow SPA)",
+   "confidence": "high"
+  },
+  {
+   "step": 4,
+   "check": "Failure at the second step of an identifier-first flow: username typed, then the Continue click / password field fails; error.url is the IdP (accounts.*, id.*, /u/login/identifier)",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.resource.attributes['k8s.job.name'] == '<JOB>' && !($d.message ~ 'config is') && !($d.message ~ 'received message') | create mt from substr($d.message:string, 0, 140) | create em from substr($d.error.message:string, 0, 260) | groupby $d.context.request_id as rid, mt, em aggregate count() as n, min($m.timestamp) as t | orderby t",
+   "outcome_if_true": "\u2192 B4 (needs multi-interaction config), B2 if the Continue selector is positional/stale",
+   "evidence": "zalando crawl ca8b7ff9 (username \u2192 sleep 20 \u2192 nth-child button click fails); 1 job",
+   "confidence": "low"
+  },
+  {
+   "step": 5,
+   "check": "Interaction request logs all steps + 'finished interacting with page successfully', and the request's next final URL / 'successfully scraped url. final url' is still the login path; same in every pod/request",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && ($d.message ~ 'final url after redirections' || $d.message ~ 'starting page interaction plugin' || $d.message ~ 'clicking element' || $d.message ~ 'No element found for selector') | extract $d.message into $d.fu using regexp(e=/redirections: (?<u>https?:\\/\\/[^?#\\s]+)/) | create lg1 from if($d.message ~ 'final url' && $d.fu.u:string.matches(/(?i)(login|signin|sign-in|logon|authenticate|\\/sso|\\/guest$|\\/auth\\/)/), 1, 0) | create nm1 from if($d.message ~ 'final url' && lg1 == 0, 1, 0) | create st1 from if($d.message ~ 'starting page', 1, 0) | create ck1 from if($d.message ~ 'clicking element', 1, 0) | create nf1 from if($d.message ~ 'No element found', 1, 0) | groupby $l.subsystemname as sub, $d.resource.attributes['k8s.job.name'] as job, $d.context.request_id as rid aggregate sum(lg1) as lg, sum(nm1) as nm, sum(st1) as st, sum(ck1) as ck, sum(nf1) as nf, any_value($d.fu.u) as u | create cls from if(st > 0 && nf > 0, 'selector_fail', if(st > 0 && ck > 0 && nm == 0 && lg > 0, 'submitted_still_on_login', if(st > 0 && nm > 0, 'login_ok', if(st == 0 && lg > 0 && nm == 0, 'bounced_no_login', if(st > 0, 'login_other', 'plain'))))) | filter cls != 'plain' | groupby sub, job, cls aggregate count() as reqs, any_value(u) as sample | orderby job",
+   "outcome_if_true": "\u2192 B3 (stale/invalid credentials or lockout); rule out A1 (step 1) and B1 (MFA on same SPA route)",
+   "evidence": "dealernavigator scan 2e285067 + crawl 997debb0 (job DONE with 1 page = login page); 403s on first load keep A1 open",
+   "confidence": "medium"
+  },
+  {
+   "step": 6,
+   "check": "Request that clicked submit ends on a path containing mfa|otp|2fa|verify|challenge|step-up|passcode (path only, not query string)",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'final url after redirections' && $d.message:string.matches(/(?i)redirections: https?:\\/\\/[^?#\\s]*(mfa|otp|2fa|two-?factor|verify|verification|challenge|step-?up|passcode|one-time)/) && !($d.message ~ '/tag/') && !($d.message ~ '/blog') | extract $d.message into $d.fu using regexp(e=/redirections: (?<u>https?:\\/\\/[^?#\\s]+)/) | groupby $d.fu.u as landing aggregate count() as n, approx_count_distinct($d.resource.attributes['k8s.job.name']) as jobs, any_value($d.resource.attributes['k8s.job.name']) as job | orderby n desc",
+   "outcome_if_true": "\u2192 B1",
+   "evidence": "0 cases in 7 days (only login-less verify-login/step-up-auth deep links and content pages)",
+   "confidence": "low"
+  },
+  {
+   "step": 7,
+   "check": "Per pod (browser session): first request login_ok, later requests of the SAME pod land on the login URL and keep doing so, while other pods succeed on neighbouring URLs",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes['k8s.job.name'] == '<JOB>' && ($d.message ~ 'final url after redirections' || $d.message ~ 'starting page interaction plugin' || $d.message ~ 'finished interacting with page') | extract $d.message into $d.fu using regexp(e=/redirections: (?<u>https?:\\/\\/[^?#\\s]+)/) | create lg1 from if($d.message ~ 'final url' && $d.fu.u:string.matches(/(?i)(login|signin|authenticate|\\/sso)/), 1, 0) | create nm1 from if($d.message ~ 'final url' && lg1 == 0, 1, 0) | create st1 from if($d.message ~ 'starting page', 1, 0) | create pod from $d.resource.attributes['k8s.pod.name']:string | groupby $d.context.request_id as rid aggregate min($m.timestamp) as t0, any_value(pod) as pod, any_value($d.context.url) as url, sum(lg1) as lg, sum(nm1) as nm, sum(st1) as st | orderby pod, t0",
+   "outcome_if_true": "\u2192 B5 (session lost mid-crawl). If bounces are per URL family in every pod and the next request succeeds \u2192 gated pages (C4/permissions), not B5",
+   "evidence": "B5: evernorth scan 33a804f5 pod -grk8c (5/5 later requests \u2192 /u/login/identifier). Not-B5: snr.bell.ca 8e66ad07/e87505a5 (USER_* folders bounce in all 6 pods, not sticky); ulta 77d15816 (landings = the login step)",
+   "confidence": "medium"
+  },
+  {
+   "step": 8,
+   "check": "'bound handleRequest execution took more than 300000 miliseconds'",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && ($l.subsystemname == 'crawl-worker' || $l.subsystemname == 'scan-worker') && $d.message ~ 'encountered error while running a function with timeout' && $d.error.message:string ~ 'handleRequest execution took more than 300000' | groupby $l.subsystemname as sub, $d.resource.attributes['k8s.job.name'] as job aggregate count() as n, min($m.timestamp) as t0 | orderby n desc",
+   "outcome_if_true": "\u2192 only 'request budget exhausted' \u2014 read steps 1\u20135 for the cause; not a B4 marker",
+   "evidence": "26 jobs/7d; top-10: 3 with login (cigna x2 selector failure + slow page, ulta OK), 7 login-less heavy sites (D1)",
+   "confidence": "low"
+  }
+ ],
+ "still_ambiguous": [
+  {
+   "subs": [
+    "B3",
+    "B1",
+    "A1"
+   ],
+   "why": "Browser stays on the login route after a 'successful' interaction; SPA MFA screens can share the route and 403s on first load (dealernavigator) also fit A1. No post-submit page text/title is logged."
+  },
+  {
+   "subs": [
+    "B2",
+    "B4",
+    "A1"
+   ],
+   "why": "Identifier-first IdPs (zalando): positional Continue selector fails after username; 400 resource errors on load; cannot tell element missing vs not-yet-rendered vs blocked."
+  },
+  {
+   "subs": [
+    "B5",
+    "C4"
+   ],
+   "why": "With a single pod there is no sibling session to compare; rely on stickiness (all later requests bounce) vs per-URL bounces."
+  },
+  {
+   "subs": [
+    "B2",
+    "A1"
+   ],
+   "why": "Step trace is identical (exists:true \u2192 action \u2192 No element found); only the 403/405 resource line on the interaction request separates them, and it is Info-level and easy to miss."
+  }
+ ],
+ "logging_gaps": [
+  {
+   "missing_event": "Post-login landing summary after the last CLICK of the login script",
+   "needed_for": [
+    "B1",
+    "B3",
+    "B5"
+   ],
+   "suggested_fields": "url_before, url_after, page title, http status of the navigation, # cookies set, visible error text (e.g. 'invalid password'), mfa_detected flag",
+   "where": "crawl-worker / scan-worker PageInteractionPlugin"
+  },
+  {
+   "missing_event": "Why the element lookup failed",
+   "needed_for": [
+    "B2",
+    "B4",
+    "A1"
+   ],
+   "suggested_fields": "found_in_dom vs visible vs detached, DOM snippet or screenshot path at failure, frame list",
+   "where": "PageInteractionPlugin (the 'exists: true' probe disagrees with the action lookup in 5/5 failures)"
+  },
+  {
+   "missing_event": "Redaction of typed values in interaction errors",
+   "needed_for": [
+    "security"
+   ],
+   "suggested_fields": "error.message.element.text must be masked (a username was seen in clear text; a failing password step would log the password)",
+   "where": "crawl-worker/scan-worker 'encountered error while running a function with timeout'"
+  },
+  {
+   "missing_event": "Context on the 300000 ms cap line",
+   "needed_for": [
+    "B4",
+    "D1"
+   ],
+   "suggested_fields": "context.url, request_id, which phase (login/goto/plugins) consumed the time",
+   "where": "crawl-worker/scan-worker 'bound handleRequest execution took more than 300000'"
+  },
+  {
+   "missing_event": "Session identity / reuse per request",
+   "needed_for": [
+    "B5"
+   ],
+   "suggested_fields": "browser session id, logged_in_at, reused_session flag, session-check result, logout URL hit",
+   "where": "scan-worker/crawl-worker"
+  },
+  {
+   "missing_event": "HTTP status of the interaction (login page) navigation",
+   "needed_for": [
+    "A1",
+    "B2"
+   ],
+   "suggested_fields": "'http status code is: N' for the login URL (currently absent on interaction pages, #3301)",
+   "where": "PageInteractionPlugin gotoURL"
+  },
+  {
+   "missing_event": "Concurrent-login warning",
+   "needed_for": [
+    "B5"
+   ],
+   "suggested_fields": "parallelNum, # workers logging in simultaneously",
+   "where": "crawl-worker (environics: 4 logins within 64 ms; spectrum parallelNum 25)"
+  }
+ ],
+ "examples": [
+  {
+   "job": "601e87c1-bc26-4f83-ada5-4f2f7176c0bc",
+   "host": "bell.myprepaidcenter.com (#3301)",
+   "true_or_likely_sub": "A1",
+   "timeline_summary": "start \u2192 goto /login/user \u2192 +180 ms [browser] 405 \u2192 final url same \u2192 #usernameText exists:true \u2192 typing \u2192 +13 ms No element found #usernameText \u00d73 \u2192 PAGE_INTERACTION_PLUGIN_ERROR, 0 urls"
+  },
+  {
+   "job": "770c499d-86c0-4369-a81d-6dcc81ce6e65",
+   "host": "order.chick-fil-a.com (#3198)",
+   "true_or_likely_sub": "B2",
+   "timeline_summary": "goto /location \u2192 #input-1 typed \u2192 sleep 10 s \u2192 CLICK '#location-panel-nearest > div.sc-jCAZBj\u2026 > button' exists:true \u2192 +157 ms No element found (CLICK_ELEMENT) \u00d73 \u2192 CRAWL failed PAGE_INTERACTION_PLUGIN_ERROR, 0 urls. Not quiet: earlier back-test filtered on the wrong context.url."
+  },
+  {
+   "job": "(back-test) bell.jasperwireless 2026-05-28..06-02",
+   "host": "bell.jasperwireless.com (#2371)",
+   "true_or_likely_sub": "B2",
+   "timeline_summary": "CLICK_ELEMENT on login.jsp \u2192 'is not a valid selector' exception \u2192 PAGE_INTERACTION_PLUGIN_ERROR; 976 final urls = login.jsp (from backtest.md)"
+  },
+  {
+   "job": "2c241337-6ac0-4a2a-99d6-166639919702",
+   "host": "mail3.spectrum.net \u2192 id.spectrum.net/login",
+   "true_or_likely_sub": "B2",
+   "timeline_summary": "goto \u2192 redirect to id.spectrum.net/login \u2192 #kite-label-input-3 exists:true \u2192 typing \u2192 +28 ms error (same selector) \u00d718 attempts; no 4xx resource errors; 0 pages; parallelNum 25"
+  },
+  {
+   "job": "b3984da6-a8a5-4777-96a4-305aa7df5e09",
+   "host": "spectrumcommunitysolutions.net",
+   "true_or_likely_sub": "B2",
+   "timeline_summary": "click #login-button \u2192 id.spectrum.net/login \u2192 #kite-label-input-4 typing \u2192 No element found \u00d79 \u2192 failed"
+  },
+  {
+   "job": "634a92b2-fba8-4749-a930-f4ed87c4d2ae",
+   "host": "my.cigna.com",
+   "true_or_likely_sub": "B2 (slow SPA login)",
+   "timeline_summary": "25 seeds each log in: goto /web/public/guest (+32 s stabilize, +40 s) \u2192 #username typing \u2192 No element found \u00d73 \u2192 bound run 120000 \u2192 bound handleRequest 300000 \u00d725 \u2192 0 urls. /web/public/guest is the login page, not a session-loss target."
+  },
+  {
+   "job": "ca8b7ff9-4c23-4801-ab34-226adf124a79",
+   "host": "zalando.de \u2192 accounts.zalando.com/authenticate",
+   "true_or_likely_sub": "B4/B2 (A1 possible)",
+   "timeline_summary": "[browser] 400 \u00d72 \u2192 /authenticate \u2192 #username typed \u2192 sleep 20 \u2192 nth-child Continue button click \u2192 No element found \u00d79 \u2192 failed, 0 pages"
+  },
+  {
+   "job": "2e285067-2fdf-4a32-b0c4-08572e81cc2d",
+   "host": "dealernavigator.com",
+   "true_or_likely_sub": "B3 (A1/B1 not excluded)",
+   "timeline_summary": "403 \u00d74 on load \u2192 /idp/dealers/login \u2192 userName, password typed \u2192 click #signIn \u2192 sleep 20 \u2192 'finished interacting with page successfully' \u2192 final url still login route, 200 \u2192 engines scan the login page \u2192 DONE, 1 page"
+  },
+  {
+   "job": "33a804f5-b52d-49d3-9b2b-4507b522432b",
+   "host": "demo.app.evernorth.com",
+   "true_or_likely_sub": "B5",
+   "timeline_summary": "5 pods log in OK; pod -grk8c then lands on p.universal.login.evernorth.com/u/login/identifier for 5/5 later requests (200) while other pods succeed"
+  },
+  {
+   "job": "8e66ad07-2e22-4d02-ba08-4c1e5573edc5",
+   "host": "snr.bell.ca",
+   "true_or_likely_sub": "not B5 (gated pages / C4)",
+   "timeline_summary": "6 pods each log in once; USER_* / AUTO_ATTENDANT folder pages bounce to /Login/ in every pod, interleaved with successes, not sticky"
+  },
+  {
+   "job": "77d15816-ce3c-471c-bea5-b32fb7c31315",
+   "host": "www.ulta.com",
+   "true_or_likely_sub": "healthy (not B5)",
+   "timeline_summary": "146 logins, each logs final url /u/login (the login step) then the target page 200; 1309 other pages reuse the session; 0 failed requests"
+  },
+  {
+   "job": "e9b16aea-adfb-4cd6-b795-3bd29674fb4d",
+   "host": "community.environicsanalytics.com",
+   "true_or_likely_sub": "B5 risk / A2 (no B1)",
+   "timeline_summary": "4 parallel logins within 64 ms with React ':R\u2026:' ids; 2 reach /hc pages, 1 stays on /auth/v3/signin; /auth/v3/mfa/manage is only a crawled link, not a post-login landing"
+  }
+ ]
+}

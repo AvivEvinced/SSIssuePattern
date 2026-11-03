@@ -1,0 +1,299 @@
+{
+ "group": "discovery_platform",
+ "subs": [
+  "C1",
+  "C2",
+  "C3",
+  "C5",
+  "C6",
+  "C7",
+  "A2",
+  "A3",
+  "A1",
+  "A7",
+  "B2",
+  "B5",
+  "C4",
+  "E1",
+  "E3",
+  "E5",
+  "F3"
+ ],
+ "rules": [
+  {
+   "step": 0,
+   "check": "Find small crawls with the END-OF-JOB summary 'successfully visited: N urls' (or admin/front METRIC_EVENT CrawlSummary totalUrlsCount), NOT the progress counter 'successfully visited N pages so far' \u2014 the counter is never printed for 0-visit crawls (~60% of small crawls were invisible to the validated query).",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && ($d.message ~ 'successfully visited: ' || $d.message ~ 'filtered out: ' || $d.message ~ 'failed to scrape: ' || $d.message ~ 'not including url in result url set' || $d.message ~ 'http status code is: ' || $d.message ~ 'failed due to' || $d.message ~ 'allowed domains' || $d.message ~ 'final url after redirections' || $d.message ~ 'typing text in element' || $d.message ~ 'clicking element') | extract $d.message into $d.s using regexp(e=/^(?<k>successfully visited|failed to scrape|filtered out): (?<n>\\d+) urls/) | groupby $d.resource.attributes['k8s.job.name'] as job aggregate max(if($d.s.k == 'successfully visited', $d.s.n:number, null)) as visited, max(if($d.s.k == 'failed to scrape', $d.s.n:number, null)) as failed, max(if($d.s.k == 'filtered out', $d.s.n:number, null)) as filtered, count_if($d.message ~ 'not included in whitelist') as wl, count_if($d.message ~ 'language is not included') as lang, count_if($d.message ~ 'already visited') as dup, count_if($d.message ~ 'content type') as ctype, count_if($d.message ~ 'max number of successful') as cap, count_if($d.message ~ 'is: 200') as s200, count_if($d.message ~ 'http status code is: ' && !($d.message ~ 'is: 200')) as snon200, count_if($d.message ~ 'typing text' || $d.message ~ 'clicking element') as interactions, any_value(if($d.message ~ 'failed due to', substr($d.message:string, 0, 100), null)) as faildue, any_value(if($d.message ~ 'allowed domains', $d.message:string, null)) as allowed, any_value(if($d.message ~ 'final url after', $d.message:string, null)) as seed_final | filter visited <= 1",
+   "outcome_if_true": "candidate list with all discriminating columns in one row per job",
+   "evidence": "2026-11-01..02: 59 jobs visited=0 + 35 jobs visited=1; CrawlSummary DONE/totalUrlsCount=0 >= 60",
+   "confidence": "high"
+  },
+  {
+   "step": 1,
+   "check": "Seed document status non-200 (403/400/503/429/202) and nothing else",
+   "query": "(columns snon200>0, s200==0 from step 0) or: source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'http status code is: ' && !($d.message ~ 'is: 200') | groupby $d.resource.attributes['k8s.job.name'] as job, $d.message aggregate count() as n, any_value($d.context.url) as url",
+   "outcome_if_true": "\u2192 A1/A2/A5 (block at request 1; 503/202 lean A2 challenge). Not C.",
+   "evidence": "12 jobs (sainsburys, natwest, verizon, sky helpforum, xfinityprepaid x2, comcastpreview x2: 403; philadelphia.comcast 503; skyawardsfyc 400)",
+   "confidence": "high (block) / low (A1 vs A2)"
+  },
+  {
+   "step": 2,
+   "check": "'failed due to DNS_ERROR_COULD_NOT_FIND_URL' / OPEN_PAGE_TIMEOUT / INTERNAL_ERROR on the seed",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'failed due to' | extract $d.message into $d.fr using regexp(e=/failed due to (?<reason>[A-Z_0-9]+)/) | groupby $d.resource.attributes['k8s.job.name'] as job, $d.fr.reason aggregate count() as n",
+   "outcome_if_true": "DNS \u2192 C4 (seed unreachable / internal host); OPEN_PAGE_TIMEOUT \u2192 D1/A1 tarpit",
+   "evidence": "6 DNS jobs, 3 OPEN_PAGE_TIMEOUT, 1 INTERNAL_ERROR (11-01..02)",
+   "confidence": "high"
+  },
+  {
+   "step": 3,
+   "check": "'failed due to PAGE_INTERACTION_PLUGIN_ERROR', or interaction lines ran and seed final URL still on a login/IdP path (/login, /authenticate, /auth, /guest)",
+   "query": "columns faildue, interactions, seed_final from step 0",
+   "outcome_if_true": "\u2192 B2/B3 login failure (or B5 session wall for /guest with failed>0). Not C6.",
+   "evidence": "5 PAGE_INTERACTION jobs (zalando, spectrum x3, accredo); cigna x2 (/web/public/guest, failed 25/41); cportal.jazz (interaction ran, still #/login, visited 1)",
+   "confidence": "high"
+  },
+  {
+   "step": 4,
+   "check": "wl>0 and the rejected URL == seed final URL, and host(final URL) is NOT covered by the 'allowed domains: {\u2026}' line",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && ($d.message ~ 'allowed domains' || $d.message ~ 'final url not included in whitelist' || $d.message ~ 'final url after redirections') | groupby $d.resource.attributes['k8s.job.name'] as job aggregate any_value(if($d.message ~ 'allowed domains', $d.message:string, null)) as allowed, any_value(if($d.message ~ 'whitelist', $d.context.url:string, null)) as rejected, any_value(if($d.message ~ 'final url after', $d.message:string, null)) as seed_final, count_if($d.message ~ 'whitelist') as wl | filter wl > 0",
+   "outcome_if_true": "\u2192 C2 (seed redirects outside whitelist). If the rejected host is an IdP/login (login.microsoftonline.com, id.*, /auth) \u2192 B4/B5 instead.",
+   "evidence": "~33 jobs on 11-01..02 (14 <state>.comcast.com \u2192 corporate.comcast.com, effectv \u2192 comcastadvertising, wingslax \u2192 nll.com, sky x3...); 2 IdP cases (marq, bluemovie, bellmedia)",
+   "confidence": "high"
+  },
+  {
+   "step": 5,
+   "check": "wl>0 but host(rejected) IS in 'allowed domains' (so the include regex / path whitelist rejected it); also 'language is not included in whitelist' on the seed",
+   "query": "same as step 4; compare host vs allowed list",
+   "outcome_if_true": "\u2192 C1 (include regex / locale filter). Exception: final URL like /unavailable, /geo \u2192 A7.",
+   "evidence": "5 jobs (satsuite.collegeboard x2, healthcare4mi /en, capitalone.com/credit-cards, williamsinn) + 9020c59c stg.xfinity.com (allowed but rejected); wowtv.de/unavailable = A7",
+   "confidence": "medium (regex itself not logged; subdomain semantics of allowed list unverified)"
+  },
+  {
+   "step": 6,
+   "check": "'max number of successful visits was reached' with visited = 1",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'max number of successful visits was reached' | groupby $d.resource.attributes['k8s.job.name'] as job aggregate count() as n",
+   "outcome_if_true": "\u2192 page cap configured to 1 (C7/C3-family config: 'pages limit'), not discovery failure",
+   "evidence": "vistaprint.fr (24), ulta.com (137 after login), collegeboard.org (1)",
+   "confidence": "high"
+  },
+  {
+   "step": 7,
+   "check": "Only rejects are 'content type application/pdf' and 'sanitized url was already visited' on #/fragment URLs",
+   "query": "columns ctype, dup from step 0",
+   "outcome_if_true": "\u2192 C5 (fragment routes collapsed \u2014 untick 'ignore URL fragments') / C6 SPA",
+   "evidence": "ga-nmsn, mdnewhire, ky-newhire, co newhire, dealernavigator, discover portal, capitalone/coders (7 jobs)",
+   "confidence": "medium"
+  },
+  {
+   "step": 8,
+   "check": "Seed 200, final URL == seed (no host change), filtered 0, failed 0, no interaction, no non-200",
+   "query": "columns from step 0: visited=1, s200=1, filtered=0, wl=0, faildue=null",
+   "outcome_if_true": "\u2192 C6 or A3 or A2-with-200 \u2014 NOT separable from logs. Browser '[browser] [error] \u2026 status of 403/405' on a sub-resource leans A2/A3; seed path /login leans login wall.",
+   "evidence": "~10 jobs (design.comcast, business.comcast, internet.xfinity, xfinity planbuilder, elleactive.hearst, boxtops qa, charterverify, dinersclub, ap.collegeboard)",
+   "confidence": "low"
+  },
+  {
+   "step": 9,
+   "check": "Huge crawl: progress counter 'crawling page. visited N pages so far' > 10k and 'final url is included in' (blacklist) rejects > 90% of scraped URLs; CrawlSummary FAILED",
+   "query": "source logs | filter $l.applicationname == 'site-scanner' && $d.resource.attributes.environment == 'production' && $l.subsystemname == 'crawl-worker' && $d.message ~ 'not including url in result url set' | extract $d.message into $d.rx using regexp(e=/reason: (?<reason>[a-zA-Z ]{0,30})/) | groupby $d.resource.attributes['k8s.job.name'] as job, $d.rx.reason aggregate count() as n | filter n > 10000",
+   "outcome_if_true": "\u2192 C3 scope too broad (exclude applied after fetch, job times out)",
+   "evidence": "1 job: Salesforce 'Developer - All Except Docs' 130k scraped / 129,745 blacklist rejects, 10.8 h, FAILED totalUrlsCount 0",
+   "confidence": "medium"
+  },
+  {
+   "step": 10,
+   "check": "Part 2: distinct tenants per hour with FAILED / dispatch-failure lines > baseline (3)",
+   "query": "source logs | filter ($l.subsystemname == 'admin-server' || $l.subsystemname == 'front-server') && ($d.message:string.matches(/state changed from \\w+ to FAILED/) || $d.message ~ 'changed state to: FAILED' || $d.message ~ 'Failed running create crawl request' || $d.message ~ 'passed its timeout, marking it as FAILED' || $d.message ~ 'HikariPool') | extract $d.message into $d.mdc using regexp(e=/tenancyName=(?<tenant>[^\\]]+)\\]/) | groupby roundTime($m.timestamp, 1h) as hour aggregate count() as n, distinct_count(firstNonNull($d.context.tenant_name:string, $d.mdc.tenant:string)) as tenants | orderby tenants desc",
+   "outcome_if_true": "tenants >= ~5 in one hour, or worker volume collapse (backtest June) \u2192 E1",
+   "evidence": "week 10-27..11-02 max 3 tenants/h (no outage); June outage visible only as volume drop",
+   "confidence": "medium (threshold from 1 quiet week)"
+  },
+  {
+   "step": 11,
+   "check": "One property: 'Failing URL set <id> due to job timeout/failure' + 'Failed running create crawl request' (RuntimeException), or scrape-server HikariPool exhaustion at the run time; CrawlSummary status FAILED",
+   "query": "source logs | filter ($l.subsystemname == 'admin-server' || $l.subsystemname == 'front-server') && ($d.message ~ 'Failing URL set' || $d.message ~ 'Failed running create crawl request') | groupby $d.context.tenant_name, $d.context.property_id aggregate count() as n, distinct_count(formatTimestamp($m.timestamp, '%Y-%m-%d')) as days",
+   "outcome_if_true": "\u2192 E3 (chain stop for that property); repeats on consecutive runs = stuck job",
+   "evidence": "~20 properties in 14 days, 1\u20132 days each; 1:1 pairing confirmed; #3228 Salesforce (Hikari) in backtest",
+   "confidence": "high"
+  },
+  {
+   "step": 12,
+   "check": "UI failure: RestExceptionHandler 5xx with $d.context.request_uri ('uri=/api/...') joined by operation_id to FunctionLogger 'invocation of function (X) failed (<Exception>)'; or FunctionLogger 'took N millis' at Warning (N>10 000)",
+   "query": "source logs | filter $l.subsystemname == 'front-server' && $d.logger_name == 'c.e.c.l.f.FunctionLogger' && ($d.message ~ 'failed (' || $d.message ~ 'took') | extract $d.message into $d.fx using regexp(e=/\\((?<fn>[A-Za-z]+\\.[A-Za-z]+)\\) (?<what>took|failed)/) | extract $d.message into $d.fm using regexp(e=/(?<ms>[0-9]+) millis/) | groupby $d.fx.fn:string as fn, $d.fx.what:string as what, $m.severity as sev, $d.error.type aggregate count() as n, distinct_count($d.context.tenant_name) as tenants, max($d.fm.ms:number) as maxms | orderby maxms desc",
+   "outcome_if_true": "took >10\u201360 s or NotFoundException(scan deleted) \u2192 E5; NullPointerException/IllegalArgumentException repeatedly on one uri \u2192 F3 product bug (E5 symptom)",
+   "evidence": "11-02: NPE x35 /api/property-overview (bell media, PagesEnricherStrategy.kt:42) = F3; ScanController.list 50 s, checkReportExists 67 s = E5; Scan not found x2 = E5",
+   "confidence": "high (F3 by exception class) / medium (E5 timeout: 502 not logged)"
+  }
+ ],
+ "still_ambiguous": [
+  {
+   "subs": [
+    "C6",
+    "A3",
+    "A2"
+   ],
+   "why": "Seed 200, final URL = seed, filtered 0, no error: identical log inventory (LinkExtractorPlugin logs no link count; no title/DOM size). ~10 jobs in 2 days."
+  },
+  {
+   "subs": [
+    "A1",
+    "A2"
+   ],
+   "why": "Seed 403 at request 1; no challenge marker (cf-ray/title) logged. 503/202 only a weak lean to A2."
+  },
+  {
+   "subs": [
+    "C1",
+    "C2"
+   ],
+   "why": "Same reason text 'final url not included in whitelist' for domain whitelist and include regex; separable only by comparing host with the 'allowed domains' line; include regex not logged in clear (config dump holds credentials)."
+  },
+  {
+   "subs": [
+    "E3",
+    "E1"
+   ],
+   "why": "'Failed running create crawl request' wraps 'Job failed due to timeout/failure' with no underlying cause; only cross-tenant count per hour separates them."
+  },
+  {
+   "subs": [
+    "E5",
+    "F3"
+   ],
+   "why": "front-server does not log the 502/timeout returned to the browser; slow calls are only 'took N millis' Warnings."
+  }
+ ],
+ "logging_gaps": [
+  {
+   "missing_event": "Links extracted per page (LinkExtractorPlugin result)",
+   "needed_for": [
+    "C6",
+    "A3",
+    "A2",
+    "C5"
+   ],
+   "suggested_fields": "url, links_found, links_enqueued, links_dropped_by_reason, has_onclick_nav_elements",
+   "where": "crawl-worker"
+  },
+  {
+   "missing_event": "Page title / HTML byte size / DOM node count of each visited page",
+   "needed_for": [
+    "A2",
+    "A3",
+    "C6"
+   ],
+   "suggested_fields": "url, title (truncated), html_bytes, dom_nodes, has_captcha_iframe",
+   "where": "crawl-worker, scan-worker"
+  },
+  {
+   "missing_event": "Which whitelist rule rejected a URL",
+   "needed_for": [
+    "C1",
+    "C2"
+   ],
+   "suggested_fields": "reason=domain|include_regex|language, matched_against (allowed domains / regex id), url, host",
+   "where": "crawl-worker"
+  },
+  {
+   "missing_event": "Include/exclude regexes and page cap in a credential-free line",
+   "needed_for": [
+    "C1",
+    "C3",
+    "C7"
+   ],
+   "suggested_fields": "include_regex, exclude_regex, max_pages, ignore_fragments, language_whitelist",
+   "where": "crawl-worker (start of job)"
+  },
+  {
+   "missing_event": "Progress counter for 0-visit crawls / CrawlSummary reason",
+   "needed_for": [
+    "C1",
+    "C2",
+    "C4",
+    "B2"
+   ],
+   "suggested_fields": "CrawlSummary: visited, failed, filtered, top_filter_reason, seed_final_url, failure_reason",
+   "where": "admin-server/front-server METRIC_EVENT"
+  },
+  {
+   "missing_event": "Cause behind 'Job failed due to timeout/failure'",
+   "needed_for": [
+    "E3",
+    "E1"
+   ],
+   "suggested_fields": "previous job id, last state, k8s job status, age",
+   "where": "front-server/admin-server JobService"
+  },
+  {
+   "missing_event": "HTTP status returned to browser for API calls (502/504 from gateway)",
+   "needed_for": [
+    "E5",
+    "F3"
+   ],
+   "suggested_fields": "request_uri, status, latency, tenant",
+   "where": "ingress / front-server access log"
+  }
+ ],
+ "examples": [
+  {
+   "job": "9020c59c-323f-479e-9e8d-ac83d35f0f3e",
+   "host": "www.xfinity.com/nowtv + www.stg.xfinity.com/now",
+   "true_or_likely_sub": "C1 (seed 2 rejected though host in allowed domains)",
+   "timeline_summary": "10-25 10:01:52 start \u2192 allowed domains {xfinity.com,stg.xfinity.com} \u2192 seed1 200, visited 1 \u2192 seed2 200 'final url not included in whitelist' \u2192 summary visited 1/failed 0/filtered 1, 22 s"
+  },
+  {
+   "job": "38641e94-650a-4939-b853-26768bdc8997",
+   "host": "kentucky.comcast.com",
+   "true_or_likely_sub": "C2",
+   "timeline_summary": "allowed {kentucky.comcast.com}; seed \u2192 corporate.comcast.com/stories/local/kentucky/ 200 \u2192 whitelist reject \u2192 visited 0 filtered 1; CrawlSummary DONE totalUrlsCount 0 (13 sibling state sites identical)"
+  },
+  {
+   "job": "7c6bdd4b-9ce6-4d9a-851b-2ec6aaa49c74",
+   "host": "wowtv.de (property 'with Reggex')",
+   "true_or_likely_sub": "A7 (geo /unavailable) masquerading as C1",
+   "timeline_summary": "6 seeds all 200 \u2192 final www.wowtv.de/unavailable \u2192 6 whitelist rejects \u2192 visited 0"
+  },
+  {
+   "job": "cd4a3e61-4f9e-43b8-8960-a36ca8788754",
+   "host": "design.comcast.com",
+   "true_or_likely_sub": "C6 or A3 (ambiguous)",
+   "timeline_summary": "200, final = seed, LinkExtractorPlugin 0.1 s, visited 1 filtered 0, no warnings"
+  },
+  {
+   "job": "09612af4-64ef-4f49-aa86-f3a29dce8fde",
+   "host": "www.vistaprint.fr",
+   "true_or_likely_sub": "page cap = 1 (config)",
+   "timeline_summary": "visited 1, 24 'max number of successful visits was reached'"
+  },
+  {
+   "job": "20d239ee-7681-41ab-9002-1fc062ff73ac",
+   "host": "cportal.jazz-fusion.net",
+   "true_or_likely_sub": "B2/B3 login failure",
+   "timeline_summary": "typing #login_txtUsername \u2192 #login_txtPassword \u2192 click #login_btnLogin \u2192 final URL still #/login \u2192 visited 1, no error line"
+  },
+  {
+   "job": "b1af4368-8a85-4daa-9265-a4591c893cbc",
+   "host": "developer.salesforce.com",
+   "true_or_likely_sub": "C3",
+   "timeline_summary": "HTTP-mode crawl 10.8 h, 'crawling page. visited 83320 pages so far', 129,745 blacklist rejects of 130k scraped, CrawlSummary FAILED totalUrlsCount 0"
+  },
+  {
+   "job": "2c393dc2-6d20-47cf-a25d-f27ed9f03645",
+   "host": "www.sainsburys.co.uk",
+   "true_or_likely_sub": "A1/A2",
+   "timeline_summary": "seed 403 at request 1, nothing else"
+  },
+  {
+   "job": "urlset 90761041 (front-server)",
+   "host": "capitalone-sdk-testing",
+   "true_or_likely_sub": "E3",
+   "timeline_summary": "10-28 10:01:14 'Failing URL set \u2026 due to job timeout/failure' + 'Failed running create crawl request' (RuntimeException), no worker activity, 3 tenants that hour (baseline)"
+  },
+  {
+   "job": "front-server op fc83e8939b90",
+   "host": "bell media",
+   "true_or_likely_sub": "F3 (E5 symptom)",
+   "timeline_summary": "PropertyOverviewController.list failed (NullPointerException) after 297 ms \u2192 RestExceptionHandler 5xx uri=/api/property-overview, x35/day"
+  }
+ ]
+}

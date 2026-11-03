@@ -64,6 +64,12 @@ code,.mono{font-family:var(--f-mono);font-size:12px}
 .next{font-size:13px;color:var(--muted)}
 .cat details{border-bottom:1px solid var(--line)} .cat summary{cursor:pointer;padding:7px 0;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13.5px}
 .cat .body{padding:2px 0 12px 12px;font-size:13px}
+button.seg{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:6px;padding:4px 10px;cursor:pointer}
+button.seg[aria-pressed="true"]{background:var(--accent-soft);color:var(--fg);border-color:var(--accent)}
+.quote{margin:10px 0;padding:8px 14px;border-left:3px solid var(--line);color:var(--muted);font-style:italic;max-width:80ch}
+.rulegrp{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:8px 0}
+.rulegrp>summary{cursor:pointer}
+#gapdoc table{margin:6px 0}
 button.copy{font:inherit;font-size:11.5px;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:4px;padding:1px 8px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
@@ -75,9 +81,25 @@ button.copy{font:inherit;font-size:11.5px;border:1px solid var(--line);backgroun
   <div class="kpis" id="kpis"></div>
 </header>
 <nav class="toc" aria-label="Sections">
-  <a href="#compare">Two views compared</a><a href="#data">Is it data-driven?</a><a href="#logtree">Log tree</a>
-  <a href="#crosswalk">Crosswalk</a><a href="#backtest">Back-test</a><a href="#catalog">Signature catalog</a><a href="#gaps">Gaps &amp; next steps</a><a href="#method">Method</a>
+  <a href="#claim">Your summary, checked</a><a href="#compare">Two views compared</a><a href="#data">Is it data-driven?</a><a href="#logtree">Log tree</a>
+  <a href="#heatmap">Ticket heatmap</a><a href="#crosswalk">What logs can detect</a><a href="#backtest">Back-test</a><a href="#catalog">Signature catalog</a><a href="#gaps">Backend gaps</a><a href="#method">Method</a>
 </nav>
+
+<section id="claim">
+  <h2>Your summary, checked</h2>
+  <blockquote class="quote">“I found that different alert types can be manifested due to similar issues. For example a ‘MFA / 2FA blocks login’ issue caused 3 X ‘0 pages’ issues, one ‘crawl irregularity’ issue, and one other issue. A ‘Login / interaction selector mismatch’ caused 5 X ‘0 pages’ issues as expected, but also a ‘crawl irregularity’ issue. Same goes for almost every cause. Therefore I suggest changing to a data-driven classification of issues rather than a topic-based classification.”</blockquote>
+  <div class="tbl"><table>
+    <tr><th>Claim</th><th>Verdict</th><th>Evidence</th></tr>
+    <tr><td>MFA / 2FA (B1): 3 × “0 pages”, 1 × crawl irregularity, 1 × other</td><td><span class="chip ok">correct</span></td><td>5 tickets: #391, #1119, #2167 (0 pages), #3241 (crawl irregularity), #2946 (other). Note: #3241 was flagged by its reader as likely misfiled (a login failure, not a crawl irregularity).</td></tr>
+    <tr><td>Selector mismatch (B2): 5 × “0 pages”, 1 × crawl irregularity</td><td><span class="chip ok">correct</span></td><td>6 tickets: #243, #1324, #2132, #2371, #3198 (0 pages), #2143 (crawl irregularity).</td></tr>
+    <tr><td>“Same goes for almost every cause”</td><td><span class="chip part">overstated</span></td><td>Across all 42 causes it is half (21). For the crawl/scan/platform causes (families A–E) it is 19 of 29, and 14 of the 16 that have at least 4 tickets. 81% of A–E tickets (113 of 139) belong to a cause that appears under more than one category. “Most causes with enough tickets” is accurate.</td></tr>
+    <tr><td>“Alert types”</td><td><span class="chip part">wording</span></td><td>The GT classes are ticket categories (the symptom the customer reported), not alerts. No log alerts exist yet.</td></tr>
+    <tr><td>“Data-driven rather than topic-based”</td><td><span class="chip part">reframe</span></td><td>The contrast your evidence supports is <b>cause-based vs symptom-based</b>. The GT classes are not topics; they describe what the customer saw. The root-cause tree is grounded in evidence but structured by hand (κ 0.70, see below), so calling it “data-driven” overstates it. What makes the classification data-driven is assigning the cause from logs, which is what the log tree does.</td></tr>
+  </table></div>
+  <h3>Suggested wording</h3>
+  <div class="q" style="font-family:var(--f-body);font-size:13.5px;white-space:normal" id="rewrite">What I found from the ticket root-cause analysis: the same cause shows up under different ticket categories. For example, “MFA / 2FA blocks login” accounts for 5 tickets: 3 filed as “0 pages”, 1 as “crawl irregularity” and 1 as “Other”. “Login / interaction selector mismatch” accounts for 6: 5 filed as “0 pages”, as expected, and 1 as “crawl irregularity”. This holds for most causes with more than a few tickets: 81% of crawl, scan and platform tickets belong to a cause that appears under more than one category. I therefore suggest classifying issues by root cause (mechanism and fix) rather than by the symptom the customer reported, keeping the symptom as a secondary attribute, and assigning the cause from log evidence, which makes the classification data-driven.</div>
+  <button type="button" class="copy" data-q-from="rewrite">Copy suggested wording</button>
+</section>
 
 <section id="compare">
   <h2>Root-cause tree vs GT symptom classes</h2>
@@ -123,10 +145,25 @@ button.copy{font:inherit;font-size:11.5px;border:1px solid var(--line);backgroun
   <div class="lt" id="lt"></div>
 </section>
 
+<section id="heatmap">
+  <h2>Ticket heatmap in the log tree</h2>
+  <p>Every ticket placed at the log-tree node where its sub-issue <i>shows up</i> in the logs (its primary leaf; for example, “static IP not enabled” shows up as a 403 block). Rows are stages and symptoms; columns switch between the GT symptom class and the root-cause family.</p>
+  <div role="group" aria-label="Columns" style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
+    <button type="button" class="seg" id="hm-gt" aria-pressed="true">Columns: GT class</button>
+    <button type="button" class="seg" id="hm-fam" aria-pressed="false">Columns: root-cause family</button>
+  </div>
+  <div class="tbl"><table class="heat" id="hm"></table></div>
+  <p class="small muted">Shading = share of all 279 tickets. Half of the tickets (139) sit in S8 “no trace in the logs” — mostly UI, findings and account topics. Of the 140 that leave a trace, the biggest groups are S3 “site did not serve the pages” (35) and S4 “login” (32).</p>
+</section>
+
 <section id="crosswalk">
-  <h2>Crosswalk: root-cause sub-issue → log visibility</h2>
-  <p>For each sub-issue of the root-cause tree: which log-tree patterns point to it, and how well logs can identify it. <b>Pinpointed</b> = at least one pattern points only to this sub-issue. <b>Shared</b> = visible, but every pattern also points elsewhere (needs a second check). <b>Silent</b> = no log pattern today.</p>
-  <div class="tbl"><table id="cw"></table></div>
+  <h2>What the logs can detect</h2>
+  <p>Each root-cause sub-issue graded by hand after the disambiguation research. Four grades: <b>Detectable</b> (one log signal identifies it), <b>Separable with a rule</b> (it shares signals with look-alikes, but a combination of logs or the order of events in one job separates it), <b>Still ambiguous</b> (a rule narrows it to 2–3 candidates) and <b>Invisible</b> (nothing in today’s logs).</p>
+  <div class="kpis" id="detk"></div>
+  <div id="detlists"></div>
+  <h3>How combinations and timelines pinpoint the look-alikes</h3>
+  <p>Three investigations, run on production jobs from 2026-10-27 to 11-03 and on the back-test tickets. Each gives an ordered decision procedure for one job; every step has a working query in <code>data/logs/disambig_*.json</code>.</p>
+  <div id="rules"></div>
 </section>
 
 <section id="backtest">
@@ -143,19 +180,9 @@ button.copy{font:inherit;font-size:11.5px;border:1px solid var(--line);backgroun
 </section>
 
 <section id="gaps">
-  <h2>Gaps and next steps</h2>
-  <h3>Sub-issues the logs cannot see today, and the log line that would fix it</h3>
-  <div class="tbl"><table>
-    <tr><th>Sub-issue</th><th>Why it is invisible</th><th>Suggested logging change</th></tr>
-    <tr><td><span class="sid">A3</span> soft block, <span class="sid">A2</span> challenge page</td><td>Block pages return 200; page title and DOM size are not logged.</td><td>Log page title, DOM element count and a content hash per visited page; flag known challenge titles.</td></tr>
-    <tr><td><span class="sid">A4</span> static IP not enabled</td><td>Egress IP / use-static-ip flag not logged.</td><td>Log the resolved use-static-ip value and egress pool at job start.</td></tr>
-    <tr><td><span class="sid">A6</span> old user agent</td><td>Logged browser version (Chrome/126) is not the UA sent; the UA is only inside the config dump.</td><td>Log the effective user agent at job start as its own line.</td></tr>
-    <tr><td><span class="sid">A1/A5</span> blocks</td><td>Status lines are INFO and per page; a blocked page is treated as success.</td><td>Emit one WARN per job with counts by document status; mark pages with 4xx/5xx document status as failed.</td></tr>
-    <tr><td><span class="sid">B3</span> stale credentials vs <span class="sid">B5</span> session loss</td><td>No explicit login outcome line.</td><td>Log LOGIN_OK / LOGIN_FAILED(reason, final URL) after the interaction plugin.</td></tr>
-    <tr><td><span class="sid">A9</span> TLS errors</td><td>Browser ignores certificate errors.</td><td>Log certificate errors as warnings even when ignored.</td></tr>
-    <tr><td><span class="sid">E2</span> timezone bug</td><td>Next-run line has no time zone.</td><td>Include the property time zone in the next-run line.</td></tr>
-    <tr><td><span class="sid">F4</span> Jira/ADO</td><td>Integration calls are not logged in these services.</td><td>Log integration call outcome with tenant and target.</td></tr>
-  </table></div>
+  <h2>Logging gaps for the backend team</h2>
+  <p>Events a support engineer would expect to find in the logs but cannot. The same list is in <code>docs/backend_logging_gaps.md</code>, ready to hand over.</p>
+  <div id="gapdoc"></div>
   <h3>Suggested taxonomy changes from the log research</h3>
   <ul>
     <li><b>Add a sub-issue for worker-side engine package failures</b> (ENGINES_PLUGIN_ERROR with ENOENT/ENOTEMPTY/zlib, ~1,000/week): Evinced-side, currently mixed into D2 “engine crash”.</li>
@@ -175,7 +202,7 @@ button.copy{font:inherit;font-size:11.5px;border:1px solid var(--line);backgroun
   <ul>
     <li><b>Tickets:</b> 279 tickets from the “Site Scanner Ticket Classification” sheet; full Zendesk threads including internal notes. Labelled by 9 parallel readers into <span id="nraw"></span> free-text labels, then consolidated by hand into 42 sub-issues / 8 families (<code>scripts/taxonomy.py</code>).</li>
     <li><b>Reproducibility:</b> a separate reader labelled 70 random tickets using only the definitions (no access to the first labels). Both readers are AI models, so agreement measures consistency of the definitions, not correctness.</li>
-    <li><b>Logs:</b> Coralogix (us2), applications site-scanner, admin, front. Four research passes (page-level, access & login, lifecycle & platform, back-test), ~150 queries, windows mostly 2026-10-27 → 11-03; back-test windows May–Oct 2026. Logs before ~June 2026 have a different format and are too thin for back-testing. A fifth pass re-ran every signature query.</li>
+    <li><b>Logs:</b> Coralogix (us2), applications site-scanner, admin, front. Four research passes (page-level, access & login, lifecycle & platform, back-test), a validation pass and three disambiguation passes, ~330 queries, windows mostly 2026-10-27 → 11-03; back-test windows May–Oct 2026. Logs before ~June 2026 have a different format and are too thin for back-testing. A fifth pass re-ran every signature query.</li>
     <li><b>Counts</b> reflect ticket volume (what customers reported), not incident frequency in production.</li>
     <li><b>Files:</b> <code>data/ticket_labels.csv</code>, <code>data/taxonomy.json</code>, <code>data/analysis/agreement.json</code>, <code>data/logs/*.md|json</code>, <code>data/logtree.json</code>, <code>scripts/logtree.py</code>. Raw Zendesk threads are not committed (they contain credentials).</li>
   </ul>
@@ -235,16 +262,37 @@ $('lt').innerHTML=D.lt.tree.map(a=>`<details ${a.id!=='S8'?'open':''}><summary><
     <div>→ ${c.subs.map(subTag).join('')} ${c.sigs.map(s=>`<a class="tag" href="#sig-${s}">${s}</a>`).join('')}</div>
     <div class="next">Next: ${esc(c.next)}</div></div></div>`).join('')}`).join('')}</div></details>`).join('');
 
-// crosswalk
-const inc=subs.filter(s=>s.count>0||true);
-const famOrder='ABCDEFGH';
-let cw='<tr><th>Sub-issue</th><th>Tickets</th><th>Log visibility</th><th>Log-tree patterns</th></tr>';
-for(const s of subs){
-  const L=leaves.filter(l=>l.subs.includes(s.id)); const real=L.filter(l=>l.l1.id!=='S8');
-  const pin=real.some(l=>l.subs.length===1);
-  const vis=real.length===0?'<span class="chip none">silent</span>':pin?'<span class="chip ok">pinpointed</span>':'<span class="chip part">shared</span>';
-  cw+=`<tr><td>${subTag(s.id)} ${esc(s.name)}</td><td class="num">${s.count}</td><td>${vis}</td><td class="small">${real.map(l=>`<span class="tag" title="${esc(l.title)}">${l.id}</span>`).join('')||'<span class="muted">—</span>'}</td></tr>`;}
-$('cw').innerHTML=cw;
+// heatmap
+const LEAF=Object.fromEntries(leaves.map(l=>[l.id,l]));
+function heat(mode){
+  const cols=mode==='gt'?cls:fams.map(f=>f.id);
+  const key=t=>mode==='gt'?t.gt:t.fam;
+  const N=D.tickets.length; const cell=(n)=>`<td class="cell" style="background:color-mix(in srgb, var(--accent) ${Math.min(80,Math.round(n/N*100*6))}%, transparent);${n/N>.08?'color:var(--surface)':''}">${n||'·'}</td>`;
+  let h='<tr><th>Log tree node</th>'+cols.map(c=>mode==='gt'?`<th><span class="gt gt${c}" title="${esc(CL[c])}">${c}</span></th>`:`<th title="${esc(fams.find(f=>f.id===c).name)}">${c}</th>`).join('')+'<th>Total</th></tr>';
+  for(const a of D.lt.tree){
+    const ta=D.tickets.filter(t=>t.leaf.startsWith(a.id+'.'));
+    h+=`<tr style="font-weight:600"><td><span class="sid">${a.id}</span> ${esc(a.title)}</td>`+cols.map(c=>cell(ta.filter(t=>key(t)===c).length)).join('')+`<td class="num">${ta.length}</td></tr>`;
+    for(const b of a.children){const tb=ta.filter(t=>t.leaf.startsWith(b.id)); if(!tb.length) continue;
+      const subsHere=[...new Set(tb.map(t=>t.sub))].sort();
+      h+=`<tr><td style="padding-left:22px"><span class="sid">${b.id}</span> ${esc(b.title)} <span class="small muted">${subsHere.map(subTag).join('')}</span></td>`+cols.map(c=>cell(tb.filter(t=>key(t)===c).length)).join('')+`<td class="num">${tb.length}</td></tr>`;}
+  }
+  $('hm').innerHTML=h; $('hm-gt').setAttribute('aria-pressed',mode==='gt'); $('hm-fam').setAttribute('aria-pressed',mode!=='gt');
+}
+$('hm-gt').onclick=()=>heat('gt'); $('hm-fam').onclick=()=>heat('fam'); heat('gt');
+
+// detectability lists
+const G={detect:['Detectable','ok','One log signal identifies it.'],rule:['Separable with a rule','ok','Shares signals with look-alikes; a combination or timeline rule separates it.'],
+ partial:['Still ambiguous','part','A rule narrows it to 2–3 candidates; residual ambiguity remains.'],invisible:['Invisible','none','No distinguishing trace in today’s logs.']};
+const det=D.det; const sum=g=>det.filter(d=>d.grade===g);
+$('detk').innerHTML=Object.entries(G).map(([g,[n]])=>`<div class="kpi"><b>${sum(g).length} <span style="font-size:13px">sub-issues</span></b><span>${n} · ${sum(g).reduce((a,d)=>a+d.tickets,0)} tickets</span></div>`).join('');
+$('detlists').innerHTML=Object.entries(G).map(([g,[n,c,d]])=>`<h3><span class="chip ${c}">${n}</span> <span class="small muted">${d}</span></h3>
+ <div class="tbl"><table><tr><th>Sub-issue</th><th class="num">Tickets</th><th>${g==='invisible'?'Why':'How it shows in the logs'}</th>${g==='invisible'||g==='detect'?'':'<th>Rule</th>'}<th>${g==='invisible'?'':'Remaining blind spot'}</th></tr>
+ ${sum(g).sort((a,b)=>b.tickets-a.tickets).map(x=>`<tr><td>${subTag(x.id)} ${esc(x.name)}</td><td class="num">${x.tickets}</td><td class="small">${esc(g==='invisible'?x.residual:x.signal)}</td>${g==='invisible'||g==='detect'?'':`<td class="small mono">${esc(x.rules)}</td>`}<td class="small muted">${g==='invisible'?'':esc(x.residual)}</td></tr>`).join('')}</table></div>`).join('');
+const GN={access:'Access blocks: A1 · A2 · A4 · A5 · A6 · D1',login:'Login: B1 · B2 · B3 · B4 · B5 (and A1 on the login page)',discovery_platform:'Near-empty crawls and platform: C1 · C2 · C3 · C5 · C6 · C7 · A2/A3 · E1 · E3 · E5 · F3'};
+$('rules').innerHTML=D.dis.map(g=>`<details class="rulegrp"><summary><b>${esc(GN[g.group]||g.group)}</b> <span class="small muted">${g.rules.length} steps · ${g.still_ambiguous.length} still ambiguous</span></summary>
+ <div class="tbl"><table><tr><th>Step</th><th>Check</th><th>Outcome</th><th>Confidence</th><th>Evidence</th></tr>${g.rules.map(r=>`<tr><td class="num">${esc(r.step)}</td><td class="small">${esc(r.check)}<details><summary class="small" style="cursor:pointer;color:var(--accent)">query</summary><div class="q">${esc(r.query)}</div></details></td><td class="small">${esc(r.outcome_if_true)}</td><td class="small">${esc(r.confidence)}</td><td class="small muted">${esc(r.evidence)}</td></tr>`).join('')}</table></div>
+ <p class="small"><b>Still ambiguous:</b></p><ul class="small">${g.still_ambiguous.map(a=>`<li>${a.subs.map(subTag).join('')} ${esc(a.why)}</li>`).join('')}</ul></details>`).join('');
+$('gapdoc').innerHTML=D.gaps;
 
 // backtest
 $('btk').innerHTML=[[bt.length,'cases (16 tickets)'],[btYes,'clear evidence'],[btPart,'partial evidence'],[bt.filter(b=>b.agrees_with_root_cause==='yes').length,'logs agree with sub-issue']].map(([b,s])=>`<div class="kpi"><b>${b}</b><span>${s}</span></div>`).join('');
@@ -267,7 +315,7 @@ $('cat').innerHTML=Object.entries(areas).map(([k,n])=>`<h3>${n}</h3>`+D.lt.signa
    ${val[s.sig_id]&&val[s.sig_id].note?`<div><b>Validation:</b> ${esc(val[s.sig_id].note)}</div>`:''}
    <div style="display:flex;gap:8px;align-items:center;margin-top:4px"><b>DataPrime</b><button class="copy" type="button" data-q="${esc(q)}">Copy</button></div><div class="q">${esc(q)}</div></div></details>`}).join('')).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button.copy'); if(!b) return;
-  navigator.clipboard.writeText(b.dataset.q).then(()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1500)}).catch(()=>{const q=b.parentElement.nextElementSibling;const r=document.createRange();r.selectNodeContents(q);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);});});
+  navigator.clipboard.writeText(b.dataset.q||document.getElementById(b.dataset.qFrom).textContent).then(()=>{const t0=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=t0,1500)}).catch(()=>{const q=b.dataset.qFrom?document.getElementById(b.dataset.qFrom):b.parentElement.nextElementSibling;const r=document.createRange();r.selectNodeContents(q);const sel=getSelection();sel.removeAllRanges();sel.addRange(r);});});
 document.querySelectorAll('a[href^="#sig-"]').forEach(a=>a.addEventListener('click',()=>{const d=document.getElementById(a.getAttribute('href').slice(1)); if(d) d.open=true;}));
 $('nraw').textContent=D.raw_labels;
 </script>
