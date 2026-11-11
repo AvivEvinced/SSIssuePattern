@@ -1,0 +1,279 @@
+{
+ "source": "Copy of Site Scanner Alert Verification (Google Doc 1kI6p9-zAovPOZpELJlbVOsW4ZLL1qPyB69K7lHK1F_4), reviewed by Kristen Sutherland, last edited 2026-11-10",
+ "b4_section_note": "Most of these are likely due to page load and the multiple interactions retrying. 4/5 examples ran as expected. Zalando used short waits and an unreliable selector.",
+ "rows": [
+  {
+   "n": 1,
+   "pattern": "A2-challenge",
+   "site": "flights.booking.com",
+   "reviewed": true,
+   "se_note": "Config issue"
+  },
+  {
+   "n": 2,
+   "pattern": "A2-challenge",
+   "site": "creditblog.capitalone.ca",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 3,
+   "pattern": "A2-challenge",
+   "site": "resources.dinersclub.com",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 4,
+   "pattern": "A1",
+   "site": "velocity.black",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 5,
+   "pattern": "A1",
+   "site": "www.mettle.co.uk",
+   "reviewed": true,
+   "se_note": "Blocked but not for the majority of pages"
+  },
+  {
+   "n": 6,
+   "pattern": "A1",
+   "site": "www.pulsenetwork.com",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 7,
+   "pattern": "A1",
+   "site": "comcastpreview.runmytests.com",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 8,
+   "pattern": "A1",
+   "site": "www.aavacations.com",
+   "reviewed": true,
+   "se_note": "Blocked but not for the majority of pages"
+  },
+  {
+   "n": 9,
+   "pattern": "A1",
+   "site": "www.lenovo.com",
+   "reviewed": true,
+   "se_note": "N/A Solutions team tenant"
+  },
+  {
+   "n": 10,
+   "pattern": "A1",
+   "site": "www.sky.at",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 11,
+   "pattern": "A1",
+   "site": "www.xumo.com",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 12,
+   "pattern": "A1",
+   "site": "www.zs.com",
+   "reviewed": true,
+   "se_note": "N/A Solutions team tenant"
+  },
+  {
+   "n": 13,
+   "pattern": "A1",
+   "site": "www.deloittedigital.com",
+   "reviewed": true,
+   "se_note": "Unknown, some look potentially blocked but no blatant 403 pages in scan results"
+  },
+  {
+   "n": 14,
+   "pattern": "A1",
+   "site": "forums.xfinity.com",
+   "reviewed": true,
+   "se_note": "Blocked"
+  },
+  {
+   "n": 15,
+   "pattern": "A1",
+   "site": "www.pbs.org",
+   "reviewed": true,
+   "se_note": "N/A Solutions team tenant"
+  },
+  {
+   "n": 16,
+   "pattern": "A4",
+   "site": "www.birth23.org",
+   "reviewed": true,
+   "se_note": "Allowlist or get customer header"
+  },
+  {
+   "n": 17,
+   "pattern": "A4",
+   "site": "www.ctmakeithere.com",
+   "reviewed": true,
+   "se_note": "Allowlist or get customer header"
+  },
+  {
+   "n": 18,
+   "pattern": "A4",
+   "site": "www.ctslrp.org",
+   "reviewed": true,
+   "se_note": "Allowlist or get customer header"
+  },
+  {
+   "n": 19,
+   "pattern": "A4",
+   "site": "ctdigitalarchive.org",
+   "reviewed": true,
+   "se_note": "Allowlist or get customer header"
+  },
+  {
+   "n": 20,
+   "pattern": "B2",
+   "site": "bell.jasperwireless.com",
+   "reviewed": true,
+   "se_note": "0 pages crawled"
+  },
+  {
+   "n": 21,
+   "pattern": "B2",
+   "site": "watch.spectrum.net",
+   "reviewed": true,
+   "se_note": "0 pages crawled"
+  },
+  {
+   "n": 22,
+   "pattern": "B2",
+   "site": "mail3.spectrum.net",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 23,
+   "pattern": "B2",
+   "site": "www.spectrumcommunitysolutions.net",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 24,
+   "pattern": "B2",
+   "site": "ondemand.spectrum.net",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 25,
+   "pattern": "B2",
+   "site": "www.spectrumbusiness.net",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 26,
+   "pattern": "B2",
+   "site": "myaccount.luckymobile.ca",
+   "reviewed": true,
+   "se_note": "0 pages crawled"
+  },
+  {
+   "n": 27,
+   "pattern": "B2",
+   "site": "business.sky.com",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 28,
+   "pattern": "B2",
+   "site": "help.nowtv.com",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 29,
+   "pattern": "B2",
+   "site": "www.skymedia.de",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 30,
+   "pattern": "B2",
+   "site": "demo-my.cigna.com",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 31,
+   "pattern": "B2",
+   "site": "my.cigna.com",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 32,
+   "pattern": "B2",
+   "site": "app.kiddom.co",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 33,
+   "pattern": "B2",
+   "site": "keystone-catshell.sit.spa.paas.pnf.banksvcs.net",
+   "reviewed": false,
+   "se_note": null
+  },
+  {
+   "n": 34,
+   "pattern": "B2",
+   "site": "ops.astraloutofhome.com",
+   "reviewed": true,
+   "se_note": "2 pages found, likely a logout issue."
+  },
+  {
+   "n": 35,
+   "pattern": "B4",
+   "site": "accounts.zalando.com",
+   "reviewed": true,
+   "se_note": "Timeout and selector issue"
+  },
+  {
+   "n": 36,
+   "pattern": "B4",
+   "site": "accounts.zalando.com",
+   "reviewed": true,
+   "se_note": "Selector issue"
+  },
+  {
+   "n": 37,
+   "pattern": "B4",
+   "site": "snr.bell.ca",
+   "reviewed": true,
+   "se_note": "No issue"
+  },
+  {
+   "n": 38,
+   "pattern": "B4",
+   "site": "snr.bell.ca",
+   "reviewed": true,
+   "se_note": "No issue"
+  },
+  {
+   "n": 39,
+   "pattern": "B4",
+   "site": "identification.bell.ca",
+   "reviewed": true,
+   "se_note": "No issue"
+  }
+ ]
+}
