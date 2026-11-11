@@ -94,7 +94,7 @@
   "name": "WAF / firewall hard block",
   "tickets": 13,
   "grade": "rule",
-  "signal": "403/405 share \u2265 50%; onset at request 1\u20133 (deny list) vs after N 200s never recovering (reputation trip); OPEN_PAGE_TIMEOUT share \u2265 80% at a flat plateau (tarpit).",
+  "signal": "403/405 share > 60% of the SCAN's page results (crawl statuses alone over-count: SE review 2026-11-10 found 2 runs at 76\u201391% crawl share that were 'blocked but not for the majority of pages', and a 58% run was unclear); onset at request 1\u20133 (deny list) vs after N 200s never recovering (reputation trip); OPEN_PAGE_TIMEOUT share \u2265 80% at a flat plateau (tarpit). Exclude internal tenants (Evinced Demo Account). Validated: 11 of 12 customer runs were real issues.",
   "rules": "access R4, R6",
   "residual": "vs A2-Cloudflare, vs A4 when the flag is on but wrong IPs allowlisted."
  },
@@ -103,7 +103,7 @@
   "name": "Static egress IP not enabled",
   "tickets": 5,
   "grade": "rule",
-  "signal": "admin-server request body useStaticIp=false for the job (id = k8s job name) or job on a non '*-pool-stat*' node pool, combined with a block.",
+  "signal": "admin-server request body useStaticIp=false for the job (id = k8s job name) or job on a non '*-pool-stat*' node pool, combined with a block that has per-page statuses (fast-tier crawls log none and must be excluded). Use as a tag on the A1 alert. SE review 2026-11-10: 4 of 4 real; fix = allowlist or a customer header.",
   "rules": "access R1",
   "residual": "Flag on but customer allowlisted other IPs: egress IP not logged."
  },
@@ -166,9 +166,9 @@
   "name": "Multi-step / custom login flow needs configuration",
   "tickets": 15,
   "grade": "partial",
-  "signal": "Partial step sequence: username typed, then the Continue/next step fails on the identity provider.",
+  "signal": "Partial step sequence: username typed, then the Continue/next step fails on the identity provider \u2014 AND the job ends with 0 pages visited (or every login attempt in the job fails). SE review 2026-11-10: 3 of 5 runs that matched the step pattern but still visited pages were retries that recovered (no issue); the 2 real cases were selector/timeout problems.",
   "rules": "login R4",
-  "residual": "Cannot separate 'element missing' from 'element not yet rendered' (needs DOM/screenshot); 300000 ms cap is not specific."
+  "residual": "Cannot separate 'element missing' from 'element not yet rendered' (needs DOM/screenshot); 300000 ms cap is not specific; real cases overlap B2."
  },
  {
   "id": "C2",
